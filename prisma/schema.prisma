@@ -1,0 +1,343 @@
+//*
+// * @file schema.prisma
+// * @description Database schema for the IT Management System.
+// * Defines all models for asset tracking, location management,
+// * employee management, stock room, and user authentication.
+ 
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════════
+
+// User roles for access control 
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+// Current status of an asset in the system 
+enum AssetStatus {
+  AVAILABLE
+  DEPLOYED
+  MAINTENANCE
+  RETIRED
+  DISPOSED
+}
+
+// Physical condition of an asset 
+enum Condition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  DEFECTIVE
+}
+
+// Type classification for rooms within buildings 
+enum RoomType {
+  OFFICE
+  COMLAB
+  CLASSROOM
+  SERVER_ROOM
+  STORAGE
+  CLINIC
+  OTHER
+}
+
+// Honorific title for employees 
+enum Title {
+  DR
+  MR
+  MS
+  PROF
+}
+
+// Type of stock transaction for audit trail 
+enum TransactionType {
+  IN
+  OUT
+  ADJUSTMENT
+  RETURN
+}
+
+// ═══════════════════════════════════════════════════════════════
+// USER & AUTHENTICATION
+// ═══════════════════════════════════════════════════════════════
+
+// User model for IT department staff who manage the system 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed password
+  name      String
+  role      Role     @default(MEMBER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations — tracks which IT staff performed assignments and stock transactions 
+  assetAssignments  AssetAssignment[]  @relation("AssignedByUser")
+  stockTransactions StockTransaction[] @relation("PerformedByUser")
+  stockApprovals    StockTransaction[] @relation("ApprovedByUser")
+
+  @@map("users")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ASSET CATEGORIES
+// ═══════════════════════════════════════════════════════════════
+
+// Categories for classifying assets (e.g., PC, Laptop, Monitor, Printer) 
+model AssetCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique  // Display name: "PC", "Laptop", "Monitor"
+  prefix      String   @unique  // Used in auto-tag generation: "PC", "MON", "PRN"
+  description String?           // Optional description of the category
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation — all assets belonging to this category 
+  assets Asset[]
+
+  @@map("asset_categories")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ASSETS — Main tracking entity
+// ═══════════════════════════════════════════════════════════════
+
+// 
+// * Core asset model for tracking individual IT equipment.
+// * Each asset has an auto-generated tag ({PREFIX}-{CATEGORY}-{NUMBER}) and 
+// * can be tracked by MAC address, serial number, or PC number.
+ 
+model Asset {
+  id           String      @id @default(cuid())
+  assetTag     String      @unique  // Auto-generated human-readable tag (format from app config)
+  pcNumber     String?     @unique  // PCs only: C000001 (manual entry)
+  name         String               // Descriptive name: "Dell Latitude 5530"
+  categoryId   String               // FK to AssetCategory
+  category     AssetCategory @relation(fields: [categoryId], references: [id])
+  brand        String?              // Manufacturer: "Dell", "HP", "Lenovo"
+  model        String?              // Model number: "Latitude 5530"
+  serialNumber String?     @unique  // Equipment serial number
+  macAddress   String?              // Network MAC address for PCs/laptops/routers
+  status       AssetStatus @default(AVAILABLE)
+
+  // Hardware specifications (applicable to PCs/laptops) 
+  osInstalled  String?    // Operating system: "Windows 11 Pro"
+  ram          String?    // RAM: "16GB DDR4"
+  storage      String?    // Storage: "512GB SSD"
+  specs        Json?      // Flexible JSON for any additional specs
+
+  // Lifecycle tracking 
+  purchaseDate   DateTime?  // When the asset was purchased
+  warrantyExpiry DateTime?  // When the warranty expires
+  condition      Condition  @default(GOOD)
+  notes          String?    // Free-text notes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations 
+  assignments AssetAssignment[]  // History of who/where this asset was assigned
+  stockItem   StockItem?         // Link if this asset is also a stock item
+
+  @@map("assets")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOCATIONS — Buildings & Rooms
+// ═══════════════════════════════════════════════════════════════
+
+// Physical buildings on campus 
+model Building {
+  id          String   @id @default(cuid())
+  name        String   @unique  // "Building 1", "Male Accommodation"
+  code        String   @unique  // Short code: "B1", "MA", "FL"
+  description String?           // Optional details about the building
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation — all rooms within this building 
+  rooms Room[]
+
+  @@map("buildings")
+}
+
+// Rooms within buildings (offices, comlabs, classrooms, etc.) 
+model Room {
+  id         String   @id @default(cuid())
+  name       String            // "Room 101", "ComLab A", "IT Office"
+  roomNumber String?           // Optional room number
+  floor      String?           // Floor level: "1", "2", "Ground"
+  buildingId String            // FK to Building
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  type       RoomType @default(OFFICE)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relation — assets assigned to this room 
+  assignments AssetAssignment[]
+
+  // Ensure room names are unique within a building 
+  @@unique([buildingId, name])
+  @@map("rooms")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DEPARTMENTS
+// ═══════════════════════════════════════════════════════════════
+
+// Organizational departments and colleges 
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique  // "College of Applied Medical Sciences"
+  code      String   @unique  // Short code: "CAMS", "CHIS", "CNS"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation — employees belonging to this department 
+  employees Employee[]
+
+  @@map("departments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMPLOYEES — Asset recipients
+// ═══════════════════════════════════════════════════════════════
+
+// Employees (doctors, professors, staff) who receive IT assets 
+model Employee {
+  id           String     @id @default(cuid())
+  title        Title               // DR, MR, MS, PROF
+  firstName    String               // First name
+  lastName     String               // Last name
+  email        String?    @unique   // Optional email address
+  phone        String?              // Optional phone number
+  departmentId String               // FK to Department
+  department   Department @relation(fields: [departmentId], references: [id])
+  position     String?              // Job title/position
+  isActive     Boolean    @default(true)  // Soft delete flag
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relation — assets assigned to this employee 
+  assignments AssetAssignment[]
+
+  @@map("employees")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ASSET ASSIGNMENTS — Tracking who has what, where
+// ═══════════════════════════════════════════════════════════════
+
+// 
+// * Records each assignment/movement of an asset.
+// * When an asset is assigned to someone or moved to a new location,
+// * a new record is created. When returned, returnedAt is set.
+// * This provides a full history timeline for every asset.
+ 
+model AssetAssignment {
+  id           String    @id @default(cuid())
+  assetId      String               // Which asset was assigned
+  asset        Asset     @relation(fields: [assetId], references: [id])
+  employeeId   String?              // Who received it (nullable — might be room-only)
+  employee     Employee? @relation(fields: [employeeId], references: [id])
+  roomId       String?              // Where it was placed (nullable — might be person-only)
+  room         Room?     @relation(fields: [roomId], references: [id])
+  assignedById String               // Which IT staff member performed the assignment
+  assignedBy   User      @relation("AssignedByUser", fields: [assignedById], references: [id])
+  assignedAt   DateTime  @default(now())  // When it was assigned
+  returnedAt   DateTime?            // When it was returned (null = currently assigned)
+  notes        String?              // Optional notes about the assignment
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Indexes for fast lookups 
+  @@index([assetId])
+  @@index([employeeId])
+  @@index([roomId])
+  @@map("asset_assignments")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STOCK MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+// 
+// * Separate categories for stock room items.
+// * Different from asset categories — stock categories cover
+// * consumables and supplies (Cables, Accessories, Spare Parts).
+ 
+model StockCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique  // "Cables", "Accessories", "Spare Parts"
+  description String?           // Optional description
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation — stock items in this category 
+  stockItems StockItem[]
+
+  @@map("stock_categories")
+}
+
+// 
+// * Individual stock items tracked in the stock room.
+// * Can be consumables (tracked by quantity) or linked to 
+// * individual assets (tracked individually).
+ 
+model StockItem {
+  id          String        @id @default(cuid())
+  assetId     String?       @unique  // Optional link to an individual asset
+  asset       Asset?        @relation(fields: [assetId], references: [id])
+  name        String                 // "Cat6 Cable 1m", "USB Mouse", "Dell Laptop"
+  categoryId  String                 // FK to StockCategory
+  category    StockCategory @relation(fields: [categoryId], references: [id])
+  sku         String?       @unique  // Optional internal SKU code
+  quantity    Int           @default(0)   // Current stock quantity
+  minQuantity Int           @default(5)   // Low-stock alert threshold
+  location    String        @default("Main Stock Room")  // Physical location
+  unit        String        @default("pcs")  // Unit of measure: pcs, meters, boxes
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relation — all transactions for this stock item 
+  transactions StockTransaction[]
+
+  @@map("stock_items")
+}
+
+// 
+// * Audit trail for every stock movement.
+// * Records who took items, when, and which IT staff approved it.
+ 
+model StockTransaction {
+  id                String          @id @default(cuid())
+  stockItemId       String                    // Which stock item was affected
+  stockItem         StockItem       @relation(fields: [stockItemId], references: [id])
+  type              TransactionType           // IN, OUT, RETURN, ADJUSTMENT
+  quantity          Int                       // Amount moved (positive number)
+  performedById     String                    // Which IT staff processed the transaction
+  performedBy       User            @relation("PerformedByUser", fields: [performedById], references: [id])
+  recipientName     String?                   // Who received the item (for OUT transactions)
+  recipientDepartment String?                 // Recipient's department
+  approvedById      String?                   // Who approved (if different from performer)
+  approvedBy        User?           @relation("ApprovedByUser", fields: [approvedById], references: [id])
+  notes             String?                   // Optional transaction notes
+  createdAt         DateTime        @default(now())
+
+  // Index for fast lookups by stock item 
+  @@index([stockItemId])
+  @@map("stock_transactions")
+}
