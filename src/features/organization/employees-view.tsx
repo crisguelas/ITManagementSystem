@@ -12,12 +12,14 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { DepartmentForm } from "@/features/organization/department-form";
+import { EmployeeForm } from "@/features/organization/employee-form";
 
 export const EmployeesView = () => {
   const [departments, setDepartments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
+  const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -79,27 +81,55 @@ export const EmployeesView = () => {
         </CardBody>
       </Card>
       
-      {/* Employee placeholder */}
-      <div className="bg-gradient-to-r from-blue-50 to-white rounded-xl p-6 border border-blue-100 flex items-center justify-between">
-         <div>
-           <h3 className="font-semibold text-blue-900">Manage Staff</h3>
-           <p className="text-sm text-blue-600 mt-1">Register doctors, professors, or administrators to assign them assets directly.</p>
-         </div>
-         <Button variant="outline" leftIcon={<Plus className="w-4 h-4" />}>Add Employee</Button>
+      {/* Employees — register staff for assignments */}
+      <div className="bg-gradient-to-r from-blue-50 to-white rounded-xl p-6 border border-blue-100 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="font-semibold text-blue-900">Manage Staff</h3>
+          <p className="text-sm text-blue-600 mt-1">
+            Register people in a department so you can assign assets to them.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          leftIcon={<Plus className="w-4 h-4" />}
+          onClick={() => setIsEmployeeModalOpen(true)}
+        >
+          Add Employee
+        </Button>
       </div>
 
-      <Modal 
-        isOpen={isDeptModalOpen} 
+      <Modal
+        isOpen={isDeptModalOpen}
         onClose={() => setIsDeptModalOpen(false)}
         title="Add Department"
         description="Create an organization branch or academic college."
       >
-        <DepartmentForm 
-          onSuccess={() => { setIsDeptModalOpen(false); fetchData(); }}
+        <DepartmentForm
+          onSuccess={() => {
+            setIsDeptModalOpen(false);
+            fetchData();
+          }}
           onCancel={() => setIsDeptModalOpen(false)}
         />
       </Modal>
 
+      <Modal
+        isOpen={isEmployeeModalOpen}
+        onClose={() => setIsEmployeeModalOpen(false)}
+        title="Add Employee"
+        description="Creates an organization record (not an ITMS login). At least one department must exist."
+        size="md"
+      >
+        <EmployeeForm
+          departments={departments.map((d) => ({ id: d.id, name: d.name, code: d.code }))}
+          onSuccess={() => {
+            setIsEmployeeModalOpen(false);
+            fetchData();
+          }}
+          onCancel={() => setIsEmployeeModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 };

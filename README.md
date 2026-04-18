@@ -21,7 +21,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ### Locations & people
 - **Buildings & rooms** — Campus or office structure; register buildings and **rooms** under **Organization → Places** (room form posts to `/api/rooms`)
 - **Departments** — Organizational units
-- **Employees** — Names, titles, departments, contact info
+- **Employees** — Names, titles, departments, contact info; add staff from **Organization → People** (**Add Employee** → `POST /api/employees`)
 
 ### Stock room
 - **Stock categories & items** — Quantities, low-stock thresholds

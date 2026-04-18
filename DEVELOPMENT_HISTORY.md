@@ -117,6 +117,7 @@
 - **Vercel / Prisma** — `package.json` runs `prisma generate` in **`postinstall`** and before **`next build`**, so hosted builds do not fail with an outdated Prisma Client when dependencies are restored from cache.
 - **Asset categories route** — New dashboard page **`/categories`** with `CategoriesView` + `CategoryForm` (uses existing `GET`/`POST /api/assets/categories`). Fixes sidebar link that previously returned 404.
 - **Organization — rooms** — `RoomForm` + modal from **Register Room** on **Organization → Places**; `roomSchema` updated so `type` is explicit for forms/API alignment.
+- **Organization — employees** — `EmployeeForm` + modal from **Add Employee** on **Organization → People**; `employeeSchema.title` made explicit (no Zod default) for form typing; posts to **`POST /api/employees`**.
 - **Settings & IT staff users (admin-only)** — `settings/layout.tsx` gates all `/settings/*` routes to `ADMIN`. **`/settings`** hub and **`/settings/users`** for listing users, **Add user**, role (`ADMIN`/`MEMBER`), active flag; APIs `GET`/`POST /api/users`, `PATCH /api/users/[id]`; `user.service.ts` prevents demoting or deactivating the last active administrator. Sidebar **Settings** uses `adminOnly` + `isAdmin` from the dashboard layout. First admin remains from **`db:seed`**.
 
 ---
