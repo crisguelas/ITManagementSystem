@@ -23,7 +23,7 @@ export const roomSchema = z.object({
   roomNumber: z.string().optional(),
   floor: z.string().optional(),
   buildingId: z.string().min(1, "Please select a building"),
-  type: z.nativeEnum(RoomType).default(RoomType.OFFICE),
+  type: z.nativeEnum(RoomType),
 });
 export type RoomFormValues = z.infer<typeof roomSchema>;
 

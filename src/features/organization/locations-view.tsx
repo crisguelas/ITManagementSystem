@@ -13,12 +13,14 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { BuildingForm } from "@/features/organization/building-form";
+import { RoomForm } from "@/features/organization/room-form";
 
 export const LocationsView = () => {
   const [buildings, setBuildings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -80,27 +82,55 @@ export const LocationsView = () => {
         </CardBody>
       </Card>
       
-      {/* Rooms placeholder (since we are focusing on scaffolding the layout quickly) */}
-      <div className="bg-gradient-to-r from-primary-50 to-white rounded-xl p-6 border border-primary-100 flex items-center justify-between">
-         <div>
-           <h3 className="font-semibold text-primary-900">Manage Rooms</h3>
-           <p className="text-sm text-primary-600 mt-1">Add internal layout data tracking offices and labs.</p>
-         </div>
-         <Button variant="outline" leftIcon={<Plus className="w-4 h-4" />}>Register Room</Button>
+      {/* Rooms — register under a building */}
+      <div className="bg-gradient-to-r from-primary-50 to-white rounded-xl p-6 border border-primary-100 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="font-semibold text-primary-900">Manage Rooms</h3>
+          <p className="text-sm text-primary-600 mt-1">
+            Add offices, labs, and other spaces under a building for asset assignments.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          leftIcon={<Plus className="w-4 h-4" />}
+          onClick={() => setIsRoomModalOpen(true)}
+        >
+          Register Room
+        </Button>
       </div>
 
-      <Modal 
-        isOpen={isBuildingModalOpen} 
+      <Modal
+        isOpen={isBuildingModalOpen}
         onClose={() => setIsBuildingModalOpen(false)}
         title="Add New Building"
         description="Register a physical building to the system."
       >
-        <BuildingForm 
-          onSuccess={() => { setIsBuildingModalOpen(false); fetchData(); }}
+        <BuildingForm
+          onSuccess={() => {
+            setIsBuildingModalOpen(false);
+            fetchData();
+          }}
           onCancel={() => setIsBuildingModalOpen(false)}
         />
       </Modal>
 
+      <Modal
+        isOpen={isRoomModalOpen}
+        onClose={() => setIsRoomModalOpen(false)}
+        title="Register Room"
+        description="Rooms must belong to an existing building. The room name must be unique within that building."
+        size="md"
+      >
+        <RoomForm
+          buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code }))}
+          onSuccess={() => {
+            setIsRoomModalOpen(false);
+            fetchData();
+          }}
+          onCancel={() => setIsRoomModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 };

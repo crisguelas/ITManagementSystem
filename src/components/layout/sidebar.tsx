@@ -46,7 +46,12 @@ const ICON_MAP: Record<string, React.ElementType> = {
 /* COMPONENT                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
 
-export const Sidebar = () => {
+interface SidebarProps {
+  /** When false, items marked `adminOnly` in NAV_ITEMS are hidden */
+  isAdmin?: boolean;
+}
+
+export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
@@ -103,7 +108,12 @@ export const Sidebar = () => {
       {/* Sidebar Navigation */}
       <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
         <nav className="px-3 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => {
+            if ("adminOnly" in item && item.adminOnly) {
+              return isAdmin;
+            }
+            return true;
+          }).map((item) => {
             const Icon = ICON_MAP[item.icon];
             const isActive = isItemActive(item);
             const hasChildren = "children" in item && item.children && item.children.length > 0;

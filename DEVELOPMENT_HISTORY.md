@@ -7,7 +7,7 @@
 
 ## Planning Phase — April 18, 2026
 
-- Gathered requirements from IT department team (4 members)
+- Gathered requirements from IT department team
 - Defined scope: asset tracking, stock management, location management, employee management, reporting
 - Selected tech stack: Next.js 15+, TypeScript, Prisma, Neon PostgreSQL, Tailwind CSS v4
 - Designed database schema with 12 models covering all tracking needs
@@ -66,6 +66,7 @@
 - Developed Centralized `/organization` UI Module with Dynamic Tabbing.
 - Created Backend Data Services with unique restriction safeguards (`organization.service.ts`).
 - Created React Hook Forms driven by Zod for Buildings and Departments.
+- **Rooms UI** — Incremental: `RoomForm` + modal wired to **`POST /api/rooms`** from **Organization → Places** (Register Room).
 - Passed full rigorous `npx tsc --noEmit` and internal compilation testing suite.
 
 ---
@@ -106,6 +107,17 @@
 ---
 
 ## Phase 8: Reporting (PDF + Excel) — (Current)
+
+---
+
+## Incremental delivery — April 18, 2026
+
+*(Features and fixes shipped after the initial GitHub push; see commit history for details.)*
+
+- **Vercel / Prisma** — `package.json` runs `prisma generate` in **`postinstall`** and before **`next build`**, so hosted builds do not fail with an outdated Prisma Client when dependencies are restored from cache.
+- **Asset categories route** — New dashboard page **`/categories`** with `CategoriesView` + `CategoryForm` (uses existing `GET`/`POST /api/assets/categories`). Fixes sidebar link that previously returned 404.
+- **Organization — rooms** — `RoomForm` + modal from **Register Room** on **Organization → Places**; `roomSchema` updated so `type` is explicit for forms/API alignment.
+- **Settings & IT staff users (admin-only)** — `settings/layout.tsx` gates all `/settings/*` routes to `ADMIN`. **`/settings`** hub and **`/settings/users`** for listing users, **Add user**, role (`ADMIN`/`MEMBER`), active flag; APIs `GET`/`POST /api/users`, `PATCH /api/users/[id]`; `user.service.ts` prevents demoting or deactivating the last active administrator. Sidebar **Settings** uses `adminOnly` + `isAdmin` from the dashboard layout. First admin remains from **`db:seed`**.
 
 ---
 

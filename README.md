@@ -16,10 +16,10 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR codes link to the asset record (by id), specs
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
-- **Categories** — Custom asset categories with tag prefixes
+- **Categories** — Custom asset categories with tag prefixes; dedicated UI at **`/categories`** (sidebar: Assets → Categories) to list and add categories
 
 ### Locations & people
-- **Buildings & rooms** — Campus or office structure
+- **Buildings & rooms** — Campus or office structure; register buildings and **rooms** under **Organization → Places** (room form posts to `/api/rooms`)
 - **Departments** — Organizational units
 - **Employees** — Names, titles, departments, contact info
 
@@ -36,6 +36,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ### Security & access
 - **Roles** — Administrator and Member (extend as needed)
 - **Authentication** — NextAuth.js with hashed passwords
+- **Settings (administrators only)** — Sidebar **Settings** is visible only to users with role `ADMIN`. Under **`/settings`** you can open **User accounts** (`/settings/users`) to add IT staff logins, set roles, and activate/deactivate users (the first admin still comes from `npm run db:seed`)
 - **Audit-oriented** fields on key actions
 
 ---
@@ -158,7 +159,7 @@ prisma/
 
 ## Deployment (overview)
 
-- **Cloud (e.g. Vercel):** connect the repo, set environment variables in the provider dashboard (same variables as above; never paste secrets into public issues).
+- **Cloud (e.g. Vercel):** connect the repo, set environment variables in the provider dashboard (same variables as above; never paste secrets into public issues). The build runs **`prisma generate`** before `next build` (and again after `npm install` via `postinstall`) so Prisma Client is always generated on Vercel’s cached installs.
 - **Self-hosted:** build with `npm run build`, run `npm run start`, protect with HTTPS and a reverse proxy, and keep secrets in environment variables or a secrets manager.
 
 ---
