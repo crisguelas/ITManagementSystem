@@ -284,6 +284,31 @@ import type { Asset, CreateAssetInput } from "@/types";
 
 ---
 
+## Quality gate — new code & end of phase
+
+These checks apply to **human and AI contributors** on every non-trivial change, and again **at the end of each development phase** before the phase is marked complete in `DEVELOPMENT_HISTORY.md`.
+
+### After every meaningful change (new or changed functions, services, API routes, or non-trivial UI logic)
+
+1. **TypeScript (project-wide, strict)** — Run `npx tsc --noEmit` and fix all errors before considering the change done.
+2. **ESLint** — Run `npm run lint`, or narrow with `npx eslint <paths>` while iterating; do not leave new errors in files you touched.
+3. **New or changed API routes** — Confirm Zod validation, consistent `{ success, data | error }` JSON, correct HTTP status codes, and `auth()` / role checks where the project already uses them; **update `README.md` → API routes (summary)** if paths or methods changed.
+
+Doc-only edits (pure Markdown with no code) may skip steps 1–2 unless the editor reports issues.
+
+### End of each development phase (before closing the phase in `DEVELOPMENT_HISTORY.md`)
+
+Add a short **“Phase N quality check — (date)”** subsection under that phase listing what was run and the outcome. At minimum:
+
+- [ ] `npx tsc --noEmit` — pass  
+- [ ] `npm run lint` — pass (or note scoped paths if only part of the tree changed)  
+- [ ] `npm run build` — pass  
+- [ ] **Smoke test** — main user flows introduced in the phase (CRUD, loading / error / empty states, auth where relevant)
+
+This is in addition to the **Testing Checklist (Manual)** below before merge or deployment.
+
+---
+
 ## Testing Checklist (Manual)
 
 Before any merge or deployment, verify:
