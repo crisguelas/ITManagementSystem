@@ -114,14 +114,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          leftIcon
+          /* Icons must not steal pointer events (SVG hit targets in some browsers) */
+          leftIcon && <span className="pointer-events-none inline-flex shrink-0">{leftIcon}</span>
         )}
 
         {/* Render children only if not icon-only size */}
         {size !== "icon" && children}
 
         {/* Show right icon if provided and not loading */}
-        {!isLoading && rightIcon}
+        {!isLoading && rightIcon && (
+          <span className="pointer-events-none inline-flex shrink-0">{rightIcon}</span>
+        )}
       </button>
     );
   }

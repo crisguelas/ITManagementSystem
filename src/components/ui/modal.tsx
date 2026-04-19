@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useLayoutEffect, useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
 /* Third-party imports */
@@ -68,7 +68,8 @@ const Modal = ({
 }: ModalProps) => {
   /* Portal only after mount so `document.body` exists (client-only) */
   const [mounted, setMounted] = useState(false);
-  useEffect(() => {
+  /* useLayoutEffect so `mounted` is true before paint — portal ready when dialog opens */
+  useLayoutEffect(() => {
     setMounted(true);
   }, []);
 

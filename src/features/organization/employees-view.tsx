@@ -42,23 +42,36 @@ export const EmployeesView = () => {
     fetchData();
   }, []);
 
-  if (isLoading) return <SkeletonTable rows={4} />;
-  if (error) return <ErrorState message={error} onRetry={fetchData} />;
+  if (error) {
+    return <ErrorState message={error} onRetry={fetchData} />;
+  }
 
   return (
     <div className="space-y-6">
-      
-      {/* Departments Section */}
+      {/* Departments Section — skeleton only inside card so "Add Employee" is never hidden by loading */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
-           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-             <Users className="w-5 h-5 text-gray-400" />
-             Academic & Admin Departments
-           </h2>
-           <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setIsDeptModalOpen(true)}>Add Department</Button>
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Users className="w-5 h-5 text-gray-400" />
+            Academic & Admin Departments
+          </h2>
+          <Button
+            type="button"
+            size="sm"
+            variant="primary"
+            leftIcon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsDeptModalOpen(true)}
+            disabled={isLoading}
+          >
+            Add Department
+          </Button>
         </CardHeader>
         <CardBody className="p-0">
-          {departments.length === 0 ? (
+          {isLoading ? (
+            <div className="p-4">
+              <SkeletonTable rows={4} />
+            </div>
+          ) : departments.length === 0 ? (
             <div className="p-8 text-center text-gray-500 text-sm">No departments set up yet.</div>
           ) : (
             <table className="w-full text-sm text-left">
@@ -73,7 +86,11 @@ export const EmployeesView = () => {
                 {departments.map((dep) => (
                   <tr key={dep.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-900">{dep.name}</td>
-                    <td className="px-6 py-4"><Badge variant="outline" className="text-blue-700 bg-blue-50 border-blue-200">{dep.code}</Badge></td>
+                    <td className="px-6 py-4">
+                      <Badge variant="outline" className="text-blue-700 bg-blue-50 border-blue-200">
+                        {dep.code}
+                      </Badge>
+                    </td>
                     <td className="px-6 py-4 text-gray-500">{dep._count?.employees || 0} Staff Members</td>
                   </tr>
                 ))}
