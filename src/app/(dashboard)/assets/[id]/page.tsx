@@ -10,7 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 
 /* Third-party imports */
-import { ArrowLeft, Printer, MapPin, User as UserIcon, Monitor, Clock, Tag, PackagePlus } from "lucide-react";
+import { ArrowLeft, Printer, MapPin, User as UserIcon, Monitor, Clock, Tag, PackagePlus, Trash2 } from "lucide-react";
 import { AssetStatus } from "@prisma/client";
 
 /* Local imports */
@@ -19,8 +19,12 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { AssetAssignModal } from "@/features/assets/asset-assign-modal";
+import { AssetForm } from "@/features/assets/asset-form";
 import type { AssetAssignmentWithRelations, AssetWithRelations } from "@/types";
+import type { z } from "zod";
+import { assetSchema } from "@/lib/validations/asset.schema";
 
 export default function AssetDetailsPage() {
   const params = useParams();
@@ -31,9 +35,11 @@ export default function AssetDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   /* Remount assign modal on each open so form and load state reset without sync setState in effects */
   const [assignModalKey, setAssignModalKey] = useState(0);
   const [returnLoading, setReturnLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchAsset = useCallback(async (opts?: { silent?: boolean }) => {
@@ -89,9 +95,50 @@ export default function AssetDetailsPage() {
     }
   };
 
+  /* Deletes the asset after explicit confirmation, then returns to asset list */
+  const handleDelete = async () => {
+    if (!assetId) return;
+
+    const confirmed = window.confirm(
+      `Delete asset ${asset?.assetTag}? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setActionError(null);
+    setDeleteLoading(true);
+
+    try {
+      const res = await fetch(`/api/assets/${assetId}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(typeof json.error === "string" ? json.error : "Delete failed");
+      }
+      router.push("/assets");
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   if (isLoading) return <LoadingSpinner fullScreen />;
   if (error) return <ErrorState message={error} onRetry={fetchAsset} />;
   if (!asset) return null;
+
+  const editFormDefaults: z.input<typeof assetSchema> = {
+    categoryId: asset.categoryId,
+    brand: asset.brand ?? "",
+    model: asset.model ?? "",
+    pcNumber: asset.pcNumber ?? "",
+    macAddress: asset.macAddress ?? "",
+    serialNumber: asset.serialNumber ?? "",
+    osInstalled: asset.osInstalled ?? "",
+    ram: asset.ram ?? "",
+    storage: asset.storage ?? "",
+    status: asset.status,
+  };
 
   /* Open assignment row (at most one should be open per asset lifecycle rules) */
   const activeAssignment = asset.assignments.find(
@@ -182,8 +229,16 @@ export default function AssetDetailsPage() {
                 <Button leftIcon={<Printer className="w-4 h-4" />} variant="outline" onClick={handlePrint}>
                   Print Label
                 </Button>
-                <Button variant="primary">
+                <Button variant="primary" onClick={() => setEditModalOpen(true)}>
                   Edit Asset
+                </Button>
+                <Button
+                  variant="danger"
+                  leftIcon={<Trash2 className="w-4 h-4" />}
+                  isLoading={deleteLoading}
+                  onClick={() => void handleDelete()}
+                >
+                  Delete Asset
                 </Button>
               </div>
             </div>
@@ -363,6 +418,24 @@ export default function AssetDetailsPage() {
         onClose={() => setAssignModalOpen(false)}
         onSuccess={() => void fetchAsset({ silent: true })}
       />
+
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Asset"
+        description="Update asset details and save your changes."
+        size="lg"
+      >
+        <AssetForm
+          assetId={asset.id}
+          initialData={editFormDefaults}
+          onSuccess={() => {
+            setEditModalOpen(false);
+            void fetchAsset({ silent: true });
+          }}
+          onCancel={() => setEditModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 }

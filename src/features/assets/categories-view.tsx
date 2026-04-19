@@ -6,7 +6,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Tags } from "lucide-react";
+import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import type { AssetCategory } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,10 @@ export const CategoriesView = () => {
   const [categories, setCategories] = useState<AssetCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<AssetCategory | null>(null);
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
@@ -42,8 +45,41 @@ export const CategoriesView = () => {
   }, []);
 
   useEffect(() => {
-    void fetchCategories();
+    const t = window.setTimeout(() => {
+      void fetchCategories();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, [fetchCategories]);
+
+  const handleEditOpen = (category: AssetCategory) => {
+    setSelectedCategory(category);
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = async (category: AssetCategory) => {
+    const confirmed = window.confirm(
+      `Delete category ${category.name} (${category.prefix})? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeleteLoadingId(category.id);
+    try {
+      const res = await fetch(`/api/assets/categories/${category.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(
+          typeof json.error === "string" ? json.error : "Failed to delete category"
+        );
+      }
+      await fetchCategories();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to delete category");
+    } finally {
+      setDeleteLoadingId(null);
+    }
+  };
 
   if (isLoading) {
     return <SkeletonTable rows={4} />;
@@ -64,7 +100,7 @@ export const CategoriesView = () => {
             size="sm"
             variant="primary"
             leftIcon={<Plus className="w-4 h-4" />}
-            onClick={() => setModalOpen(true)}
+            onClick={() => setCreateModalOpen(true)}
           >
             Add category
           </Button>
@@ -76,7 +112,7 @@ export const CategoriesView = () => {
                 title="No categories yet"
                 message="Create categories (e.g. PC, Laptop) to classify assets and generate tag prefixes."
                 actionLabel="Add category"
-                onAction={() => setModalOpen(true)}
+                onAction={() => setCreateModalOpen(true)}
               />
             </div>
           ) : (
@@ -86,6 +122,7 @@ export const CategoriesView = () => {
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Tag prefix</th>
                   <th className="px-6 py-3">Description</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -98,6 +135,29 @@ export const CategoriesView = () => {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{c.description || "—"}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          leftIcon={<Pencil className="w-4 h-4" />}
+                          onClick={() => handleEditOpen(c)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          leftIcon={<Trash2 className="w-4 h-4" />}
+                          isLoading={deleteLoadingId === c.id}
+                          onClick={() => void handleDelete(c)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -107,18 +167,45 @@ export const CategoriesView = () => {
       </Card>
 
       <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
         title="Add asset category"
         description="Used for asset tags: {GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}. Prefix must be unique."
         size="md"
       >
         <CategoryForm
           onSuccess={() => {
-            setModalOpen(false);
+            setCreateModalOpen(false);
             void fetchCategories();
           }}
-          onCancel={() => setModalOpen(false)}
+          onCancel={() => setCreateModalOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit asset category"
+        description="Update category information used for asset classification and tag prefixes."
+        size="md"
+      >
+        <CategoryForm
+          key={selectedCategory?.id ?? "edit-category"}
+          categoryId={selectedCategory?.id}
+          initialData={
+            selectedCategory
+              ? {
+                  name: selectedCategory.name,
+                  prefix: selectedCategory.prefix,
+                  description: selectedCategory.description ?? "",
+                }
+              : undefined
+          }
+          onSuccess={() => {
+            setEditModalOpen(false);
+            void fetchCategories();
+          }}
+          onCancel={() => setEditModalOpen(false)}
         />
       </Modal>
     </div>

@@ -46,6 +46,42 @@ export async function createCategory(data: z.infer<typeof categorySchema>) {
   });
 }
 
+export async function updateCategory(id: string, data: z.infer<typeof categorySchema>) {
+  const prefix = data.prefix.toUpperCase();
+
+  const existingCategory = await prisma.assetCategory.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  if (!existingCategory) {
+    throw new Error("Category not found");
+  }
+
+  const conflicting = await prisma.assetCategory.findFirst({
+    where: {
+      id: { not: id },
+      OR: [{ name: data.name }, { prefix }],
+    },
+    select: { id: true, name: true, prefix: true },
+  });
+
+  if (conflicting) {
+    if (conflicting.prefix === prefix) {
+      throw new Error(`Category with prefix "${prefix}" already exists`);
+    }
+    throw new Error(`Category with name "${data.name}" already exists`);
+  }
+
+  return prisma.assetCategory.update({
+    where: { id },
+    data: {
+      ...data,
+      prefix,
+    },
+  });
+}
+
 export async function deleteCategory(id: string) {
   /* Prevent deleting categories that have associated assets */
   const assetCount = await prisma.asset.count({
@@ -164,6 +200,56 @@ export async function createAsset(data: z.infer<typeof assetSchema>) {
       ...data,
       name,
       assetTag,
+    },
+    include: {
+      category: true,
+    },
+  });
+}
+
+export async function updateAsset(id: string, data: z.infer<typeof assetSchema>) {
+  /* Ensure the target asset exists before running unique checks */
+  const existingAsset = await prisma.asset.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+
+  if (!existingAsset) {
+    throw new Error("Asset not found");
+  }
+
+  /* Check unique constraint: pcNumber (if provided), excluding current asset */
+  if (data.pcNumber) {
+    const existingPc = await prisma.asset.findFirst({
+      where: {
+        pcNumber: data.pcNumber,
+        id: { not: id },
+      },
+      select: { id: true },
+    });
+    if (existingPc) throw new Error(`PC Number "${data.pcNumber}" is already in use`);
+  }
+
+  /* Check unique constraint: serialNumber (if provided), excluding current asset */
+  if (data.serialNumber) {
+    const existingSn = await prisma.asset.findFirst({
+      where: {
+        serialNumber: data.serialNumber,
+        id: { not: id },
+      },
+      select: { id: true },
+    });
+    if (existingSn) throw new Error(`Serial Number "${data.serialNumber}" is already in use`);
+  }
+
+  /* Keep display name aligned with brand/model edits */
+  const name = `${data.brand} ${data.model}`.trim();
+
+  return prisma.asset.update({
+    where: { id },
+    data: {
+      ...data,
+      name,
     },
     include: {
       category: true,

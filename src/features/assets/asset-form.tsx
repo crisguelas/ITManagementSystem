@@ -29,14 +29,17 @@ import type { z } from "zod";
 interface AssetFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  assetId?: string;
+  initialData?: z.input<typeof assetSchema>;
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* COMPONENT                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
 
-export const AssetForm = ({ onSuccess, onCancel }: AssetFormProps) => {
+export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFormProps) => {
   const { addToast } = useToast();
+  const isEditMode = Boolean(assetId);
   
   /* State for external data (categories) */
   const [categories, setCategories] = useState<AssetCategory[]>([]);
@@ -65,6 +68,22 @@ export const AssetForm = ({ onSuccess, onCancel }: AssetFormProps) => {
     },
   });
 
+  useEffect(() => {
+    if (!initialData) return;
+    reset({
+      categoryId: initialData.categoryId ?? "",
+      brand: initialData.brand ?? "",
+      model: initialData.model ?? "",
+      pcNumber: initialData.pcNumber ?? "",
+      macAddress: initialData.macAddress ?? "",
+      serialNumber: initialData.serialNumber ?? "",
+      osInstalled: initialData.osInstalled ?? "",
+      ram: initialData.ram ?? "",
+      storage: initialData.storage ?? "",
+      status: initialData.status ?? "AVAILABLE",
+    });
+  }, [initialData, reset]);
+
   /* Fetch categories on mount */
   const fetchCategories = async () => {
     setIsLoadingCategories(true);
@@ -74,22 +93,29 @@ export const AssetForm = ({ onSuccess, onCancel }: AssetFormProps) => {
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Failed to load categories");
       setCategories(json.data);
-    } catch (err: any) {
-      setCategoryError(err.message);
+    } catch (err: unknown) {
+      setCategoryError(err instanceof Error ? err.message : "Failed to load categories");
     } finally {
       setIsLoadingCategories(false);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    /* Defer fetch to avoid sync setState in effect body */
+    const t = window.setTimeout(() => {
+      void fetchCategories();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, []);
 
   /* Form submission handler */
   const onSubmit = async (data: z.input<typeof assetSchema>) => {
     try {
-      const res = await fetch("/api/assets", {
-        method: "POST",
+      const endpoint = isEditMode ? `/api/assets/${assetId}` : "/api/assets";
+      const method = isEditMode ? "PATCH" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -97,21 +123,23 @@ export const AssetForm = ({ onSuccess, onCancel }: AssetFormProps) => {
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to create asset");
+        throw new Error(json.error || (isEditMode ? "Failed to update asset" : "Failed to create asset"));
       }
 
       addToast({
-        title: "Asset Created",
-        message: `${json.data.assetTag} successfully registered`,
+        title: isEditMode ? "Asset Updated" : "Asset Created",
+        message: isEditMode
+          ? `${json.data.assetTag} successfully updated`
+          : `${json.data.assetTag} successfully registered`,
         variant: "success",
       });
 
       reset();
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       addToast({
-        title: "Registration Failed",
-        message: err.message,
+        title: isEditMode ? "Update Failed" : "Registration Failed",
+        message: err instanceof Error ? err.message : "An unexpected error occurred",
         variant: "error",
       });
     }
@@ -237,7 +265,7 @@ export const AssetForm = ({ onSuccess, onCancel }: AssetFormProps) => {
           Cancel
         </Button>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
-          Register Asset
+          {isEditMode ? "Save Changes" : "Register Asset"}
         </Button>
       </div>
 

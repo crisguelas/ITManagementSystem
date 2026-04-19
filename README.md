@@ -149,8 +149,9 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 |---------|------|---------|
 | *(NextAuth)* | `/api/auth/[...nextauth]` | Sign-in, session, callbacks |
 | `GET`, `POST` | `/api/assets` | List / create IT assets |
-| `GET` | `/api/assets/[id]` | Single asset (detail) |
+| `GET`, `PATCH`, `DELETE` | `/api/assets/[id]` | Single asset (detail), update, delete |
 | `GET`, `POST` | `/api/assets/categories` | List / create asset categories (tag prefixes) |
+| `PATCH`, `DELETE` | `/api/assets/categories/[id]` | Update / delete an asset category |
 | `POST` | `/api/assets/[id]/assignments` | Assign asset to employee and/or room |
 | `POST` | `/api/assets/[id]/assignments/return` | Return asset from assignment |
 | `GET`, `POST` | `/api/buildings` | List / create buildings |

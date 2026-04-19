@@ -5,7 +5,8 @@
 
 import { NextResponse } from "next/server";
 
-import { getAssetById } from "@/lib/services/asset.service";
+import { deleteAsset, getAssetById, updateAsset } from "@/lib/services/asset.service";
+import { assetSchema } from "@/lib/validations/asset.schema";
 
 export async function GET(
   request: Request,
@@ -28,6 +29,85 @@ export async function GET(
     console.error("[API_ASSETS_ID_GET]", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch asset details" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+
+    /* Validate update payload with shared Asset schema */
+    const validationResult = assetSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid data", details: validationResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const updatedAsset = await updateAsset(id, validationResult.data);
+    return NextResponse.json({ success: true, data: updatedAsset });
+  } catch (error: unknown) {
+    console.error("[API_ASSETS_ID_PATCH]", error);
+
+    if (error instanceof Error) {
+      if (error.message === "Asset not found") {
+        return NextResponse.json(
+          { success: false, error: "Asset not found" },
+          { status: 404 }
+        );
+      }
+
+      if (error.message.includes("already in use")) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 409 }
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Failed to update asset" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    await deleteAsset(id);
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    console.error("[API_ASSETS_ID_DELETE]", error);
+
+    if (error instanceof Error) {
+      if (error.message.includes("currently assigned")) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 409 }
+        );
+      }
+
+      if (error.message.includes("Record to delete does not exist")) {
+        return NextResponse.json(
+          { success: false, error: "Asset not found" },
+          { status: 404 }
+        );
+      }
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Failed to delete asset" },
       { status: 500 }
     );
   }
