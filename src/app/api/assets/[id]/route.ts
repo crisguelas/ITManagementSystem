@@ -8,6 +8,12 @@ import { NextResponse } from "next/server";
 import { deleteAsset, getAssetById, updateAsset } from "@/lib/services/asset.service";
 import { assetSchema } from "@/lib/validations/asset.schema";
 
+const normalizeOptionalText = (value: unknown) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+};
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -41,9 +47,20 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
+    const normalizedBody = {
+      ...body,
+      pcNumber: normalizeOptionalText(body.pcNumber),
+      serialNumber: normalizeOptionalText(body.serialNumber),
+      macAddress: normalizeOptionalText(body.macAddress),
+      brand: typeof body.brand === "string" ? body.brand.trim() : body.brand,
+      model: typeof body.model === "string" ? body.model.trim() : body.model,
+      osInstalled: normalizeOptionalText(body.osInstalled),
+      ram: normalizeOptionalText(body.ram),
+      storage: normalizeOptionalText(body.storage),
+    };
 
     /* Validate update payload with shared Asset schema */
-    const validationResult = assetSchema.safeParse(body);
+    const validationResult = assetSchema.safeParse(normalizedBody);
     if (!validationResult.success) {
       return NextResponse.json(
         { success: false, error: "Invalid data", details: validationResult.error.flatten() },
