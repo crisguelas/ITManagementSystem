@@ -42,7 +42,10 @@ export const employeeSchema = z.object({
   title: z.nativeEnum(Title),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  /* Allow blank optional email without failing `.email()` (omit or "" from client) */
+  email: z
+    .union([z.literal(""), z.string().email("Invalid email address")])
+    .optional(),
   phone: z.string().optional(),
   departmentId: z.string().min(1, "Please select a department"),
   position: z.string().optional(),

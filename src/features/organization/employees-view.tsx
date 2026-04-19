@@ -3,6 +3,8 @@
  * @description Sub-view managing departments and specific employees.
  */
 
+"use client";
+
 import { useState, useEffect } from "react";
 import { Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -86,7 +88,7 @@ export const EmployeesView = () => {
         <div>
           <h3 className="font-semibold text-blue-900">Manage Staff</h3>
           <p className="text-sm text-blue-600 mt-1">
-            Register people in a department so you can assign assets to them.
+            Register doctors, professors, or administrators to assign them assets directly.
           </p>
         </div>
         <Button

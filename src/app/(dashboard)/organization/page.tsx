@@ -30,6 +30,7 @@ export default function OrganizationPage() {
       {/* Tabs */}
       <div className="flex space-x-1 bg-gray-100/50 p-1 rounded-xl w-full max-w-sm mb-6 border border-gray-200/60">
         <button
+          type="button"
           onClick={() => setActiveTab("places")}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
             activeTab === "places"
@@ -41,6 +42,7 @@ export default function OrganizationPage() {
           Places & Locations
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab("people")}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
             activeTab === "people"

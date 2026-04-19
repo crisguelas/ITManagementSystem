@@ -6,7 +6,8 @@
 
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 
 /* Third-party imports */
 import { X } from "lucide-react";
@@ -65,6 +66,12 @@ const Modal = ({
   showCloseButton = true,
   closeOnOverlay = true,
 }: ModalProps) => {
+  /* Portal only after mount so `document.body` exists (client-only) */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   /* Handle Escape key press to close the modal */
   const handleEscape = useCallback(
     (event: KeyboardEvent) => {
@@ -91,36 +98,33 @@ const Modal = ({
     };
   }, [isOpen, handleEscape]);
 
-  /* Don't render anything if modal is closed */
-  if (!isOpen) return null;
+  /* Don't render anything if modal is closed or SSR before mount */
+  if (!isOpen || !mounted) return null;
 
-  return (
-    /* Overlay — dark semi-transparent background */
+  const dialog = (
+    /* Overlay — portaled to body so dashboard overflow/stacking never traps dialogs */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? "modal-title" : undefined}
     >
       {/* Background overlay — click to close if enabled */}
       <div
-        className="absolute inset-0 bg-black/50 animate-fade-in"
+        className="absolute inset-0 z-0 bg-black/50 animate-fade-in"
         onClick={closeOnOverlay ? onClose : undefined}
         aria-hidden="true"
       />
 
-      {/* Modal content container */}
+      {/* Modal content — above backdrop; stopPropagation avoids accidental close quirks */}
       <div
         className={cn(
-          /* Base styles — centered, white background, rounded */
-          "relative w-full bg-white rounded-xl shadow-xl",
-          /* Animation — scale and fade in */
+          "relative z-10 w-full bg-white rounded-xl shadow-xl",
           "animate-fade-in-up",
-          /* Max height with scrollable content */
           "max-h-[85vh] flex flex-col",
-          /* Apply size-specific max-width */
           SIZE_CLASSES[size]
         )}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header — title, description, and close button */}
         {(title || showCloseButton) && (
@@ -144,6 +148,7 @@ const Modal = ({
             {/* Close button — X icon in top right */}
             {showCloseButton && (
               <button
+                type="button"
                 onClick={onClose}
                 className={cn(
                   "p-1 rounded-lg text-gray-400",
@@ -166,6 +171,8 @@ const Modal = ({
       </div>
     </div>
   );
+
+  return createPortal(dialog, document.body);
 };
 
 export { Modal };
