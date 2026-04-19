@@ -132,6 +132,7 @@ return <DataTable data={data} />;
 
 ### API Routes
 - Use Next.js App Router API routes (`app/api/`)
+- **Canonical route list:** Keep the **API routes (summary)** section in `README.md` updated whenever you add or change a handler under `src/app/api/`.
 - Always validate request bodies with Zod schemas
 - Return consistent JSON response shapes:
   ```typescript

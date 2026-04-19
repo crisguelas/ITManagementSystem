@@ -125,3 +125,9 @@
 ---
 
 ## Deployment — (Pending)
+
+### Suggested next tasks (team)
+
+1. **API hardening** — Session and role checks on all relevant `app/api` routes; document changes in `README.md` (API table).
+2. **Phase 8 — Reporting** — PDF / Excel exports.
+3. **UX follow-up** — Organization / modals after API behavior is final.

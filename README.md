@@ -141,6 +141,42 @@ prisma/
 
 ---
 
+## API routes (summary)
+
+Handlers live under `src/app/api/`. Most responses use **`{ success: true, data }`** or **`{ success: false, error }`**.
+
+| Methods | Path | Purpose |
+|---------|------|---------|
+| *(NextAuth)* | `/api/auth/[...nextauth]` | Sign-in, session, callbacks |
+| `GET`, `POST` | `/api/assets` | List / create IT assets |
+| `GET` | `/api/assets/[id]` | Single asset (detail) |
+| `GET`, `POST` | `/api/assets/categories` | List / create asset categories (tag prefixes) |
+| `POST` | `/api/assets/[id]/assignments` | Assign asset to employee and/or room |
+| `POST` | `/api/assets/[id]/assignments/return` | Return asset from assignment |
+| `GET`, `POST` | `/api/buildings` | List / create buildings |
+| `GET`, `POST` | `/api/rooms` | List / create rooms |
+| `GET`, `POST` | `/api/departments` | List / create departments |
+| `GET`, `POST` | `/api/employees` | List / create organization employees |
+| `GET`, `POST` | `/api/stock-categories` | List / create stock categories |
+| `PATCH`, `DELETE` | `/api/stock-categories/[id]` | Update / delete stock category |
+| `GET`, `POST` | `/api/stock-items` | List / create stock items |
+| `GET`, `PATCH`, `DELETE` | `/api/stock-items/[id]` | Get / update / delete stock item |
+| `GET`, `POST` | `/api/stock-transactions` | List / create stock transactions |
+| `GET`, `POST` | `/api/users` | List / create **IT staff login** users |
+| `PATCH` | `/api/users/[id]` | Update login user (role, active, name) |
+
+**Auth notes (current code):** `auth()` is used on **asset assignments**, **stock** routes, and **`/api/users`** (admin-only for users). Other routes above do **not** yet call `auth()` in the handler — they are still suitable for internal use behind your app UI, but a dedicated **API hardening** pass should add session (and role) checks consistently. **Update this table** when you add or change routes.
+
+---
+
+## Next steps (suggested)
+
+1. **API hardening** — Add `auth()` (and role checks where needed) to every route that mutates or reads sensitive data; align error payloads and status codes; then re-test flows such as **Organization → Add Employee** against the secured API.
+2. **Phase 8 — Reporting** — PDF / Excel reporting (see `DEVELOPMENT_HISTORY.md`).
+3. **UX polish** — Revisit any UI deferred during the API work (e.g. organization modals) once responses and errors are stable.
+
+---
+
 ## Scripts
 
 | Command | Description |
