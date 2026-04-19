@@ -26,6 +26,8 @@ interface EmployeeFormProps {
   departments: DepartmentOption[];
   onSuccess: () => void;
   onCancel: () => void;
+  employeeId?: string;
+  initialData?: EmployeeFormValues;
 }
 
 const TITLE_OPTIONS = (Object.keys(Title) as Title[]).map((value) => ({
@@ -33,8 +35,15 @@ const TITLE_OPTIONS = (Object.keys(Title) as Title[]).map((value) => ({
   label: TITLE_LABELS[value] ?? value,
 }));
 
-export const EmployeeForm = ({ departments, onSuccess, onCancel }: EmployeeFormProps) => {
+export const EmployeeForm = ({
+  departments,
+  onSuccess,
+  onCancel,
+  employeeId,
+  initialData,
+}: EmployeeFormProps) => {
   const { addToast } = useToast();
+  const isEditMode = Boolean(employeeId);
 
   const {
     register,
@@ -44,13 +53,13 @@ export const EmployeeForm = ({ departments, onSuccess, onCancel }: EmployeeFormP
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
-      title: Title.MR,
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      departmentId: "",
-      position: "",
+      title: initialData?.title ?? Title.MR,
+      firstName: initialData?.firstName ?? "",
+      lastName: initialData?.lastName ?? "",
+      email: initialData?.email ?? "",
+      phone: initialData?.phone ?? "",
+      departmentId: initialData?.departmentId ?? "",
+      position: initialData?.position ?? "",
     },
   });
 
@@ -80,19 +89,23 @@ export const EmployeeForm = ({ departments, onSuccess, onCancel }: EmployeeFormP
     }
 
     try {
-      const res = await fetch("/api/employees", {
-        method: "POST",
+      const endpoint = isEditMode ? `/api/employees/${employeeId}` : "/api/employees";
+      const method = isEditMode ? "PATCH" : "POST";
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to add employee");
+        throw new Error(json.error || "Failed to save employee");
       }
 
       addToast({
-        title: "Employee registered",
-        message: `${json.data.firstName} ${json.data.lastName} has been added.`,
+        title: isEditMode ? "Employee updated" : "Employee registered",
+        message: isEditMode
+          ? `${json.data.firstName} ${json.data.lastName} has been updated.`
+          : `${json.data.firstName} ${json.data.lastName} has been added.`,
         variant: "success",
       });
       reset({
@@ -107,7 +120,11 @@ export const EmployeeForm = ({ departments, onSuccess, onCancel }: EmployeeFormP
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed";
-      addToast({ title: "Registration failed", message, variant: "error" });
+      addToast({
+        title: isEditMode ? "Update failed" : "Registration failed",
+        message,
+        variant: "error",
+      });
     }
   };
 
@@ -154,7 +171,7 @@ export const EmployeeForm = ({ departments, onSuccess, onCancel }: EmployeeFormP
           Cancel
         </Button>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
-          Add employee
+          {isEditMode ? "Save Changes" : "Add employee"}
         </Button>
       </div>
     </form>

@@ -4,23 +4,35 @@
  */
 
 import { useState, useEffect } from "react";
-import { Plus, Building } from "lucide-react";
+import { Plus, Building, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SkeletonTable } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { BuildingForm } from "@/features/organization/building-form";
 import { RoomForm } from "@/features/organization/room-form";
 
+type BuildingRow = {
+  id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  _count?: {
+    rooms: number;
+  };
+};
+
 export const LocationsView = () => {
-  const [buildings, setBuildings] = useState<any[]>([]);
+  const [buildings, setBuildings] = useState<BuildingRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
+  const [isEditBuildingModalOpen, setIsEditBuildingModalOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [selectedBuilding, setSelectedBuilding] = useState<BuildingRow | null>(null);
+  const [deleteBuildingId, setDeleteBuildingId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -30,16 +42,43 @@ export const LocationsView = () => {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || "Failed");
       setBuildings(json.data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to fetch buildings");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    const t = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
+    return () => window.clearTimeout(t);
   }, []);
+
+  const handleEditBuilding = (building: BuildingRow) => {
+    setSelectedBuilding(building);
+    setIsEditBuildingModalOpen(true);
+  };
+
+  const handleDeleteBuilding = async (building: BuildingRow) => {
+    const confirmed = window.confirm(`Delete building ${building.name}?`);
+    if (!confirmed) return;
+    setDeleteBuildingId(building.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/buildings/${building.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(typeof json.error === "string" ? json.error : "Failed to delete building");
+      }
+      await fetchData();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete building");
+    } finally {
+      setDeleteBuildingId(null);
+    }
+  };
 
   if (isLoading) return <SkeletonTable rows={4} />;
   if (error) return <ErrorState message={error} onRetry={fetchData} />;
@@ -66,6 +105,7 @@ export const LocationsView = () => {
                   <th className="px-6 py-3">Building Name</th>
                   <th className="px-6 py-3">Code</th>
                   <th className="px-6 py-3">Total Rooms</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -74,6 +114,29 @@ export const LocationsView = () => {
                     <td className="px-6 py-4 font-medium text-gray-900">{bld.name}</td>
                     <td className="px-6 py-4"><Badge variant="outline">{bld.code}</Badge></td>
                     <td className="px-6 py-4 text-gray-500">{bld._count?.rooms || 0} Rooms</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          leftIcon={<Pencil className="w-4 h-4" />}
+                          onClick={() => handleEditBuilding(bld)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          leftIcon={<Trash2 className="w-4 h-4" />}
+                          isLoading={deleteBuildingId === bld.id}
+                          onClick={() => void handleDeleteBuilding(bld)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -112,6 +175,32 @@ export const LocationsView = () => {
             fetchData();
           }}
           onCancel={() => setIsBuildingModalOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isEditBuildingModalOpen}
+        onClose={() => setIsEditBuildingModalOpen(false)}
+        title="Edit Building"
+        description="Update building details."
+      >
+        <BuildingForm
+          key={selectedBuilding?.id ?? "edit-building"}
+          buildingId={selectedBuilding?.id}
+          initialData={
+            selectedBuilding
+              ? {
+                  name: selectedBuilding.name,
+                  code: selectedBuilding.code,
+                  description: selectedBuilding.description ?? "",
+                }
+              : undefined
+          }
+          onSuccess={() => {
+            setIsEditBuildingModalOpen(false);
+            void fetchData();
+          }}
+          onCancel={() => setIsEditBuildingModalOpen(false)}
         />
       </Modal>
 

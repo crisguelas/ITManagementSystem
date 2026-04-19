@@ -15,10 +15,13 @@ import { departmentSchema, type DepartmentFormValues } from "@/lib/validations/o
 interface DepartmentFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  departmentId?: string;
+  initialData?: DepartmentFormValues;
 }
 
-export const DepartmentForm = ({ onSuccess, onCancel }: DepartmentFormProps) => {
+export const DepartmentForm = ({ onSuccess, onCancel, departmentId, initialData }: DepartmentFormProps) => {
   const { addToast } = useToast();
+  const isEditMode = Boolean(departmentId);
   
   const {
     register,
@@ -27,30 +30,41 @@ export const DepartmentForm = ({ onSuccess, onCancel }: DepartmentFormProps) => 
     reset,
   } = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentSchema),
-    defaultValues: { name: "", code: "" }
+    defaultValues: {
+      name: initialData?.name ?? "",
+      code: initialData?.code ?? "",
+    }
   });
 
   const onSubmit = async (data: DepartmentFormValues) => {
     try {
-      const res = await fetch("/api/departments", {
-        method: "POST",
+      const endpoint = isEditMode ? `/api/departments/${departmentId}` : "/api/departments";
+      const method = isEditMode ? "PATCH" : "POST";
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || "Failed to add department");
+      if (!res.ok || !json.success) throw new Error(json.error || "Failed to save department");
 
       addToast({
-        title: "Department Created",
-        message: `${json.data.name} has been set up.`,
+        title: isEditMode ? "Department Updated" : "Department Created",
+        message: isEditMode
+          ? `${json.data.name} has been updated.`
+          : `${json.data.name} has been set up.`,
         variant: "success",
       });
 
       reset();
       onSuccess();
-    } catch (err: any) {
-      addToast({ title: "Registration Failed", message: err.message, variant: "error" });
+    } catch (err: unknown) {
+      addToast({
+        title: isEditMode ? "Update Failed" : "Registration Failed",
+        message: err instanceof Error ? err.message : "Failed to save department",
+        variant: "error",
+      });
     }
   };
 
@@ -62,7 +76,9 @@ export const DepartmentForm = ({ onSuccess, onCancel }: DepartmentFormProps) => 
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" variant="primary" isLoading={isSubmitting}>Add Department</Button>
+        <Button type="submit" variant="primary" isLoading={isSubmitting}>
+          {isEditMode ? "Save Changes" : "Add Department"}
+        </Button>
       </div>
     </form>
   );

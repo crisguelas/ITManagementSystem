@@ -18,7 +18,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 import {
   Monitor,
@@ -43,6 +42,13 @@ const PIE_COLORS = [
   "#64748b",
   "#dc2626",
 ];
+const STATUS_DOT_CLASSES = [
+  "bg-sky-600",
+  "bg-green-600",
+  "bg-orange-600",
+  "bg-slate-500",
+  "bg-red-600",
+];
 
 const BAR_FILL = "#0284c7";
 
@@ -57,6 +63,7 @@ export function DashboardView({ data }: DashboardViewProps) {
   const { summary, byCategory, byStatus, byBuilding, recentActivity } = data;
 
   const statusChartData = byStatus.filter((s) => s.count > 0);
+  const totalStatusCount = statusChartData.reduce((sum, item) => sum + item.count, 0);
   const categoryChartData = byCategory.map((c) => ({ name: c.name, count: c.count }));
   const buildingChartData = byBuilding.map((b) => ({ name: b.label, count: b.count }));
 
@@ -209,33 +216,55 @@ export function DashboardView({ data }: DashboardViewProps) {
                 No assets yet.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusChartData}
-                    dataKey="count"
-                    nameKey="label"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={88}
-                    paddingAngle={2}
-                    label={({ name, percent }) =>
-                      `${String(name ?? "")} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
-                  >
-                    {statusChartData.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={PIE_COLORS[index % PIE_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [value ?? 0, "Assets"]}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="flex h-full flex-col">
+                <div className="min-h-0 flex-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statusChartData}
+                        dataKey="count"
+                        nameKey="label"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={84}
+                        paddingAngle={2}
+                        label={false}
+                        labelLine={false}
+                      >
+                        {statusChartData.map((_, index) => (
+                          <Cell
+                            key={`status-cell-${index}`}
+                            fill={PIE_COLORS[index % PIE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [value ?? 0, "Assets"]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-2 grid grid-cols-1 gap-1.5 text-xs">
+                  {statusChartData.map((item, index) => {
+                    const percent =
+                      totalStatusCount > 0 ? Math.round((item.count / totalStatusCount) * 100) : 0;
+                    return (
+                      <div
+                        key={`status-row-${item.label}`}
+                        className="flex items-center justify-between rounded-md border border-gray-100 px-2 py-1"
+                      >
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${STATUS_DOT_CLASSES[index % STATUS_DOT_CLASSES.length]}`}
+                          />
+                          <span>{item.label}</span>
+                        </div>
+                        <span className="font-medium text-gray-900">
+                          {item.count} ({percent}%)
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </CardBody>
         </Card>

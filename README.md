@@ -155,9 +155,12 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `POST` | `/api/assets/[id]/assignments` | Assign asset to employee and/or room |
 | `POST` | `/api/assets/[id]/assignments/return` | Return asset from assignment |
 | `GET`, `POST` | `/api/buildings` | List / create buildings |
+| `PATCH`, `DELETE` | `/api/buildings/[id]` | Update / delete a building |
 | `GET`, `POST` | `/api/rooms` | List / create rooms |
 | `GET`, `POST` | `/api/departments` | List / create departments |
+| `PATCH`, `DELETE` | `/api/departments/[id]` | Update / delete a department |
 | `GET`, `POST` | `/api/employees` | List / create organization employees |
+| `PATCH`, `DELETE` | `/api/employees/[id]` | Update / deactivate an employee |
 | `GET`, `POST` | `/api/stock-categories` | List / create stock categories |
 | `PATCH`, `DELETE` | `/api/stock-categories/[id]` | Update / delete stock category |
 | `GET`, `POST` | `/api/stock-items` | List / create stock items |

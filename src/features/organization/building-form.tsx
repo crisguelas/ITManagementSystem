@@ -15,10 +15,13 @@ import { buildingSchema, type BuildingFormValues } from "@/lib/validations/organ
 interface BuildingFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  buildingId?: string;
+  initialData?: BuildingFormValues;
 }
 
-export const BuildingForm = ({ onSuccess, onCancel }: BuildingFormProps) => {
+export const BuildingForm = ({ onSuccess, onCancel, buildingId, initialData }: BuildingFormProps) => {
   const { addToast } = useToast();
+  const isEditMode = Boolean(buildingId);
   
   const {
     register,
@@ -27,30 +30,42 @@ export const BuildingForm = ({ onSuccess, onCancel }: BuildingFormProps) => {
     reset,
   } = useForm<BuildingFormValues>({
     resolver: zodResolver(buildingSchema),
-    defaultValues: { name: "", code: "", description: "" }
+    defaultValues: {
+      name: initialData?.name ?? "",
+      code: initialData?.code ?? "",
+      description: initialData?.description ?? "",
+    }
   });
 
   const onSubmit = async (data: BuildingFormValues) => {
     try {
-      const res = await fetch("/api/buildings", {
-        method: "POST",
+      const endpoint = isEditMode ? `/api/buildings/${buildingId}` : "/api/buildings";
+      const method = isEditMode ? "PATCH" : "POST";
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || "Failed to add building");
+      if (!res.ok || !json.success) throw new Error(json.error || "Failed to save building");
 
       addToast({
-        title: "Building Created",
-        message: `${json.data.name} has been added.`,
+        title: isEditMode ? "Building Updated" : "Building Created",
+        message: isEditMode
+          ? `${json.data.name} has been updated.`
+          : `${json.data.name} has been added.`,
         variant: "success",
       });
 
       reset();
       onSuccess();
-    } catch (err: any) {
-      addToast({ title: "Registration Failed", message: err.message, variant: "error" });
+    } catch (err: unknown) {
+      addToast({
+        title: isEditMode ? "Update Failed" : "Registration Failed",
+        message: err instanceof Error ? err.message : "Failed to save building",
+        variant: "error",
+      });
     }
   };
 
@@ -63,7 +78,9 @@ export const BuildingForm = ({ onSuccess, onCancel }: BuildingFormProps) => {
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Cancel</Button>
-        <Button type="submit" variant="primary" isLoading={isSubmitting}>Add Building</Button>
+        <Button type="submit" variant="primary" isLoading={isSubmitting}>
+          {isEditMode ? "Save Changes" : "Add Building"}
+        </Button>
       </div>
     </form>
   );

@@ -35,6 +35,44 @@ export async function createBuilding(data: z.infer<typeof buildingSchema>) {
   return prisma.building.create({ data });
 }
 
+export async function updateBuilding(id: string, data: z.infer<typeof buildingSchema>) {
+  const existingBuilding = await prisma.building.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existingBuilding) throw new Error("Building not found");
+
+  const duplicateName = await prisma.building.findFirst({
+    where: { id: { not: id }, name: data.name },
+    select: { id: true },
+  });
+  if (duplicateName) throw new Error(`Building "${data.name}" already exists`);
+
+  const duplicateCode = await prisma.building.findFirst({
+    where: { id: { not: id }, code: data.code },
+    select: { id: true },
+  });
+  if (duplicateCode) throw new Error(`Building code "${data.code}" is already in use`);
+
+  return prisma.building.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteBuilding(id: string) {
+  const roomCount = await prisma.room.count({
+    where: { buildingId: id },
+  });
+  if (roomCount > 0) {
+    throw new Error("Cannot delete a building with registered rooms");
+  }
+
+  return prisma.building.delete({
+    where: { id },
+  });
+}
+
 /* ═══════════════════════════════════════════════════════════════ */
 /* ROOMS                                                           */
 /* ═══════════════════════════════════════════════════════════════ */
@@ -90,6 +128,44 @@ export async function createDepartment(data: z.infer<typeof departmentSchema>) {
   return prisma.department.create({ data });
 }
 
+export async function updateDepartment(id: string, data: z.infer<typeof departmentSchema>) {
+  const existingDepartment = await prisma.department.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existingDepartment) throw new Error("Department not found");
+
+  const duplicateName = await prisma.department.findFirst({
+    where: { id: { not: id }, name: data.name },
+    select: { id: true },
+  });
+  if (duplicateName) throw new Error(`Department "${data.name}" already exists`);
+
+  const duplicateCode = await prisma.department.findFirst({
+    where: { id: { not: id }, code: data.code },
+    select: { id: true },
+  });
+  if (duplicateCode) throw new Error(`Department code "${data.code}" is already in use`);
+
+  return prisma.department.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteDepartment(id: string) {
+  const activeEmployees = await prisma.employee.count({
+    where: { departmentId: id, isActive: true },
+  });
+  if (activeEmployees > 0) {
+    throw new Error("Cannot delete a department with active employees");
+  }
+
+  return prisma.department.delete({
+    where: { id },
+  });
+}
+
 /* ═══════════════════════════════════════════════════════════════ */
 /* EMPLOYEES                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
@@ -115,4 +191,41 @@ export async function createEmployee(data: z.infer<typeof employeeSchema>) {
   }
 
   return prisma.employee.create({ data });
+}
+
+export async function updateEmployee(id: string, data: z.infer<typeof employeeSchema>) {
+  const existingEmployee = await prisma.employee.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existingEmployee) throw new Error("Employee not found");
+
+  if (data.email) {
+    const duplicateEmail = await prisma.employee.findFirst({
+      where: { id: { not: id }, email: data.email },
+      select: { id: true },
+    });
+    if (duplicateEmail) {
+      throw new Error(`Employee with email "${data.email}" already exists`);
+    }
+  }
+
+  return prisma.employee.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteEmployee(id: string) {
+  const activeAssignments = await prisma.assetAssignment.count({
+    where: { employeeId: id, returnedAt: null },
+  });
+  if (activeAssignments > 0) {
+    throw new Error("Cannot delete employee with active asset assignments");
+  }
+
+  return prisma.employee.update({
+    where: { id },
+    data: { isActive: false },
+  });
 }
