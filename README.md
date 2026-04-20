@@ -185,6 +185,42 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 
 ---
 
+## Functional verification log (April 20, 2026)
+
+This run focused on verifying that system navigation, interactive controls (buttons/links), and core user actions are wired correctly and compile cleanly.
+
+### Build and code-quality checks
+
+- `npx tsc --noEmit` — **Pass**
+- `npm run lint` — **Pass** with **2 warnings** (`react-hooks/incompatible-library` on React Hook Form `watch()` usage in stock forms; no lint errors)
+- `npm run build` — **Pass** (all dashboard and API routes compiled and generated)
+
+### Navigation and link checks
+
+- Sidebar navigation (`Dashboard`, `Assets`, `Categories`, `Organization`, `Stock Room`, `Reports`, `Settings`) maps to existing pages.
+- Breadcrumb links resolve to valid parent routes.
+- Dashboard quick-action links route to `assets`, `organization`, and `stock`.
+- Detail-page links (`/assets/[id]`, `/stock/[id]`) and back links are present and correctly targeted.
+- Settings links route to `/settings/users` and remain role-gated by admin checks.
+
+### Button and action wiring checks
+
+- Form submit/cancel controls are connected via `react-hook-form` `handleSubmit` and modal close handlers.
+- CRUD action buttons exist and are wired in key modules:
+  - Assets (`create`, `edit`, `delete`, assignment `assign/return`, print)
+  - Asset categories (`create`, `edit`, `delete`)
+  - Buildings/rooms/departments/employees (`create`, `edit`, `delete/deactivate`)
+  - Stock items/categories/transactions (`create`, `edit`, `delete`, add transaction)
+  - Reports (`apply/clear date filter`, export buttons for all datasets)
+  - User accounts (`create`, role/active updates)
+- Confirmation and modal actions (`confirm-dialog`, `modal` close/overlay controls) are wired and reusable.
+
+### Scope note
+
+This verification run confirms compile-time integrity and code-path wiring for links/buttons/functions. Final UI behavior should still be validated with the manual smoke checklist before production deployment (especially DB-backed CRUD with environment-specific data and roles).
+
+---
+
 ## Scripts
 
 | Command | Description |

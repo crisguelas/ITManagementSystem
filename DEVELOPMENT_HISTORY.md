@@ -147,17 +147,58 @@
 
 *(Features and fixes shipped after the initial GitHub push; see commit history for details.)*
 
-- **Vercel / Prisma** — `package.json` runs `prisma generate` in **`postinstall`** and before **`next build`**, so hosted builds do not fail with an outdated Prisma Client when dependencies are restored from cache.
-- **Asset categories route** — New dashboard page **`/categories`** with `CategoriesView` + `CategoryForm` (uses existing `GET`/`POST /api/assets/categories`). Fixes sidebar link that previously returned 404.
-- **Organization — rooms** — `RoomForm` + modal from **Register Room** on **Organization → Places**; `roomSchema` updated so `type` is explicit for forms/API alignment.
-- **Organization — employees** — `EmployeeForm` + modal from **Add Employee** on **Organization → People**; `employeeSchema.title` made explicit (no Zod default) for form typing; posts to **`POST /api/employees`**.
-- **Modal / dialogs** — `Modal` now renders via **`createPortal(..., document.body)`** with a higher `z-index` so overlays (Add Employee, Add Department, etc.) are not clipped or hidden by the dashboard layout’s overflow/stacking. Organization tab buttons use **`type="button"`** to avoid accidental submit behavior.
-- **Add Employee UX** — `EmployeesView` no longer replaces the whole tab with a loading skeleton (which hid **Manage Staff** until `/api/departments` finished); only the departments table area skeletons. **`Button`** wraps `leftIcon` / `rightIcon` in **`pointer-events-none`** so SVGs cannot block clicks. **`Modal`** uses **`useLayoutEffect`** to mark portaled content ready before paint.
-- **Settings & IT staff users (admin-only)** — `settings/layout.tsx` gates all `/settings/*` routes to `ADMIN`. **`/settings`** hub and **`/settings/users`** for listing users, **Add user**, role (`ADMIN`/`MEMBER`), active flag; APIs `GET`/`POST /api/users`, `PATCH /api/users/[id]`; `user.service.ts` prevents demoting or deactivating the last active administrator. Sidebar **Settings** uses `adminOnly` + `isAdmin` from the dashboard layout. First admin remains from **`db:seed`**.
-- **Asset detail actions (admin workflow)** — Asset detail page (`/assets/[id]`) now supports **Edit Asset** (prefilled modal form using `PATCH /api/assets/[id]`) and **Delete Asset** (confirmation + `DELETE /api/assets/[id]`, with active-assignment safeguards from the service layer).
-- **Asset category management (admin workflow)** — Categories page (`/categories`) now supports in-row **Edit** and **Delete** actions; `CategoryForm` is reused for create/edit, and API now includes `PATCH`/`DELETE /api/assets/categories/[id]` with duplicate-name/prefix and in-use delete protection.
-- **API hardening (admin/member access)** — Added shared route guards in `src/lib/api-auth.ts` and applied them to assets/categories/buildings/departments/employees APIs: authenticated access for reads and admin-only mutations. Extended the same pattern to **rooms** (was previously open), **stock** routes, **asset assignments**, and **users** APIs for consistent `401`/`403` handling.
-- **Reports (Phase 8)** — Implemented `/reports` page with summary metrics, optional **created-date range** (`?from` / `to`), and Excel/PDF exports driven by `report.service.ts`.
+### Ordered by task area (post-initial push)
+
+1. **Build/deployment reliability**
+   - **Vercel / Prisma** — `package.json` runs `prisma generate` in **`postinstall`** and before **`next build`**, so hosted builds do not fail with an outdated Prisma Client when dependencies are restored from cache.
+
+2. **Navigation and route completeness**
+   - **Asset categories route** — Added dashboard page **`/categories`** with `CategoriesView` + `CategoryForm` (existing `GET`/`POST /api/assets/categories`), fixing the sidebar link that previously returned 404.
+
+3. **Organization module completion**
+   - **Rooms** — Added `RoomForm` + modal from **Register Room** on **Organization → Places**; updated `roomSchema` so `type` is explicit for forms/API alignment.
+   - **Employees** — Added `EmployeeForm` + modal from **Add Employee** on **Organization → People**; made `employeeSchema.title` explicit for stronger typing; posts to **`POST /api/employees`**.
+
+4. **Modal and interaction stability**
+   - **Portal rendering** — `Modal` now renders via **`createPortal(..., document.body)`** with higher `z-index`, preventing clipping under dashboard layout stacking/overflow.
+   - **Button behavior hardening** — Organization tab switches use **`type="button"`** to avoid accidental submit behavior.
+   - **Employee UX polish** — `EmployeesView` keeps top actions visible while department data loads; `Button` icon wrappers use `pointer-events-none`; `Modal` uses `useLayoutEffect` to mark portal readiness before paint.
+
+5. **Admin settings and IT user accounts**
+   - **Settings guard** — `settings/layout.tsx` gates `/settings/*` routes to `ADMIN`.
+   - **Users management** — Added `/settings` hub and `/settings/users`; APIs `GET`/`POST /api/users`, `PATCH /api/users/[id]`; `user.service.ts` protects the last active administrator from demotion/deactivation.
+   - **Sidebar visibility** — Settings nav item uses `adminOnly` + `isAdmin` state from dashboard layout.
+
+6. **Asset workflow expansion**
+   - **Asset detail actions** — `/assets/[id]` supports **Edit Asset** (`PATCH /api/assets/[id]`) and **Delete Asset** (`DELETE /api/assets/[id]`) with active-assignment safeguards.
+   - **Category management** — `/categories` supports in-row **Edit**/**Delete** with duplicate/in-use protections via `PATCH`/`DELETE /api/assets/categories/[id]`.
+
+7. **API security consistency**
+   - **Auth guard standardization** — Introduced shared helpers in `src/lib/api-auth.ts`; applied authenticated-read/admin-mutation patterns across assets, categories, buildings, departments, employees, rooms, stock routes, assignments, and users APIs for consistent `401`/`403` handling.
+
+8. **Reporting delivery**
+   - **Phase 8 reports** — Implemented `/reports` with summary metrics, optional created-date range (`?from` / `to`), and Excel/PDF exports via `report.service.ts`.
+
+---
+
+## Phase 8 follow-up: system interaction verification — April 20, 2026
+
+### What was checked
+
+- Reviewed `README.md`, `AGENTS.md`, and current phase history for route/feature expectations.
+- Audited navigation and interactions in dashboard pages/components (sidebar, breadcrumbs, quick links, forms, modals, CRUD action buttons, report export actions).
+- Confirmed all declared App Router pages compile and are generated in production build output.
+
+### Results
+
+- `npx tsc --noEmit` — pass
+- `npm run lint` — pass with 2 warnings (React Hook Form `watch()` compatibility warning; no lint errors)
+- `npm run build` — pass
+- Button/link/function handlers are wired in the current UI modules and map to existing pages/API handlers.
+
+### Notes
+
+- This run validates wiring and build integrity. Keep using the manual smoke checklist for environment-specific runtime checks (database data permutations, role edge cases, and browser/device behavior).
 
 ---
 
