@@ -134,7 +134,7 @@
 |--------|--------|
 | `npx prisma validate` | Pass |
 | `npx tsc --noEmit` | Pass (strict) |
-| `npm run lint` | Pass — **0 errors**, **2 warnings** (`react-hooks/incompatible-library` on React Hook Form `watch()` in `stock-item-form.tsx` and `stock-transaction-form.tsx`; informational for React Compiler) |
+| `npm run lint` | Pass — **0 errors**, **0 warnings** (after replacing `watch()` with `useWatch()` in stock forms) |
 | `npm run build` | Pass |
 
 **Code hygiene (this run)** — Resolved prior ESLint **errors** so full-repo lint is clean: portal mount in `Modal` now uses `useSyncExternalStore` (no `setState` in layout effect); client data loads use `queueMicrotask` + stable callbacks where needed; removed `any` / unused imports; `StockTransactionTable` allows `performedBy.name` to be null.
@@ -199,6 +199,17 @@
 ### Notes
 
 - This run validates wiring and build integrity. Keep using the manual smoke checklist for environment-specific runtime checks (database data permutations, role edge cases, and browser/device behavior).
+
+### Follow-up fix — April 20, 2026
+
+- Replaced React Hook Form `watch()` usage with `useWatch()` in:
+  - `src/features/stock/stock-item-form.tsx`
+  - `src/features/stock/stock-transaction-form.tsx`
+- Re-ran quality gates:
+  - `npx tsc --noEmit` — pass
+  - `npm run lint` — pass (**0 warnings**)
+  - `npm run build` — pass
+- Outcome: stock-form compiler compatibility warnings are fully resolved while preserving existing form behavior.
 
 ---
 
