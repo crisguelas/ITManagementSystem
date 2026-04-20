@@ -16,7 +16,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR codes link to the asset record (by id), specs
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
-- **Categories** — Custom asset categories with tag prefixes; dedicated UI at **`/categories`** (sidebar: Assets → Categories) to list and add categories
+- **Categories** — Custom asset categories with tag prefixes; dedicated UI at **`/categories`** (sidebar: Settings → Categories, **administrators only**) to list and add categories
 
 ### Locations & people
 - **Buildings & rooms** — Campus or office structure; register buildings and **rooms** under **Organization → Places** (room form posts to `/api/rooms`)

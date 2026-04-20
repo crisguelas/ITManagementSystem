@@ -224,11 +224,21 @@
 - **Sign-in enforcement** — Inactive users are blocked from authentication (already enforced in `src/lib/auth.ts`; now aligned with settings UI behavior).
 - **Documentation update** — Updated `README.md` (Features → Security & access) to state activate/deactivate behavior, preserved records, and login blocking for deactivated accounts.
 
+### Sidebar navigation
+
+- **Asset categories** — Moved the **Categories** link from the **Assets** submenu to **Settings** (`NAV_ITEMS` in `src/lib/constants.ts`), alongside **User accounts**, so category/tag prefix configuration sits with other admin configuration.
+
 ### Post-phase enhancements quality check — April 20, 2026
 
 - `npx eslint src/components/layout/header.tsx` — pass.
 - `npx eslint src/features/settings/users-management-view.tsx` — pass.
 - `npx tsc --noEmit` — pass.
+
+### Post-phase enhancements quality check — April 21, 2026
+
+- `npx tsc --noEmit` — pass.
+- `npm run lint` — pass.
+- `npm run build` — pass.
 
 ---
 
