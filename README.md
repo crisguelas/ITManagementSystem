@@ -34,8 +34,8 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Summary metrics**, **charts** (category, status, location), **recent activity**, **quick links**
 
 ### Reporting
-- **Reports hub** — **`/reports`** with Excel (assets, stock transactions) and PDF summary exports
-- **Date range** — Optional query `?from=YYYY-MM-DD&to=YYYY-MM-DD` filters assets and stock transactions by **created** time (UTC day bounds); leave either side open for an open-ended range. **Low-stock** figures stay organization-wide
+- **Reports hub** — **`/reports`** with Excel (assets, stock transactions, **low-stock lines**, **employees**) and a multi-section PDF summary
+- **Date range** — Optional query `?from=YYYY-MM-DD&to=YYYY-MM-DD` filters assets, stock transactions, and **employees** by **created** time (UTC day bounds); leave either side open for an open-ended range. **Low-stock** exports are always a current snapshot (quantity vs minimum), not limited by that range
 
 ### Security & access
 - **Roles** — Administrator and Member (extend as needed)

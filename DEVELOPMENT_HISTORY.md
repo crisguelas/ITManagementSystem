@@ -114,14 +114,15 @@
   - **Assets Excel** (`.xlsx`)
   - **Stock transactions Excel** (`.xlsx`)
   - **Summary PDF** (`.pdf`) with metrics and compact tables
-- **Date-range filter** — `getReportsData({ from, to })` applies Prisma `createdAt` bounds (UTC) for asset rows and stock transactions; page reads `searchParams`; UI **Apply filter** / **Clear** updates the URL. Export filenames and PDF header include the active period.
+- **Date-range filter** — `getReportsData({ from, to })` applies Prisma `createdAt` bounds (UTC) for asset rows, stock transactions, and **employees**; page reads `searchParams`; UI **Apply filter** / **Clear** updates the URL. Export filenames and PDF header include the active period.
+- **Wider exports** — **Low-stock** detail Excel + extra PDF table (current levels vs minimum). **Employee roster** Excel + PDF table (respects date scope on `Employee.createdAt`).
 
 ### Phase 8 quality check — April 20, 2026
 
 - `npx tsc --noEmit` — pass.
 - `npx eslint` on Phase 8 paths — pass (no issues).
 - `npm run build` — pass.
-- Smoke test — `/reports` loads for authenticated users; date filter updates lists and exports; export buttons generate files.
+- Smoke test — `/reports` loads for authenticated users; date filter updates assets, transactions, and employees; low-stock and employee Excel exports work; PDF includes new sections.
 
 ---
 

@@ -5,6 +5,7 @@
 
 import type { Prisma } from "@prisma/client";
 
+import { TITLE_LABELS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 
 export interface ReportAssetRow {
@@ -31,6 +32,30 @@ export interface ReportStockTransactionRow {
   createdAt: string;
 }
 
+/** Current stock-room lines at or below minimum (not filtered by report date range) */
+export interface ReportLowStockRow {
+  name: string;
+  category: string;
+  sku: string;
+  quantity: number;
+  minQuantity: number;
+  unit: string;
+  location: string;
+}
+
+/** Organization employees; `createdAt` respects the report period when a range is set */
+export interface ReportEmployeeRow {
+  title: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  department: string;
+  position: string;
+  active: string;
+  createdAt: string;
+}
+
 /** Normalized query range for UI and exports (YYYY-MM-DD or null) */
 export interface ReportsPeriod {
   from: string | null;
@@ -45,9 +70,12 @@ export interface ReportsData {
     availableAssets: number;
     lowStockItems: number;
     totalStockTransactions: number;
+    employeesInScope: number;
   };
   assets: ReportAssetRow[];
   stockTransactions: ReportStockTransactionRow[];
+  lowStockRows: ReportLowStockRow[];
+  employees: ReportEmployeeRow[];
 }
 
 export interface GetReportsDataOptions {
@@ -107,8 +135,8 @@ const toYyyyMmDd = (d: Date): string => d.toISOString().slice(0, 10);
 
 /**
  * Builds report data for the Reports page and export actions.
- * Optional `from` / `to` filter asset and stock-transaction rows by `createdAt` (UTC day bounds).
- * Low-stock count is always global (current inventory vs thresholds).
+ * Optional `from` / `to` filter asset, stock-transaction, and **employee** rows by `createdAt` (UTC day bounds).
+ * **Low-stock** lines are always a current snapshot (quantity vs threshold), not date-filtered.
  */
 export async function getReportsData(options: GetReportsDataOptions = {}): Promise<ReportsData> {
   let fromStr = options.from?.trim() || null;
@@ -139,7 +167,11 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
     ? { createdAt }
     : undefined;
 
-  const [assets, stockItems, stockTransactions] = await Promise.all([
+  const employeeWhere: Prisma.EmployeeWhereInput | undefined = createdAt
+    ? { createdAt }
+    : undefined;
+
+  const [assets, stockItems, stockTransactions, employees] = await Promise.all([
     prisma.asset.findMany({
       where: assetWhere,
       include: {
@@ -161,7 +193,10 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
       orderBy: { createdAt: "desc" },
     }),
     prisma.stockItem.findMany({
-      select: { quantity: true, minQuantity: true },
+      include: {
+        category: { select: { name: true } },
+      },
+      orderBy: { name: "asc" },
     }),
     prisma.stockTransaction.findMany({
       where: stockTxWhere,
@@ -175,6 +210,13 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
         performedBy: { select: { name: true } },
       },
       orderBy: { createdAt: "desc" },
+    }),
+    prisma.employee.findMany({
+      where: employeeWhere,
+      include: {
+        department: { select: { name: true } },
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     }),
   ]);
 
@@ -214,7 +256,30 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
 
   const deployedAssets = reportAssets.filter((asset) => asset.status === "DEPLOYED").length;
   const availableAssets = reportAssets.filter((asset) => asset.status === "AVAILABLE").length;
-  const lowStockCount = stockItems.filter((item) => item.quantity <= item.minQuantity).length;
+
+  const lowStockRows: ReportLowStockRow[] = stockItems
+    .filter((item) => item.quantity <= item.minQuantity)
+    .map((item) => ({
+      name: item.name,
+      category: item.category.name,
+      sku: item.sku ?? "-",
+      quantity: item.quantity,
+      minQuantity: item.minQuantity,
+      unit: item.unit,
+      location: item.location,
+    }));
+
+  const reportEmployees: ReportEmployeeRow[] = employees.map((emp) => ({
+    title: TITLE_LABELS[emp.title] ?? emp.title,
+    firstName: emp.firstName,
+    lastName: emp.lastName,
+    email: emp.email ?? "-",
+    phone: emp.phone ?? "-",
+    department: emp.department.name,
+    position: emp.position ?? "-",
+    active: emp.isActive ? "Yes" : "No",
+    createdAt: emp.createdAt.toISOString(),
+  }));
 
   return {
     period,
@@ -222,10 +287,13 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
       totalAssets: reportAssets.length,
       deployedAssets,
       availableAssets,
-      lowStockItems: lowStockCount,
+      lowStockItems: lowStockRows.length,
       totalStockTransactions: reportStockTransactions.length,
+      employeesInScope: reportEmployees.length,
     },
     assets: reportAssets,
     stockTransactions: reportStockTransactions,
+    lowStockRows,
+    employees: reportEmployees,
   };
 }
