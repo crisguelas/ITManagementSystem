@@ -41,8 +41,7 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
   const [editIsActive, setEditIsActive] = useState(true);
   const [editPassword, setEditPassword] = useState("");
   const [editConfirmPassword, setEditConfirmPassword] = useState("");
-  const [deleteCandidate, setDeleteCandidate] = useState<UserPublic | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusCandidate, setStatusCandidate] = useState<UserPublic | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -124,27 +123,18 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
     setEditingUser(null);
   };
 
-  const handleDelete = async () => {
-    if (!deleteCandidate) return;
-    setDeletingId(deleteCandidate.id);
-    try {
-      const res = await fetch(`/api/users/${deleteCandidate.id}`, {
-        method: "DELETE",
-      });
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "Delete failed");
-      }
-      setUsers((prev) => prev.filter((u) => u.id !== deleteCandidate.id));
-      addToast({ title: "User deleted", message: `${deleteCandidate.email} removed.`, variant: "success" });
-      setDeleteCandidate(null);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Delete failed";
-      addToast({ title: "Could not delete user", message, variant: "error" });
-      await fetchUsers();
-    } finally {
-      setDeletingId(null);
-    }
+  const handleToggleStatus = async () => {
+    if (!statusCandidate) return;
+    const nextIsActive = !statusCandidate.isActive;
+    const actionLabel = nextIsActive ? "activated" : "deactivated";
+
+    await patchUser(statusCandidate.id, { isActive: nextIsActive });
+    setStatusCandidate(null);
+    addToast({
+      title: `Account ${actionLabel}`,
+      message: `${statusCandidate.email} is now ${nextIsActive ? "active" : "inactive"}.`,
+      variant: "success",
+    });
   };
 
   if (isLoading) {
@@ -218,18 +208,18 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
                             size="sm"
                             variant="outline"
                             onClick={() => openEditModal(u)}
-                            disabled={patchingId === u.id || deletingId === u.id}
+                            disabled={patchingId === u.id}
                           >
                             Edit
                           </Button>
                           <Button
                             type="button"
                             size="sm"
-                            variant="danger"
-                            onClick={() => setDeleteCandidate(u)}
-                            disabled={u.id === currentUserId || patchingId === u.id || deletingId === u.id}
+                            variant={u.isActive ? "outline" : "secondary"}
+                            onClick={() => setStatusCandidate(u)}
+                            disabled={u.id === currentUserId || patchingId === u.id}
                           >
-                            Delete
+                            {u.isActive ? "Deactivate" : "Activate"}
                           </Button>
                         </div>
                       </td>
@@ -327,18 +317,24 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
       </Modal>
 
       <ConfirmDialog
-        isOpen={deleteCandidate !== null}
-        onClose={() => setDeleteCandidate(null)}
-        onConfirm={() => void handleDelete()}
-        title="Delete user account?"
+        isOpen={statusCandidate !== null}
+        onClose={() => setStatusCandidate(null)}
+        onConfirm={() => void handleToggleStatus()}
+        title={
+          statusCandidate?.isActive
+            ? "Deactivate this account?"
+            : "Activate this account?"
+        }
         message={
-          deleteCandidate
-            ? `This will permanently delete ${deleteCandidate.email}. This action cannot be undone.`
+          statusCandidate
+            ? statusCandidate.isActive
+              ? `This will block ${statusCandidate.email} from signing in. All records stay in the system.`
+              : `This will allow ${statusCandidate.email} to sign in again.`
             : ""
         }
-        confirmLabel="Delete"
-        isLoading={!!deletingId}
-        variant="danger"
+        confirmLabel={statusCandidate?.isActive ? "Deactivate" : "Activate"}
+        isLoading={!!patchingId}
+        variant={statusCandidate?.isActive ? "danger" : "warning"}
       />
     </div>
   );

@@ -8,9 +8,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
-import { User, Bell, ChevronDown, LogOut, KeyRound } from "lucide-react";
+import { User, Bell, ChevronDown, LogOut, KeyRound, AlertTriangle, PackagePlus } from "lucide-react";
 
 /* Local imports */
 import { capitalize } from "@/lib/utils";
@@ -24,17 +24,165 @@ interface HeaderProps {
   currentUserRole: "ADMIN" | "MEMBER";
 }
 
+interface StockItemNotification {
+  id: string;
+  name: string;
+  quantity: number;
+  minQuantity: number;
+}
+
+interface AssetAssignmentNotification {
+  id: string;
+  assetId: string;
+  assetTag: string;
+  assigneeName: string | null;
+  roomLabel: string | null;
+  assignedAt: string;
+}
+
+interface AssetNotificationPayload {
+  id: string;
+  assetTag: string;
+  assignments: Array<{
+    id: string;
+    assignedAt: string;
+    employee: { firstName: string; lastName: string } | null;
+    room: { name: string; building: { code: string } } | null;
+  }>;
+}
+
 export const Header = ({ currentUserName, currentUserRole }: HeaderProps) => {
   const pathname = usePathname();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [lowStockNotifications, setLowStockNotifications] = useState<StockItemNotification[]>([]);
+  const [assignmentNotifications, setAssignmentNotifications] = useState<AssetAssignmentNotification[]>([]);
+  const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState<string | null>(null);
+  const notificationRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  /* Close the profile dropdown when users click outside the menu */
+  /* Fetch low-stock and assignment notifications and map them into display-friendly rows */
+  const fetchNotifications = useCallback(async () => {
+    setIsNotificationsLoading(true);
+    setNotificationsError(null);
+
+    try {
+      const [stockResponse, assetsResponse] = await Promise.all([
+        fetch("/api/stock-items"),
+        fetch("/api/assets"),
+      ]);
+      const stockPayload: unknown = await stockResponse.json();
+      const assetsPayload: unknown = await assetsResponse.json();
+
+      if (!stockResponse.ok || !assetsResponse.ok) {
+        throw new Error("Failed to load notifications");
+      }
+
+      if (
+        !stockPayload ||
+        typeof stockPayload !== "object" ||
+        !("data" in stockPayload) ||
+        !Array.isArray(stockPayload.data)
+      ) {
+        throw new Error("Invalid stock notification response");
+      }
+
+      if (
+        !assetsPayload ||
+        typeof assetsPayload !== "object" ||
+        !("data" in assetsPayload) ||
+        !Array.isArray(assetsPayload.data)
+      ) {
+        throw new Error("Invalid asset notification response");
+      }
+
+      const lowStockItems = stockPayload.data
+        .filter((item): item is StockItemNotification => {
+          if (!item || typeof item !== "object") return false;
+          if (!("id" in item) || !("name" in item) || !("quantity" in item) || !("minQuantity" in item)) {
+            return false;
+          }
+
+          return (
+            typeof item.id === "string" &&
+            typeof item.name === "string" &&
+            typeof item.quantity === "number" &&
+            typeof item.minQuantity === "number"
+          );
+        })
+        .filter((item) => item.quantity <= item.minQuantity);
+
+      const assignmentItems = assetsPayload.data
+        .filter((item): item is AssetNotificationPayload => {
+          if (!item || typeof item !== "object") return false;
+          if (!("id" in item) || !("assetTag" in item) || !("assignments" in item)) {
+            return false;
+          }
+
+          return (
+            typeof item.id === "string" &&
+            typeof item.assetTag === "string" &&
+            Array.isArray(item.assignments)
+          );
+        })
+        .flatMap((asset) =>
+          asset.assignments
+            .filter((assignment) => {
+              if (!assignment || typeof assignment !== "object") return false;
+              if (!("id" in assignment) || !("assignedAt" in assignment)) return false;
+              return typeof assignment.id === "string" && typeof assignment.assignedAt === "string";
+            })
+            .map((assignment) => {
+              const assigneeName = assignment.employee
+                ? `${assignment.employee.firstName} ${assignment.employee.lastName}`
+                : null;
+              const roomLabel = assignment.room
+                ? `${assignment.room.building.code} — ${assignment.room.name}`
+                : null;
+
+              return {
+                id: assignment.id,
+                assetId: asset.id,
+                assetTag: asset.assetTag,
+                assigneeName,
+                roomLabel,
+                assignedAt: assignment.assignedAt,
+              } as AssetAssignmentNotification;
+            })
+        )
+        .sort(
+          (a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime(),
+        )
+        .slice(0, 6);
+
+      setLowStockNotifications(lowStockItems);
+      setAssignmentNotifications(assignmentItems);
+    } catch (error) {
+      setNotificationsError(
+        error instanceof Error ? error.message : "Unable to load notifications",
+      );
+    } finally {
+      setIsNotificationsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void fetchNotifications();
+    });
+  }, [fetchNotifications]);
+
+  /* Close dropdowns when users click outside their containers */
   useEffect(() => {
     const onDocumentMouseDown = (event: MouseEvent) => {
-      if (!menuRef.current) return;
       const target = event.target as Node;
-      if (!menuRef.current.contains(target)) {
+
+      if (notificationRef.current && !notificationRef.current.contains(target)) {
+        setIsNotificationsOpen(false);
+      }
+
+      if (menuRef.current && !menuRef.current.contains(target)) {
         setIsMenuOpen(false);
       }
     };
@@ -75,11 +223,149 @@ export const Header = ({ currentUserName, currentUserRole }: HeaderProps) => {
       {/* Right side: Actions & Profile */}
       <div className="flex items-center gap-4">
         {/* Notifications */}
-        <button className="relative p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors focus-ring">
-          <Bell className="w-5 h-5" />
-          {/* Unread badge indicator */}
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger border-2 border-white"></span>
-        </button>
+        <div ref={notificationRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setIsNotificationsOpen((prev) => !prev)}
+            className="relative p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors focus-ring"
+            aria-label="Open notifications"
+            aria-haspopup="menu"
+            aria-expanded={isNotificationsOpen}
+          >
+            <Bell className="w-5 h-5" />
+            {/* Show unread count from low stock + assignment alerts */}
+            {lowStockNotifications.length + assignmentNotifications.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-danger text-white border-2 border-white text-[10px] leading-none font-semibold flex items-center justify-center">
+                {lowStockNotifications.length + assignmentNotifications.length > 9
+                  ? "9+"
+                  : lowStockNotifications.length + assignmentNotifications.length}
+              </span>
+            )}
+          </button>
+
+          {isNotificationsOpen && (
+            <div
+              className="absolute right-0 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-lg z-30 overflow-hidden"
+              role="menu"
+            >
+              <div className="px-4 py-3 border-b border-gray-100">
+                <p className="text-sm font-semibold text-gray-800">Notifications</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Low stock alerts and recent asset assignments.
+                </p>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {isNotificationsLoading && (
+                  <p className="px-4 py-6 text-sm text-gray-500">Loading notifications...</p>
+                )}
+
+                {!isNotificationsLoading && notificationsError && (
+                  <div className="px-4 py-4">
+                    <p className="text-sm text-red-600">{notificationsError}</p>
+                    <button
+                      type="button"
+                      onClick={() => void fetchNotifications()}
+                      className="mt-2 text-xs font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+
+                {!isNotificationsLoading &&
+                  !notificationsError &&
+                  lowStockNotifications.length === 0 &&
+                  assignmentNotifications.length === 0 && (
+                    <p className="px-4 py-6 text-sm text-gray-500">No new notifications.</p>
+                  )}
+
+                {!isNotificationsLoading &&
+                  !notificationsError &&
+                  assignmentNotifications.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50 border-y border-gray-100">
+                        <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                          Asset assignments
+                        </p>
+                      </div>
+                      <ul className="divide-y divide-gray-100">
+                        {assignmentNotifications.map((item) => (
+                          <li key={item.id}>
+                            <Link
+                              href={`/assets/${item.assetId}`}
+                              onClick={() => setIsNotificationsOpen(false)}
+                              className="px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
+                              role="menuitem"
+                            >
+                              <span className="mt-0.5 text-primary-500">
+                                <PackagePlus className="w-4 h-4" />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-sm font-medium text-gray-800 truncate">
+                                  {item.assetTag} assigned
+                                </span>
+                                <span className="block text-xs text-gray-500 mt-0.5">
+                                  {item.assigneeName ?? "No employee"}
+                                  {item.roomLabel ? ` · ${item.roomLabel}` : ""}
+                                </span>
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                {!isNotificationsLoading &&
+                  !notificationsError &&
+                  lowStockNotifications.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50 border-y border-gray-100">
+                        <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                          Low stock
+                        </p>
+                      </div>
+                      <ul className="divide-y divide-gray-100">
+                        {lowStockNotifications.map((item) => (
+                          <li key={item.id}>
+                            <Link
+                              href={`/stock/${item.id}`}
+                              onClick={() => setIsNotificationsOpen(false)}
+                              className="px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
+                              role="menuitem"
+                            >
+                              <span className="mt-0.5 text-amber-500">
+                                <AlertTriangle className="w-4 h-4" />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-sm font-medium text-gray-800 truncate">
+                                  {item.name}
+                                </span>
+                                <span className="block text-xs text-gray-500 mt-0.5">
+                                  Quantity is {item.quantity} (minimum {item.minQuantity})
+                                </span>
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+              </div>
+
+              <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
+                <Link
+                  href="/stock"
+                  onClick={() => setIsNotificationsOpen(false)}
+                  className="text-xs font-medium text-primary-600 hover:text-primary-700"
+                >
+                  View stock room
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Divider */}
         <div className="h-6 w-px bg-gray-200"></div>

@@ -213,6 +213,25 @@
 
 ---
 
+## Post-phase enhancements — April 20, 2026
+
+### Notifications and account lifecycle
+
+- **Header notifications (bell icon)** — Replaced the placeholder bell with a working notification panel in `src/components/layout/header.tsx`.
+- **Low-stock alerts in bell** — Bell now fetches `/api/stock-items`, shows unread count, and lists low-stock items (`quantity <= minQuantity`) with links to `/stock/[id]`.
+- **Assignment alerts in bell** — Bell also fetches `/api/assets` and surfaces recent asset assignment notifications with links to `/assets/[id]`.
+- **User account lifecycle (no hard delete needed)** — In `src/features/settings/users-management-view.tsx`, replaced row-level delete with explicit **Activate / Deactivate** actions and confirmation prompts so user records remain in the system.
+- **Sign-in enforcement** — Inactive users are blocked from authentication (already enforced in `src/lib/auth.ts`; now aligned with settings UI behavior).
+- **Documentation update** — Updated `README.md` (Features → Security & access) to state activate/deactivate behavior, preserved records, and login blocking for deactivated accounts.
+
+### Post-phase enhancements quality check — April 20, 2026
+
+- `npx eslint src/components/layout/header.tsx` — pass.
+- `npx eslint src/features/settings/users-management-view.tsx` — pass.
+- `npx tsc --noEmit` — pass.
+
+---
+
 ## Deployment — (Pending)
 
 ### Suggested next tasks (team)
