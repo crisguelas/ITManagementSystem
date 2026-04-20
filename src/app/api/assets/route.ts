@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { getAssets, createAsset } from "@/lib/services/asset.service";
 import { assetSchema } from "@/lib/validations/asset.schema";
+import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 const normalizeOptionalText = (value: unknown) => {
   if (typeof value !== "string") return value;
@@ -16,6 +17,9 @@ const normalizeOptionalText = (value: unknown) => {
 
 export async function GET() {
   try {
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+
     const assets = await getAssets();
     return NextResponse.json({ success: true, data: assets });
   } catch (error: unknown) {
@@ -29,6 +33,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const body = await request.json();
     const normalizedBody = {
       ...body,

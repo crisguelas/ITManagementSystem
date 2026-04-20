@@ -6,18 +6,25 @@
 import { NextResponse } from "next/server";
 import { getEmployees, createEmployee } from "@/lib/services/organization.service";
 import { employeeSchema } from "@/lib/validations/organization.schema";
+import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 export async function GET() {
   try {
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+
     const data = await getEmployees();
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ success: false, error: "Failed to fetch employees" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const body = await request.json();
     
     /* Clean up empty optional fields into proper nulls or undefines for zod/prisma */
@@ -36,8 +43,8 @@ export async function POST(request: Request) {
     
     const newEmployee = await createEmployee(validationResult.data);
     return NextResponse.json({ success: true, data: newEmployee }, { status: 201 });
-  } catch (error: any) {
-    if (error.message && error.message.includes("already exists")) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("already exists")) {
        return NextResponse.json({ success: false, error: error.message }, { status: 409 });
     }
     return NextResponse.json({ success: false, error: "An unexpected error occurred" }, { status: 500 });

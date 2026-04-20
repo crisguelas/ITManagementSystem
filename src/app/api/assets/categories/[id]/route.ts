@@ -7,12 +7,16 @@ import { NextResponse } from "next/server";
 
 import { deleteCategory, updateCategory } from "@/lib/services/asset.service";
 import { categorySchema } from "@/lib/validations/asset.schema";
+import { requireAdmin } from "@/lib/api-auth";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -57,6 +61,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const { id } = await params;
     await deleteCategory(id);
     return NextResponse.json({ success: true });

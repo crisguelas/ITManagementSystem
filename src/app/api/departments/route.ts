@@ -6,18 +6,25 @@
 import { NextResponse } from "next/server";
 import { getDepartments, createDepartment } from "@/lib/services/organization.service";
 import { departmentSchema } from "@/lib/validations/organization.schema";
+import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 export async function GET() {
   try {
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+
     const data = await getDepartments();
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ success: false, error: "Failed to fetch departments" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const body = await request.json();
     const validationResult = departmentSchema.safeParse(body);
     
@@ -30,8 +37,8 @@ export async function POST(request: Request) {
     
     const newDepartment = await createDepartment(validationResult.data);
     return NextResponse.json({ success: true, data: newDepartment }, { status: 201 });
-  } catch (error: any) {
-    if (error.message && error.message.includes("already")) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("already")) {
        return NextResponse.json({ success: false, error: error.message }, { status: 409 });
     }
     return NextResponse.json({ success: false, error: "An unexpected error occurred" }, { status: 500 });

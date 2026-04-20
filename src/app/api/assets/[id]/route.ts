@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 
 import { deleteAsset, getAssetById, updateAsset } from "@/lib/services/asset.service";
 import { assetSchema } from "@/lib/validations/asset.schema";
+import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 const normalizeOptionalText = (value: unknown) => {
   if (typeof value !== "string") return value;
@@ -19,6 +20,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+
     const { id } = await params;
 
     const asset = await getAssetById(id);
@@ -45,6 +49,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const { id } = await params;
     const body = await request.json();
     const normalizedBody = {
@@ -101,6 +108,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
+
     const { id } = await params;
     await deleteAsset(id);
     return NextResponse.json({ success: true });
