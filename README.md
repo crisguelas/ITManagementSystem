@@ -33,6 +33,10 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ### Dashboard
 - **Summary metrics**, **charts** (category, status, location), **recent activity**, **quick links**
 
+### Reporting
+- **Reports hub** — **`/reports`** with Excel (assets, stock transactions) and PDF summary exports
+- **Date range** — Optional query `?from=YYYY-MM-DD&to=YYYY-MM-DD` filters assets and stock transactions by **created** time (UTC day bounds); leave either side open for an open-ended range. **Low-stock** figures stay organization-wide
+
 ### Security & access
 - **Roles** — Administrator and Member (extend as needed)
 - **Authentication** — NextAuth.js with hashed passwords

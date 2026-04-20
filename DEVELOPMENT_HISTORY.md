@@ -114,13 +114,14 @@
   - **Assets Excel** (`.xlsx`)
   - **Stock transactions Excel** (`.xlsx`)
   - **Summary PDF** (`.pdf`) with metrics and compact tables
+- **Date-range filter** — `getReportsData({ from, to })` applies Prisma `createdAt` bounds (UTC) for asset rows and stock transactions; page reads `searchParams`; UI **Apply filter** / **Clear** updates the URL. Export filenames and PDF header include the active period.
 
 ### Phase 8 quality check — April 20, 2026
 
 - `npx tsc --noEmit` — pass.
 - `npx eslint` on Phase 8 paths — pass (no issues).
 - `npm run build` — pass.
-- Smoke test — `/reports` loads for authenticated users and export buttons generate files.
+- Smoke test — `/reports` loads for authenticated users; date filter updates lists and exports; export buttons generate files.
 
 ---
 
@@ -138,7 +139,7 @@
 - **Asset detail actions (admin workflow)** — Asset detail page (`/assets/[id]`) now supports **Edit Asset** (prefilled modal form using `PATCH /api/assets/[id]`) and **Delete Asset** (confirmation + `DELETE /api/assets/[id]`, with active-assignment safeguards from the service layer).
 - **Asset category management (admin workflow)** — Categories page (`/categories`) now supports in-row **Edit** and **Delete** actions; `CategoryForm` is reused for create/edit, and API now includes `PATCH`/`DELETE /api/assets/categories/[id]` with duplicate-name/prefix and in-use delete protection.
 - **API hardening (admin/member access)** — Added shared route guards in `src/lib/api-auth.ts` and applied them to assets/categories/buildings/departments/employees APIs: authenticated access for reads and admin-only mutations. Extended the same pattern to **rooms** (was previously open), **stock** routes, **asset assignments**, and **users** APIs for consistent `401`/`403` handling.
-- **Reports (Phase 8 initial slice)** — Implemented `/reports` page with summary metrics and Excel/PDF exports driven by `report.service.ts`.
+- **Reports (Phase 8)** — Implemented `/reports` page with summary metrics, optional **created-date range** (`?from` / `to`), and Excel/PDF exports driven by `report.service.ts`.
 
 ---
 
