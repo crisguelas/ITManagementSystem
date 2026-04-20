@@ -1,7 +1,7 @@
 /**
  * @file layout.tsx
- * @description Settings area — only **ADMIN** users can access any route under `/settings`.
- * Members do not see Settings in the sidebar and are redirected here if they open the URL directly.
+ * @description Settings hub — any signed-in user may open `/settings` for shared configuration (e.g. categories).
+ * User account management under `/settings/users` is gated separately to **ADMIN** only.
  */
 
 import { redirect } from "next/navigation";
@@ -18,21 +18,26 @@ export default async function SettingsLayout({
   if (!session) {
     redirect("/login");
   }
-  if (session.user.role !== "ADMIN") {
-    redirect("/");
-  }
+
+  const isAdmin = session.user.role === "ADMIN";
 
   return (
     <div className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Settings</h1>
         <p className="text-sm text-gray-500">
-          Application configuration. Only{" "}
-          <strong className="font-medium text-gray-700">administrators</strong> can access this area.
+          {isAdmin ? (
+            <>
+              Application configuration and{" "}
+              <strong className="font-medium text-gray-700">user account</strong> management.
+            </>
+          ) : (
+            <>Application configuration available to your role.</>
+          )}
         </p>
       </header>
 
-      <SettingsNav />
+      <SettingsNav isAdmin={isAdmin} />
 
       {children}
     </div>

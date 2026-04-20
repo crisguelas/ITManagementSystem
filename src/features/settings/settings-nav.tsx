@@ -1,6 +1,6 @@
 /**
  * @file settings-nav.tsx
- * @description Sub-navigation for Settings (admin-only). Highlights the active section.
+ * @description Sub-navigation for Settings — user accounts for admins; categories for all authenticated roles.
  */
 
 "use client";
@@ -10,14 +10,27 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-const LINKS = [{ href: "/settings/users", label: "User accounts" }] as const;
+const LINK_DEFS = [
+  { href: "/settings/users", label: "User accounts", adminOnly: true },
+  { href: "/categories", label: "Categories", adminOnly: false },
+] as const;
 
-export const SettingsNav = () => {
+interface SettingsNavProps {
+  /** When true, the User accounts tab is shown */
+  isAdmin: boolean;
+}
+
+/**
+ * SettingsNav — horizontal tabs linking to settings sections; omits admin-only tabs for members.
+ */
+export const SettingsNav = ({ isAdmin }: SettingsNavProps) => {
   const pathname = usePathname();
+
+  const links = LINK_DEFS.filter((link) => !link.adminOnly || isAdmin);
 
   return (
     <nav className="flex flex-wrap gap-2 border-b border-gray-200 pb-3" aria-label="Settings sections">
-      {LINKS.map(({ href, label }) => {
+      {links.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link

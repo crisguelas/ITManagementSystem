@@ -173,10 +173,9 @@ export const NAV_ITEMS = [
     href: "/settings",
     icon: "Settings",
     children: [
-      { label: "User Accounts", href: "/settings/users" },
+      { label: "User Accounts", href: "/settings/users", adminOnly: true },
       { label: "Categories", href: "/categories" },
     ],
-    adminOnly: true,
   },
 ] as const;
 

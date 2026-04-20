@@ -172,7 +172,12 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
                 {/* Submenu for items with children */}
                 {!collapsed && hasChildren && isDropdownOpen && (
                   <div className="mt-1 ml-4 pl-4 border-l border-primary-800/50 space-y-1">
-                    {item.children.map((child) => {
+                    {item.children
+                      .filter((child) => {
+                        /* Hide admin-only submenu entries (e.g. User Accounts) from members */
+                        return !("adminOnly" in child && child.adminOnly) || isAdmin;
+                      })
+                      .map((child) => {
                        const isChildActive = pathname === child.href || pathname.startsWith(child.href);
                        return (
                         <Link

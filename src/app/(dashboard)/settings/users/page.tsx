@@ -1,6 +1,6 @@
 /**
  * @file page.tsx
- * @description Manage IT staff login accounts and roles. Admin-only access is enforced in `settings/layout.tsx`.
+ * @description Manage IT staff login accounts and roles. Admin-only access is enforced in `settings/users/layout.tsx`.
  */
 
 import { redirect } from "next/navigation";
