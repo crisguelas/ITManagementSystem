@@ -151,7 +151,6 @@ export const NAV_ITEMS = [
     icon: "Monitor",
     children: [
       { label: "All Assets", href: "/assets" },
-      { label: "Categories", href: "/categories" },
     ],
   },
   {
@@ -173,6 +172,10 @@ export const NAV_ITEMS = [
     label: "Settings",
     href: "/settings",
     icon: "Settings",
+    children: [
+      { label: "User Accounts", href: "/settings/users" },
+      { label: "Categories", href: "/categories" },
+    ],
     adminOnly: true,
   },
 ] as const;
