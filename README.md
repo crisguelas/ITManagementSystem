@@ -219,6 +219,8 @@ This run focused on verifying that system navigation, interactive controls (butt
 
 This verification run confirms compile-time integrity and code-path wiring for links/buttons/functions. Final UI behavior should still be validated with the manual smoke checklist before production deployment (especially DB-backed CRUD with environment-specific data and roles).
 
+Use the release sign-off checklist in `MANUAL_QA_CHECKLIST.md` for a strict, screen-by-screen QA run.
+
 ---
 
 ## Scripts
