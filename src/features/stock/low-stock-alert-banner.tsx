@@ -6,7 +6,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { AlertTriangle, ChevronRight } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 /* Minimal stock item shape needed by this banner */
 interface LowStockItem {

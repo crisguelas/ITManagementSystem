@@ -16,7 +16,7 @@ interface Transaction {
   quantity: number;
   recipientName: string | null;
   recipientDepartment: string | null;
-  performedBy: { name: string };
+  performedBy: { name: string | null };
   createdAt: string | Date;
   notes: string | null;
 }
@@ -93,7 +93,7 @@ export const StockTransactionTable = ({
                 )}
               </td>
               <td className="px-4 py-3 whitespace-nowrap text-gray-700">
-                {tx.performedBy.name}
+                {tx.performedBy.name ?? "—"}
               </td>
               <td className="px-4 py-3 text-gray-600 truncate max-w-[200px]" title={tx.notes || ""}>
                 {tx.notes || <span className="text-gray-400">—</span>}

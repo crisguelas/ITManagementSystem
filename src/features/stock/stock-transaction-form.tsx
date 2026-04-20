@@ -15,10 +15,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import {
-  stockTransactionSchema,
-  type StockTransactionFormValues,
-} from "@/lib/validations/stock.schema";
+import { stockTransactionSchema } from "@/lib/validations/stock.schema";
 
 interface StockTransactionFormProps {
   stockItemId: string;

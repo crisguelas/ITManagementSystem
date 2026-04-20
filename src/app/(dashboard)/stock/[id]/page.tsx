@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
+import type { StockCategory, StockItem, StockTransaction } from "@prisma/client";
 import { ArrowLeft, Package, MapPin, AlertTriangle, Hash, Grid } from "lucide-react";
 
 import { ErrorState } from "@/components/ui/error-state";
@@ -16,10 +17,20 @@ import { Modal } from "@/components/ui/modal";
 import { StockTransactionTable } from "@/features/stock/stock-transaction-table";
 import { StockTransactionForm } from "@/features/stock/stock-transaction-form";
 
+type StockTransactionWithActors = StockTransaction & {
+  performedBy: { id: string; name: string | null };
+  approvedBy: { id: string; name: string | null } | null;
+};
+
+type StockItemDetailPayload = StockItem & {
+  category: StockCategory;
+  transactions: StockTransactionWithActors[];
+};
+
 export default function StockItemDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   
-  const [item, setItem] = useState<any>(null);
+  const [item, setItem] = useState<StockItemDetailPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [txModalOpen, setTxModalOpen] = useState(false);
@@ -32,16 +43,19 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
       const json = await res.json();
       
       if (!res.ok) throw new Error(json.error || "Failed to load item");
-      setItem(json.data);
-    } catch (err: any) {
-      setError(err.message);
+      setItem(json.data as StockItemDetailPayload);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load item");
     } finally {
       setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
-    fetchItem();
+    /* Defer fetch so the effect body does not synchronously cascade setState (eslint react-hooks) */
+    queueMicrotask(() => {
+      void fetchItem();
+    });
   }, [fetchItem]);
 
   if (loading) return <LoadingSpinner message="Loading item details..." />;

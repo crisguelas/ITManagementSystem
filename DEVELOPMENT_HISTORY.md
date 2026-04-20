@@ -126,6 +126,23 @@
 
 ---
 
+## Consolidated quality check — Phases 1–8 — April 20, 2026
+
+**Automated (repository-wide)**
+
+| Check | Result |
+|--------|--------|
+| `npx prisma validate` | Pass |
+| `npx tsc --noEmit` | Pass (strict) |
+| `npm run lint` | Pass — **0 errors**, **2 warnings** (`react-hooks/incompatible-library` on React Hook Form `watch()` in `stock-item-form.tsx` and `stock-transaction-form.tsx`; informational for React Compiler) |
+| `npm run build` | Pass |
+
+**Code hygiene (this run)** — Resolved prior ESLint **errors** so full-repo lint is clean: portal mount in `Modal` now uses `useSyncExternalStore` (no `setState` in layout effect); client data loads use `queueMicrotask` + stable callbacks where needed; removed `any` / unused imports; `StockTransactionTable` allows `performedBy.name` to be null.
+
+**Manual smoke (recommended before release)** — Log in → **Dashboard** (charts) → **Assets** (list, register, detail, assign/return if data exists) → **Categories** → **Organization** (places/people) → **Stock** (items, categories, transactions, item detail) → **Reports** (filters + Excel/PDF) → **Settings / Users** (admin only).
+
+---
+
 ## Incremental delivery — April 18, 2026
 
 *(Features and fixes shipped after the initial GitHub push; see commit history for details.)*

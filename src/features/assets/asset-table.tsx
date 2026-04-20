@@ -6,11 +6,11 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Asset, AssetCategory } from "@prisma/client";
 
 /* Third-party imports */
-import { MoreHorizontal, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 /* Local imports */
 import { SkeletonTable } from "@/components/ui/loading-state";
@@ -18,7 +18,6 @@ import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { AssetForm } from "@/features/assets/asset-form";
 import Link from "next/link";
@@ -30,7 +29,7 @@ import Link from "next/link";
 /* Complex type including relations joined from the backend */
 type AssetWithRelations = Asset & {
   category: AssetCategory;
-  assignments: Array<any>; // Simplified for the table view
+  assignments: unknown[];
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -45,7 +44,7 @@ export const AssetTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   /* Fetch assets from the standard API route */
-  const fetchAssets = async () => {
+  const fetchAssets = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -55,19 +54,21 @@ export const AssetTable = () => {
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "API returned an error");
       
-      setData(json.data);
-    } catch (err: any) {
+      setData(json.data as AssetWithRelations[]);
+    } catch (err: unknown) {
       console.error("[AssetTable] Fetch error:", err);
-      setError(err.message || "An error occurred fetching assets");
+      setError(err instanceof Error ? err.message : "An error occurred fetching assets");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   /* Initial data load */
   useEffect(() => {
-    fetchAssets();
-  }, []);
+    queueMicrotask(() => {
+      void fetchAssets();
+    });
+  }, [fetchAssets]);
 
   /* Local search filtering */
   const filteredData = data.filter((asset) => {

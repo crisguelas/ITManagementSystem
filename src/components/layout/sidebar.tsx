@@ -25,7 +25,7 @@ import {
 
 /* Local imports */
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS, APP_SHORT_NAME, APP_NAME } from "@/lib/constants";
+import { NAV_ITEMS, APP_NAME } from "@/lib/constants";
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* ICON MAPPING                                                    */

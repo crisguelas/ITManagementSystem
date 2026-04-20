@@ -7,10 +7,10 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { User, LogOut, Bell } from "lucide-react";
+import { User, Bell } from "lucide-react";
 
 /* Local imports */
-import { cn, capitalize } from "@/lib/utils";
+import { capitalize } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* COMPONENT                                                       */

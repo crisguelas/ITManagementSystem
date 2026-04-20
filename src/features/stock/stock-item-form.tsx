@@ -15,10 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import {
-  stockItemSchema,
-  type StockItemFormValues,
-} from "@/lib/validations/stock.schema";
+import { stockItemSchema } from "@/lib/validations/stock.schema";
 
 interface StockItemFormProps {
   item?: StockItem | null;

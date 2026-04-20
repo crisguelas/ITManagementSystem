@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useEffect, useLayoutEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 /* Third-party imports */
@@ -47,6 +47,9 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   full: "max-w-[90vw]",
 };
 
+/* No-op subscribe — we only need client vs server snapshot for the portal root */
+const portalSubscribe = () => () => {};
+
 /* ═══════════════════════════════════════════════════════════════ */
 /* COMPONENT                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
@@ -66,12 +69,8 @@ const Modal = ({
   showCloseButton = true,
   closeOnOverlay = true,
 }: ModalProps) => {
-  /* Portal only after mount so `document.body` exists (client-only) */
-  const [mounted, setMounted] = useState(false);
-  /* useLayoutEffect so `mounted` is true before paint — portal ready when dialog opens */
-  useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
+  /* Client-only: avoids SSR mismatch without setState in an effect */
+  const mounted = useSyncExternalStore(portalSubscribe, () => true, () => false);
 
   /* Handle Escape key press to close the modal */
   const handleEscape = useCallback(

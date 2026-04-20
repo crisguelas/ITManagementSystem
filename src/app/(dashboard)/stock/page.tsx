@@ -59,7 +59,9 @@ export default function StockRoomPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    queueMicrotask(() => {
+      void fetchData();
+    });
   }, [fetchData]);
 
   if (loading && items.length === 0) return <LoadingSpinner message="Loading stock room data..." />;

@@ -52,7 +52,9 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
   }, []);
 
   useEffect(() => {
-    fetchUsers();
+    queueMicrotask(() => {
+      void fetchUsers();
+    });
   }, [fetchUsers]);
 
   const patchUser = async (id: string, body: Record<string, unknown>) => {
