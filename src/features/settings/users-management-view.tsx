@@ -39,6 +39,8 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
   const [editName, setEditName] = useState("");
   const [editRole, setEditRole] = useState<"ADMIN" | "MEMBER">("MEMBER");
   const [editIsActive, setEditIsActive] = useState(true);
+  const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
   const [deleteCandidate, setDeleteCandidate] = useState<UserPublic | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -93,6 +95,8 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
     setEditName(user.name);
     setEditRole(user.role);
     setEditIsActive(user.isActive);
+    setEditPassword("");
+    setEditConfirmPassword("");
   };
 
   const submitEdit = async () => {
@@ -102,11 +106,20 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
       addToast({ title: "Invalid name", message: "Name is required.", variant: "error" });
       return;
     }
+    if (editPassword && editPassword !== editConfirmPassword) {
+      addToast({
+        title: "Password mismatch",
+        message: "New password and confirmation do not match.",
+        variant: "error",
+      });
+      return;
+    }
 
     await patchUser(editingUser.id, {
       name: normalizedName,
       role: editRole,
       isActive: editIsActive,
+      ...(editPassword ? { password: editPassword } : {}),
     });
     setEditingUser(null);
   };
@@ -281,6 +294,26 @@ export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps)
             />
             <span className="text-sm text-gray-700">Account is active</span>
           </label>
+
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-3">
+            <p className="text-sm font-medium text-gray-800">Reset password (optional)</p>
+            <Input
+              label="New password"
+              type="password"
+              autoComplete="new-password"
+              value={editPassword}
+              onChange={(e) => setEditPassword(e.target.value)}
+              placeholder="Leave blank to keep current password"
+            />
+            <Input
+              label="Confirm new password"
+              type="password"
+              autoComplete="new-password"
+              value={editConfirmPassword}
+              onChange={(e) => setEditConfirmPassword(e.target.value)}
+              placeholder="Re-enter new password"
+            />
+          </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
             <Button type="button" variant="outline" onClick={() => setEditingUser(null)} disabled={!!patchingId}>

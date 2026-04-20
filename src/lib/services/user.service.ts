@@ -108,6 +108,10 @@ export async function updateUser(
   input: UpdateUserInput
 ): Promise<UserPublic> {
   await assertNotRemovingLastAdmin(id, input.role, input.isActive);
+  const hashedPassword =
+    input.password !== undefined
+      ? await bcrypt.hash(input.password, BCRYPT_SALT_ROUNDS)
+      : undefined;
 
   return prisma.user.update({
     where: { id },
@@ -115,6 +119,7 @@ export async function updateUser(
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.role !== undefined ? { role: input.role } : {}),
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+      ...(hashedPassword !== undefined ? { password: hashedPassword } : {}),
     },
     select: publicSelect,
   });

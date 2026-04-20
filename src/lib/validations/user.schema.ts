@@ -26,10 +26,21 @@ export const updateUserSchema = z
     name: z.string().trim().min(1).max(120).optional(),
     role: roleEnum.optional(),
     isActive: z.boolean().optional(),
+    password: z
+      .string()
+      .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+      .optional(),
   })
-  .refine((data) => data.name !== undefined || data.role !== undefined || data.isActive !== undefined, {
-    message: "At least one field must be provided",
-  });
+  .refine(
+    (data) =>
+      data.name !== undefined ||
+      data.role !== undefined ||
+      data.isActive !== undefined ||
+      data.password !== undefined,
+    {
+      message: "At least one field must be provided",
+    }
+  );
 
 /** Body for changing the current logged-in user's password */
 export const changePasswordSchema = z
