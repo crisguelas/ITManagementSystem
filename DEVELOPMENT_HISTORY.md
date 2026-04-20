@@ -106,7 +106,21 @@
 
 ---
 
-## Phase 8: Reporting (PDF + Excel) — (Current)
+## Phase 8: Reporting (PDF + Excel) — (In progress)
+
+- Added dashboard route **`/reports`** with server-side session guard and route-level `loading.tsx`.
+- Added `report.service.ts` to assemble report datasets (asset export rows, stock transaction rows, and key summary metrics).
+- Added `ReportsView` with export actions:
+  - **Assets Excel** (`.xlsx`)
+  - **Stock transactions Excel** (`.xlsx`)
+  - **Summary PDF** (`.pdf`) with metrics and compact tables
+
+### Phase 8 quality check — April 20, 2026
+
+- `npx tsc --noEmit` — pass.
+- `npx eslint` on Phase 8 paths — pass (no issues).
+- `npm run build` — pass.
+- Smoke test — `/reports` loads for authenticated users and export buttons generate files.
 
 ---
 
@@ -123,6 +137,8 @@
 - **Settings & IT staff users (admin-only)** — `settings/layout.tsx` gates all `/settings/*` routes to `ADMIN`. **`/settings`** hub and **`/settings/users`** for listing users, **Add user**, role (`ADMIN`/`MEMBER`), active flag; APIs `GET`/`POST /api/users`, `PATCH /api/users/[id]`; `user.service.ts` prevents demoting or deactivating the last active administrator. Sidebar **Settings** uses `adminOnly` + `isAdmin` from the dashboard layout. First admin remains from **`db:seed`**.
 - **Asset detail actions (admin workflow)** — Asset detail page (`/assets/[id]`) now supports **Edit Asset** (prefilled modal form using `PATCH /api/assets/[id]`) and **Delete Asset** (confirmation + `DELETE /api/assets/[id]`, with active-assignment safeguards from the service layer).
 - **Asset category management (admin workflow)** — Categories page (`/categories`) now supports in-row **Edit** and **Delete** actions; `CategoryForm` is reused for create/edit, and API now includes `PATCH`/`DELETE /api/assets/categories/[id]` with duplicate-name/prefix and in-use delete protection.
+- **API hardening (admin/member access)** — Added shared route guards in `src/lib/api-auth.ts` and applied them to assets/categories/buildings/departments/employees APIs: authenticated access for reads and admin-only mutations.
+- **Reports (Phase 8 initial slice)** — Implemented `/reports` page with summary metrics and Excel/PDF exports driven by `report.service.ts`.
 
 ---
 
@@ -130,6 +146,6 @@
 
 ### Suggested next tasks (team)
 
-1. **API hardening** — Session and role checks on all relevant `app/api` routes; document changes in `README.md` (API table).
-2. **Phase 8 — Reporting** — PDF / Excel exports.
-3. **UX follow-up** — Organization / modals after API behavior is final.
+1. **Phase 8 — Reporting follow-up** — Add filters/date ranges and wider report coverage as needed.
+2. **API consistency sweep** — Align remaining routes to shared auth guard helpers where applicable.
+3. **UX follow-up** — Organization / modals after API and reporting behavior is stable.

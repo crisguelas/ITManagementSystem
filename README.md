@@ -169,15 +169,15 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `GET`, `POST` | `/api/users` | List / create **IT staff login** users |
 | `PATCH` | `/api/users/[id]` | Update login user (role, active, name) |
 
-**Auth notes (current code):** `auth()` is used on **asset assignments**, **stock** routes, and **`/api/users`** (admin-only for users). Other routes above do **not** yet call `auth()` in the handler — they are still suitable for internal use behind your app UI, but a dedicated **API hardening** pass should add session (and role) checks consistently. **Update this table** when you add or change routes.
+**Auth notes (current code):** Core management routes are now hardened with shared guards: `GET` handlers require an authenticated session, and mutating handlers (`POST`, `PATCH`, `DELETE`) for **assets, asset categories, buildings, departments, and employees** require `ADMIN`. Stock and assignment routes remain session-protected. **Update this table** when you add or change routes.
 
 ---
 
 ## Next steps (suggested)
 
-1. **API hardening** — Add `auth()` (and role checks where needed) to every route that mutates or reads sensitive data; align error payloads and status codes; then re-test flows such as **Organization → Add Employee** against the secured API.
-2. **Phase 8 — Reporting** — PDF / Excel reporting (see `DEVELOPMENT_HISTORY.md`).
-3. **UX polish** — Revisit any UI deferred during the API work (e.g. organization modals) once responses and errors are stable.
+1. **Phase 8 — Reporting** — Extend report exports (filters/date ranges and additional datasets) after the initial `/reports` delivery.
+2. **Remaining API hardening sweep** — Keep aligning any route not yet covered by `requireSession` / `requireAdmin` to a consistent authorization pattern.
+3. **UX polish** — Revisit any UI deferred during API/reporting work (e.g. organization modals) once responses and errors are stable.
 
 ---
 
