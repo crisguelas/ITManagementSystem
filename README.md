@@ -171,7 +171,8 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `GET`, `PATCH`, `DELETE` | `/api/stock-items/[id]` | Get / update / delete stock item |
 | `GET`, `POST` | `/api/stock-transactions` | List / create stock transactions |
 | `GET`, `POST` | `/api/users` | List / create **IT staff login** users |
-| `PATCH` | `/api/users/[id]` | Update login user (role, active, name) |
+| `PATCH`, `DELETE` | `/api/users/[id]` | Update or delete login user |
+| `POST` | `/api/account/change-password` | Change password for current authenticated user |
 
 **Auth notes (current code):** Shared guards from `src/lib/api-auth.ts` are used across `app/api`: **`requireSession`** for authenticated reads and staff actions (stock listings/transactions, asset assignments/returns, **`/api/rooms` GET**), **`requireAdmin`** for privileged mutations (assets/categories/buildings/departments/employees, **`/api/rooms` POST**, and **`/api/users`**). **Update this table** when you add or change routes.
 

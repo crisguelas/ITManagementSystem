@@ -8,7 +8,11 @@ import bcrypt from "bcryptjs";
 
 import { BCRYPT_SALT_ROUNDS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
-import type { CreateUserInput, UpdateUserInput } from "@/lib/validations/user.schema";
+import type {
+  ChangePasswordInput,
+  CreateUserInput,
+  UpdateUserInput,
+} from "@/lib/validations/user.schema";
 
 /** Public user fields — never includes password */
 export type UserPublic = {
@@ -113,5 +117,67 @@ export async function updateUser(
       ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
     },
     select: publicSelect,
+  });
+}
+
+/** Deletes a login user when safe to do so */
+export async function deleteUser(id: string, currentUserId: string): Promise<void> {
+  if (id === currentUserId) {
+    throw new Error("You cannot delete your own account");
+  }
+
+  await assertNotRemovingLastAdmin(id, "MEMBER", false);
+
+  try {
+    await prisma.user.delete({
+      where: { id },
+    });
+  } catch (error: unknown) {
+    const code =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof (error as { code?: string }).code === "string"
+        ? (error as { code: string }).code
+        : "";
+
+    if (code === "P2025") {
+      throw new Error("User not found");
+    }
+    if (code === "P2003") {
+      throw new Error("Cannot delete this user because related audit records exist");
+    }
+    throw error;
+  }
+}
+
+/** Changes the password for the currently authenticated user */
+export async function changeOwnPassword(
+  userId: string,
+  input: ChangePasswordInput
+): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, password: true },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const currentPasswordMatches = await bcrypt.compare(input.currentPassword, user.password);
+  if (!currentPasswordMatches) {
+    throw new Error("Current password is incorrect");
+  }
+
+  const sameAsOld = await bcrypt.compare(input.newPassword, user.password);
+  if (sameAsOld) {
+    throw new Error("New password must be different from your current password");
+  }
+
+  const hashedPassword = await bcrypt.hash(input.newPassword, BCRYPT_SALT_ROUNDS);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
   });
 }
