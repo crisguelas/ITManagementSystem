@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/api-auth";
 import { returnAsset } from "@/lib/services/assignment.service";
 
 export async function POST(
@@ -13,12 +13,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+    if (!authResult.session.user.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const { id: assetId } = await params;

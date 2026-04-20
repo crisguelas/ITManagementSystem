@@ -5,7 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+
+import { requireSession } from "@/lib/api-auth";
 import { stockCategorySchema } from "@/lib/validations/stock.schema";
 import {
   getStockCategories,
@@ -15,13 +16,8 @@ import {
 /** GET /api/stock-categories — returns all stock categories with item counts */
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const categories = await getStockCategories();
     return NextResponse.json({ success: true, data: categories });
@@ -37,13 +33,8 @@ export async function GET() {
 /** POST /api/stock-categories — creates a new stock category */
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const body: unknown = await request.json();
     const parsed = stockCategorySchema.safeParse(body);

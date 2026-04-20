@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/api-auth";
 import { updateUser } from "@/lib/services/user.service";
 import { updateUserSchema } from "@/lib/validations/user.schema";
 
@@ -15,13 +15,8 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
 
     const { id } = await context.params;
     const body = await request.json();

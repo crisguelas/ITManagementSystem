@@ -5,7 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+
+import { requireSession } from "@/lib/api-auth";
 import { stockCategorySchema } from "@/lib/validations/stock.schema";
 import {
   updateStockCategory,
@@ -19,10 +20,8 @@ interface RouteParams {
 /** PATCH /api/stock-categories/[id] — updates a stock category */
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const { id } = await params;
     const body: unknown = await request.json();
@@ -47,10 +46,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 /** DELETE /api/stock-categories/[id] — deletes a stock category */
 export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const { id } = await params;
     await deleteStockCategory(id);

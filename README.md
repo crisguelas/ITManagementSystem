@@ -169,7 +169,7 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `GET`, `POST` | `/api/users` | List / create **IT staff login** users |
 | `PATCH` | `/api/users/[id]` | Update login user (role, active, name) |
 
-**Auth notes (current code):** Core management routes are now hardened with shared guards: `GET` handlers require an authenticated session, and mutating handlers (`POST`, `PATCH`, `DELETE`) for **assets, asset categories, buildings, departments, and employees** require `ADMIN`. Stock and assignment routes remain session-protected. **Update this table** when you add or change routes.
+**Auth notes (current code):** Shared guards from `src/lib/api-auth.ts` are used across `app/api`: **`requireSession`** for authenticated reads and staff actions (stock listings/transactions, asset assignments/returns, **`/api/rooms` GET**), **`requireAdmin`** for privileged mutations (assets/categories/buildings/departments/employees, **`/api/rooms` POST**, and **`/api/users`**). **Update this table** when you add or change routes.
 
 ---
 

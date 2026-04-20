@@ -6,20 +6,15 @@
 
 import { NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/api-auth";
 import { createUser, listUsers } from "@/lib/services/user.service";
 import { createUserSchema } from "@/lib/validations/user.schema";
 
 /** GET /api/users — list all login users (admin only) */
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
 
     const users = await listUsers();
     return NextResponse.json({ success: true, data: users });
@@ -35,13 +30,8 @@ export async function GET() {
 /** POST /api/users — create login user (admin only) */
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    if (session.user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
+    const authResult = await requireAdmin();
+    if (authResult.response) return authResult.response;
 
     const body = await request.json();
     const parsed = createUserSchema.safeParse(body);

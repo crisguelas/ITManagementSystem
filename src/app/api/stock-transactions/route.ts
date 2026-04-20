@@ -5,7 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+
+import { requireSession } from "@/lib/api-auth";
 import { stockTransactionSchema } from "@/lib/validations/stock.schema";
 import {
   getStockTransactions,
@@ -15,13 +16,8 @@ import {
 /** GET /api/stock-transactions — returns all stock transactions */
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const transactions = await getStockTransactions();
     return NextResponse.json({ success: true, data: transactions });
@@ -37,13 +33,9 @@ export async function GET() {
 /** POST /api/stock-transactions — records a new transaction and updates quantity atomically */
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+    const { session } = authResult;
 
     const body: unknown = await request.json();
     const parsed = stockTransactionSchema.safeParse(body);
@@ -56,10 +48,7 @@ export async function POST(request: Request) {
     }
 
     /* Pass the authenticated user's id as the performer */
-    const transaction = await createStockTransaction(
-      parsed.data,
-      session.user.id
-    );
+    const transaction = await createStockTransaction(parsed.data, session.user.id);
     return NextResponse.json(
       { success: true, data: transaction },
       { status: 201 }

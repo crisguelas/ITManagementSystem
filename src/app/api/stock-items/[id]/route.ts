@@ -5,7 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+
+import { requireSession } from "@/lib/api-auth";
 import { stockItemSchema } from "@/lib/validations/stock.schema";
 import {
   getStockItemById,
@@ -20,10 +21,8 @@ interface RouteParams {
 /** GET /api/stock-items/[id] — returns a single stock item with full transaction history */
 export async function GET(_request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const { id } = await params;
     const item = await getStockItemById(id);
@@ -42,10 +41,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
 /** PATCH /api/stock-items/[id] — updates a stock item */
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const { id } = await params;
     const body: unknown = await request.json();
@@ -70,10 +67,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 /** DELETE /api/stock-items/[id] — deletes a stock item (blocked if it has transactions) */
 export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
 
     const { id } = await params;
     await deleteStockItem(id);
