@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import type { StockItem, StockCategory } from "@prisma/client";
@@ -42,7 +42,7 @@ export const StockItemForm = ({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<z.input<typeof stockItemSchema>>({
@@ -58,8 +58,8 @@ export const StockItemForm = ({
     },
   });
 
-  /* Watch categoryId so the Select reflects the current value */
-  const categoryId = watch("categoryId");
+  /* Track categoryId so the Select reflects the latest controlled value */
+  const categoryId = useWatch({ control, name: "categoryId" });
 
   /* Fetch available stock categories for the dropdown on mount */
   useEffect(() => {

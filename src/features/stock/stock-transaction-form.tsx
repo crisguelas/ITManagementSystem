@@ -5,7 +5,7 @@
  */
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { TransactionType } from "@prisma/client";
@@ -44,7 +44,7 @@ export const StockTransactionForm = ({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<z.input<typeof stockTransactionSchema>>({
@@ -59,8 +59,8 @@ export const StockTransactionForm = ({
     },
   });
 
-  /* Watch the transaction type to conditionally render recipient fields */
-  const txType = watch("type");
+  /* Track the selected transaction type for conditional form fields */
+  const txType = useWatch({ control, name: "type" });
   const isOut = txType === TransactionType.OUT;
   const isAdjustment = txType === TransactionType.ADJUSTMENT;
 
