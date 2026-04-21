@@ -95,14 +95,9 @@ export default function AssetDetailsPage() {
     }
   };
 
-  /* Deletes the asset after explicit confirmation, then returns to asset list */
+  /* Deletes the asset and returns to the asset list on success */
   const handleDelete = async () => {
     if (!assetId) return;
-
-    const confirmed = window.confirm(
-      `Delete asset ${asset?.assetTag}? This action cannot be undone.`
-    );
-    if (!confirmed) return;
 
     setActionError(null);
     setDeleteLoading(true);

@@ -132,6 +132,18 @@ export async function DELETE(
         );
       }
 
+      /* Explain audit lock clearly when related transaction history prevents deletion */
+      if (error.message.includes("Foreign key constraint failed")) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Unable to delete this asset because it has transaction history. To preserve audit integrity, assets with historical transactions must remain in the system.",
+          },
+          { status: 409 }
+        );
+      }
+
       if (error.message.includes("Record to delete does not exist")) {
         return NextResponse.json(
           { success: false, error: "Asset not found" },
