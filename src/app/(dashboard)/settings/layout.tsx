@@ -7,7 +7,6 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
-import { SettingsNav } from "@/features/settings/settings-nav";
 
 export default async function SettingsLayout({
   children,
@@ -36,8 +35,6 @@ export default async function SettingsLayout({
           )}
         </p>
       </header>
-
-      <SettingsNav isAdmin={isAdmin} />
 
       {children}
     </div>

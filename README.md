@@ -32,6 +32,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### Dashboard
 - **Summary metrics**, **charts** (category, status, location), **recent activity**, **quick links**
+- **Responsive dashboard shell** — Mobile uses a hamburger-triggered top-sheet sidebar with backdrop/close controls, while desktop keeps the sidebar visible with collapse support
 
 ### Reporting
 - **Reports hub** — **`/reports`** with Excel (assets, stock transactions, **low-stock lines**, **employees**) and a multi-section PDF summary
