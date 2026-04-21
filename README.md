@@ -26,6 +26,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### Stock room
 - **Stock categories & items** — Quantities, low-stock thresholds
+- **Auto-generated SKU** — New stock items receive system-generated SKU values (`STK-000001`, `STK-000002`, ...)
 - **Transactions** — IN, OUT, RETURN, ADJUSTMENT with audit fields
 - **Audit lock on edits/deletes** — Stock items with transaction history cannot be edited or deleted
 

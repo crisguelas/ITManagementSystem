@@ -8,6 +8,7 @@
 import { prisma } from "@/lib/prisma";
 import { TransactionType } from "@prisma/client";
 import type { z } from "zod";
+import { STOCK_SKU_DIGITS, STOCK_SKU_PREFIX } from "@/lib/constants";
 import type {
   stockCategorySchema,
   stockItemSchema,
@@ -106,22 +107,40 @@ export async function getStockItemById(id: string) {
   });
 }
 
-/** Creates a new stock item with unique SKU guard */
+/**
+ * Generates the next stock SKU in `STK-000001` sequence.
+ * Uses the latest generated SKU value to keep numbering predictable.
+ */
+async function generateNextStockSku(): Promise<string> {
+  const skuStem = `${STOCK_SKU_PREFIX}-`;
+  const existingGeneratedSkus = await prisma.stockItem.findMany({
+    where: {
+      sku: { startsWith: skuStem },
+    },
+    select: { sku: true },
+  });
+
+  const highestSequence = existingGeneratedSkus.reduce((maxSeq, row) => {
+    const [, numericPart] = (row.sku ?? "").split("-");
+    const parsed = Number.parseInt(numericPart ?? "", 10);
+    return Number.isNaN(parsed) ? maxSeq : Math.max(maxSeq, parsed);
+  }, 0);
+  const nextNumber = highestSequence + 1;
+
+  return `${skuStem}${String(nextNumber).padStart(STOCK_SKU_DIGITS, "0")}`;
+}
+
+/** Creates a new stock item with auto-generated SKU */
 export async function createStockItem(
   data: z.infer<typeof stockItemSchema>
 ) {
-  /* Guard: SKU must be unique if provided */
-  if (data.sku) {
-    const existing = await prisma.stockItem.findUnique({
-      where: { sku: data.sku },
-    });
-    if (existing) {
-      throw new Error(`SKU "${data.sku}" is already in use`);
-    }
-  }
+  const sku = await generateNextStockSku();
 
   return prisma.stockItem.create({
-    data,
+    data: {
+      ...data,
+      sku,
+    },
     include: { category: true },
   });
 }
@@ -139,16 +158,6 @@ export async function updateStockItem(
     throw new Error(
       "Cannot edit this stock item because transaction history already exists. Create a new item record for corrected data."
     );
-  }
-
-  /* Guard: SKU must be unique among other items */
-  if (data.sku) {
-    const duplicate = await prisma.stockItem.findFirst({
-      where: { sku: data.sku, NOT: { id } },
-    });
-    if (duplicate) {
-      throw new Error(`SKU "${data.sku}" is already in use`);
-    }
   }
 
   return prisma.stockItem.update({

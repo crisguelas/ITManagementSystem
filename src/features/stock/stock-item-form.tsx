@@ -50,7 +50,6 @@ export const StockItemForm = ({
     defaultValues: {
       name: item?.name ?? "",
       categoryId: item?.categoryId ?? "",
-      sku: item?.sku ?? "",
       quantity: item?.quantity ?? 0,
       minQuantity: item?.minQuantity ?? 5,
       location: item?.location ?? "Main Stock Room",
@@ -146,12 +145,9 @@ export const StockItemForm = ({
           disabled={isSelectDisabled}
         />
 
-        <Input
-          label="SKU (Optional)"
-          placeholder="e.g. CBL-C6-1M"
-          {...register("sku")}
-          error={errors.sku?.message}
-        />
+        <div className="md:col-span-2 rounded-lg border border-primary-100 bg-primary-50/40 px-3 py-2 text-xs text-primary-700">
+          SKU is generated automatically after saving to keep stock item codes consistent.
+        </div>
 
         <Input
           label="Unit"

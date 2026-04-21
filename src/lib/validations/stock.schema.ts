@@ -26,7 +26,6 @@ export type StockCategoryFormValues = z.infer<typeof stockCategorySchema>;
 export const stockItemSchema = z.object({
   name: z.string().min(2, "Item name must be at least 2 characters"),
   categoryId: z.string().min(1, "Please select a stock category"),
-  sku: z.string().optional(),
   quantity: z.coerce
     .number()
     .int("Quantity must be a whole number")

@@ -236,6 +236,7 @@
 - **Asset edit lock by history** — Prevented asset edits once any assignment history exists (service + API `409` + disabled Edit button in asset detail UI).
 - **Stock item edit lock by history** — Prevented stock item edits when transaction history exists (service + API protection + disabled Edit button in Stock Room table).
 - **Stock actions visual consistency** — Standardized Stock Room item action controls to labeled buttons (`Transact`, `View`, `Edit`, `Delete`) for layout parity with other sections.
+- **Stock SKU automation** — Removed manual SKU entry from Stock Item forms and now auto-generate SKU codes in the service layer using `STK-######` sequencing to enforce consistent unique identifiers.
 
 ### Post-phase enhancements quality check — April 20, 2026
 

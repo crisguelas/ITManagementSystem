@@ -53,6 +53,12 @@ export const STOCK_UNITS = [
   "kg",
 ] as const;
 
+/* Prefix for auto-generated stock SKU values */
+export const STOCK_SKU_PREFIX = "STK";
+
+/* Number of digits in auto-generated stock SKU sequence (e.g. STK-000001) */
+export const STOCK_SKU_DIGITS = 6;
+
 /* ═══════════════════════════════════════════════════════════════ */
 /* DISPLAY LABELS — Human-readable labels for enum values          */
 /* ═══════════════════════════════════════════════════════════════ */
