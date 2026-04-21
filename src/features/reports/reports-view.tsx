@@ -13,7 +13,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
-import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -263,8 +262,6 @@ export function ReportsView({ data }: ReportsViewProps) {
 
   return (
     <div className="animate-fade-in">
-      <Breadcrumb />
-
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Reports</h1>
         <p className="mt-1 text-sm text-gray-500">

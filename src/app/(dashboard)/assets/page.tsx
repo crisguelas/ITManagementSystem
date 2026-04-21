@@ -3,7 +3,6 @@
  * @description Main Assets page displaying the physical IT equipment inventory.
  */
 
-import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { AssetTable } from "@/features/assets/asset-table";
 
 export const metadata = {
@@ -13,8 +12,6 @@ export const metadata = {
 export default function AssetsPage() {
   return (
     <div className="animate-fade-in">
-      <Breadcrumb />
-      
       {/* Page Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
