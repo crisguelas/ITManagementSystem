@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /* Third-party imports */
 import {
@@ -49,12 +49,25 @@ const ICON_MAP: Record<string, React.ElementType> = {
 interface SidebarProps {
   /** When false, items marked `adminOnly` in NAV_ITEMS are hidden */
   isAdmin?: boolean;
+  /** Controls mobile drawer visibility */
+  isMobileOpen?: boolean;
+  /** Closes the mobile drawer */
+  onMobileClose?: () => void;
 }
 
-export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
+export const Sidebar = ({
+  isAdmin = false,
+  isMobileOpen = false,
+  onMobileClose,
+}: SidebarProps) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const isDesktopCollapsed = collapsed;
+
+  useEffect(() => {
+    onMobileClose?.();
+  }, [onMobileClose, pathname]);
 
   /* Toggle a specific dropdown menu open/closed */
   const toggleDropdown = (label: string) => {
@@ -79,15 +92,26 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
   };
 
   return (
-    <aside
-      className={cn(
-        "flex flex-col h-screen bg-primary-900 text-white transition-all duration-300 z-20 shrink-0",
-        collapsed ? "w-[72px]" : "w-[260px]"
+    <>
+      {/* Mobile backdrop for the off-canvas sidebar */}
+      {isMobileOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          onClick={onMobileClose}
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+        />
       )}
-    >
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] max-w-[86vw] flex-col bg-primary-900 text-white transition-transform duration-300 md:static md:z-20 md:h-screen md:max-w-none md:translate-x-0 md:shrink-0",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+          isDesktopCollapsed ? "md:w-[72px]" : "md:w-[260px]",
+        )}
+      >
       {/* Sidebar Header: Logo and App Name */}
       <div className="flex items-center justify-between h-16 px-4 shrink-0 border-b border-primary-800">
-        {!collapsed && (
+        {!isDesktopCollapsed && (
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white shadow-sm">
               I
@@ -98,7 +122,7 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
             </div>
           </div>
         )}
-        {collapsed && (
+        {isDesktopCollapsed && (
            <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white mx-auto shadow-sm">
              I
            </div>
@@ -125,7 +149,7 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
                 {hasChildren ? (
                   <button
                     onClick={() => {
-                      if (collapsed) setCollapsed(false);
+                      if (isDesktopCollapsed) setCollapsed(false);
                       toggleDropdown(item.label);
                     }}
                     className={cn(
@@ -136,7 +160,7 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
                     )}
                   >
                     <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary-400" : "text-primary-300 group-hover:text-primary-200")} />
-                    {!collapsed && (
+                    {!isDesktopCollapsed && (
                       <>
                         <span className="ml-3 text-sm font-medium flex-1 text-left">
                           {item.label}
@@ -161,7 +185,7 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
                     )}
                   >
                     <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary-400" : "text-primary-300 group-hover:text-primary-200")} />
-                    {!collapsed && (
+                    {!isDesktopCollapsed && (
                       <span className="ml-3 text-sm font-medium">
                         {item.label}
                       </span>
@@ -170,7 +194,7 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
                 )}
 
                 {/* Submenu for items with children */}
-                {!collapsed && hasChildren && isDropdownOpen && (
+                {!isDesktopCollapsed && hasChildren && isDropdownOpen && (
                   <div className="mt-1 ml-4 pl-4 border-l border-primary-800/50 space-y-1">
                     {item.children
                       .filter((child) => {
@@ -203,7 +227,7 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
       </div>
       
       {/* Toggle Sidebar Button */}
-      <div className="p-3 border-t border-primary-800 shrink-0">
+      <div className="hidden p-3 border-t border-primary-800 shrink-0 md:block">
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="flex items-center justify-center w-full p-2 text-primary-300 hover:text-white hover:bg-primary-800 rounded-lg transition-colors"
@@ -212,5 +236,6 @@ export const Sidebar = ({ isAdmin = false }: SidebarProps) => {
           </button>
       </div>
     </aside>
+   </>
   );
 };

@@ -10,7 +10,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
-import { User, Bell, ChevronDown, LogOut, KeyRound, AlertTriangle, PackagePlus } from "lucide-react";
+import {
+  User,
+  Bell,
+  ChevronDown,
+  LogOut,
+  KeyRound,
+  AlertTriangle,
+  PackagePlus,
+  Menu,
+} from "lucide-react";
 
 /* Local imports */
 import { capitalize } from "@/lib/utils";
@@ -22,6 +31,7 @@ import { capitalize } from "@/lib/utils";
 interface HeaderProps {
   currentUserName: string;
   currentUserRole: "ADMIN" | "MEMBER";
+  onOpenMobileSidebar: () => void;
 }
 
 interface StockItemNotification {
@@ -51,7 +61,11 @@ interface AssetNotificationPayload {
   }>;
 }
 
-export const Header = ({ currentUserName, currentUserRole }: HeaderProps) => {
+export const Header = ({
+  currentUserName,
+  currentUserRole,
+  onOpenMobileSidebar,
+}: HeaderProps) => {
   const pathname = usePathname();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -212,16 +226,24 @@ export const Header = ({ currentUserName, currentUserRole }: HeaderProps) => {
   };
 
   return (
-    <header className="h-16 px-6 bg-white border-b border-gray-200 flex items-center justify-between shrink-0 z-10 sticky top-0 shadow-sm">
+    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3 shadow-sm sm:px-4 md:px-6">
       {/* Left side: Page Title */}
       <div className="flex items-center">
-        <h1 className="text-xl font-semibold text-gray-800 tracking-tight">
+        <button
+          type="button"
+          onClick={onOpenMobileSidebar}
+          className="mr-2 rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 md:hidden"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <h1 className="text-lg font-semibold tracking-tight text-gray-800 sm:text-xl">
           {getPageTitle()}
         </h1>
       </div>
 
       {/* Right side: Actions & Profile */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Notifications */}
         <div ref={notificationRef} className="relative">
           <button
@@ -245,7 +267,7 @@ export const Header = ({ currentUserName, currentUserRole }: HeaderProps) => {
 
           {isNotificationsOpen && (
             <div
-              className="absolute right-0 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-lg z-30 overflow-hidden"
+              className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-1rem))] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
               role="menu"
             >
               <div className="px-4 py-3 border-b border-gray-100">
@@ -368,7 +390,7 @@ export const Header = ({ currentUserName, currentUserRole }: HeaderProps) => {
         </div>
 
         {/* Divider */}
-        <div className="h-6 w-px bg-gray-200"></div>
+        <div className="hidden h-6 w-px bg-gray-200 sm:block"></div>
 
         {/* User Profile Summary + dropdown menu for account actions */}
         <div ref={menuRef} className="relative">

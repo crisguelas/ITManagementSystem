@@ -5,8 +5,7 @@
  */
 
 import { auth } from "@/lib/auth";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
+import { ResponsiveDashboardShell } from "@/components/layout/responsive-dashboard-shell";
 
 export default async function DashboardLayout({
   children,
@@ -19,22 +18,12 @@ export default async function DashboardLayout({
   const currentUserRole = session?.user?.role ?? "MEMBER";
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar Navigation — admin-only links hidden for members */}
-      <Sidebar isAdmin={isAdmin} />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <Header currentUserName={currentUserName} currentUserRole={currentUserRole} />
-
-        {/* Page Content Region (scrollable) */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-background relative">
-          <div className="mx-auto max-w-7xl">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+    <ResponsiveDashboardShell
+      isAdmin={isAdmin}
+      currentUserName={currentUserName}
+      currentUserRole={currentUserRole}
+    >
+      {children}
+    </ResponsiveDashboardShell>
   );
 }
