@@ -3,13 +3,11 @@
  * @description Route-level loading state for dashboard shell while stats are computed.
  */
 
-import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Card, CardBody } from "@/components/ui/card";
 
 export default function DashboardLoading() {
   return (
     <div className="animate-fade-in">
-      <Breadcrumb />
       <div className="mb-6">
         <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
         <div className="mt-2 h-4 w-72 animate-pulse rounded bg-gray-100" />
