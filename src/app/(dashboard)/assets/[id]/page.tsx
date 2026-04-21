@@ -160,7 +160,7 @@ export default function AssetDetailsPage() {
   /* QR encodes the canonical asset URL (uses stable `id`, not the printed tag text — scans keep working if `ASSET_TAG_PREFIX` changes) */
   const qrUrl =
     typeof window !== "undefined" && asset?.id
-      ? new URL(`/assets/${encodeURIComponent(asset.id)}?scan=1`, window.location.origin).href
+      ? new URL(`/scan/assets/${encodeURIComponent(asset.id)}`, window.location.origin).href
       : "";
   const openedFromQr = searchParams?.get("scan") === "1";
   const scanNoticeOpen = openedFromQr && !scanNoticeDismissed;

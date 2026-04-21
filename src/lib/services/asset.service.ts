@@ -172,6 +172,45 @@ export async function getAssets() {
   });
 }
 
+/**
+ * Returns minimal, non-sensitive asset assignment info for public QR scan notices.
+ */
+export async function getAssetScanDetails(id: string) {
+  return prisma.asset.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      assetTag: true,
+      name: true,
+      status: true,
+      assignments: {
+        where: { returnedAt: null },
+        include: {
+          employee: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+          room: {
+            select: {
+              name: true,
+              building: {
+                select: {
+                  code: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+        take: 1,
+        orderBy: { assignedAt: "desc" },
+      },
+    },
+  });
+}
+
 export async function createAsset(data: z.infer<typeof assetSchema>) {
   /* Check unique constraint: pcNumber (if provided) */
   if (data.pcNumber) {
