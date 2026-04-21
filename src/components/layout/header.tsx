@@ -386,7 +386,7 @@ export const Header = ({
                   onClick={() => setIsNotificationsOpen(false)}
                   className="text-xs font-medium text-primary-600 hover:text-primary-700"
                 >
-                  View stock room
+                  View inventory
                 </Link>
               </div>
             </div>

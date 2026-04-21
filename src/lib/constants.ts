@@ -165,7 +165,7 @@ export const NAV_ITEMS = [
     icon: "Building2",
   },
   {
-    label: "Stock Room",
+    label: "Inventory",
     href: "/stock",
     icon: "Warehouse",
   },

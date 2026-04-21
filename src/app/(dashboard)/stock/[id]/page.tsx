@@ -68,7 +68,7 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
         <Link href="/stock" className="hover:text-primary-600 transition-colors flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Back to Stock Room
+          <ArrowLeft className="h-4 w-4" /> Back to Inventory
         </Link>
       </div>
 

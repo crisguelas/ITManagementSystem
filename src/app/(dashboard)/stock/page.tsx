@@ -1,6 +1,6 @@
 /**
  * @file page.tsx
- * @description Main Stock Room page. Contains two tabs (Items and Categories).
+ * @description Main Inventory page. Contains two tabs (Items and Categories).
  */
 "use client";
 
@@ -64,13 +64,13 @@ export default function StockRoomPage() {
     });
   }, [fetchData]);
 
-  if (loading && items.length === 0) return <LoadingSpinner message="Loading stock room data..." />;
+  if (loading && items.length === 0) return <LoadingSpinner message="Loading inventory data..." />;
   if (error) return <ErrorState message={error} onRetry={fetchData} />;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Stock Room</h1>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Inventory</h1>
         <p className="text-gray-500 mt-1">Manage consumable inventory, spare parts, and transaction logs.</p>
       </div>
 
@@ -86,7 +86,7 @@ export default function StockRoomPage() {
                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
-            <Package className="h-4 w-4" /> Stock Items
+            <Package className="h-4 w-4" /> Inventory Items
             {activeTab === "items" && (
               <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-600 rounded-t-full" />
             )}

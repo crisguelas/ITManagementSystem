@@ -390,7 +390,7 @@ export function DashboardView({ data }: DashboardViewProps) {
                 href="/stock"
                 className="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:border-primary-200 hover:bg-primary-50 hover:text-primary-700"
               >
-                Stock room &amp; transactions
+                Inventory &amp; transactions
                 <ArrowRight className="h-4 w-4 opacity-50" />
               </Link>
             </CardBody>
