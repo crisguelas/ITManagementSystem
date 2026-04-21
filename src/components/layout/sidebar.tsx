@@ -21,6 +21,7 @@ import {
   Settings,
   ChevronDown,
   Menu,
+  X,
 } from "lucide-react";
 
 /* Local imports */
@@ -104,8 +105,8 @@ export const Sidebar = ({
       )}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[260px] max-w-[86vw] flex-col bg-primary-900 text-white transition-transform duration-300 md:static md:z-20 md:h-screen md:max-w-none md:translate-x-0 md:shrink-0",
-          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+          "fixed left-0 right-0 top-0 z-40 flex max-h-[85vh] w-full flex-col rounded-b-2xl bg-primary-900 text-white shadow-2xl transition-transform duration-300 md:static md:inset-auto md:h-screen md:max-h-none md:w-[260px] md:max-w-none md:rounded-none md:shadow-none md:transition-all md:translate-x-0 md:shrink-0",
+          isMobileOpen ? "translate-y-0" : "-translate-y-full",
           isDesktopCollapsed ? "md:w-[72px]" : "md:w-[260px]",
         )}
       >
@@ -127,6 +128,14 @@ export const Sidebar = ({
              I
            </div>
         )}
+        <button
+          type="button"
+          onClick={onMobileClose}
+          className="rounded-md p-2 text-primary-200 hover:bg-primary-800 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-300 md:hidden"
+          aria-label="Close navigation menu"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       {/* Sidebar Navigation */}

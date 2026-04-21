@@ -31,6 +31,7 @@ import { capitalize } from "@/lib/utils";
 interface HeaderProps {
   currentUserName: string;
   currentUserRole: "ADMIN" | "MEMBER";
+  isMobileSidebarOpen: boolean;
   onOpenMobileSidebar: () => void;
 }
 
@@ -64,6 +65,7 @@ interface AssetNotificationPayload {
 export const Header = ({
   currentUserName,
   currentUserRole,
+  isMobileSidebarOpen,
   onOpenMobileSidebar,
 }: HeaderProps) => {
   const pathname = usePathname();
@@ -229,14 +231,16 @@ export const Header = ({
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3 shadow-sm sm:px-4 md:px-6">
       {/* Left side: Page Title */}
       <div className="flex items-center">
-        <button
-          type="button"
-          onClick={onOpenMobileSidebar}
-          className="mr-2 rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 md:hidden"
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        {!isMobileSidebarOpen && (
+          <button
+            type="button"
+            onClick={onOpenMobileSidebar}
+            className="mr-2 rounded-md p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 md:hidden"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
         <h1 className="text-lg font-semibold tracking-tight text-gray-800 sm:text-xl">
           {getPageTitle()}
         </h1>

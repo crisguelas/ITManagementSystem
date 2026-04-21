@@ -35,6 +35,7 @@ export const ResponsiveDashboardShell = ({
         <Header
           currentUserName={currentUserName}
           currentUserRole={currentUserRole}
+          isMobileSidebarOpen={isMobileSidebarOpen}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         />
 
