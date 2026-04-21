@@ -1,7 +1,7 @@
 /**
  * @file layout.tsx
- * @description Settings hub — any signed-in user may open `/settings` for shared configuration (e.g. categories).
- * User account management under `/settings/users` is gated separately to **ADMIN** only.
+ * @description Settings hub for account-management functions.
+ * User account management under `/settings/users` is gated to **ADMIN** only.
  */
 
 import { redirect } from "next/navigation";
@@ -27,11 +27,10 @@ export default async function SettingsLayout({
         <p className="text-sm text-gray-500">
           {isAdmin ? (
             <>
-              Application configuration and{" "}
-              <strong className="font-medium text-gray-700">user account</strong> management.
+              Manage system <strong className="font-medium text-gray-700">user accounts</strong>.
             </>
           ) : (
-            <>Application configuration available to your role.</>
+            <>Settings are limited for your role.</>
           )}
         </p>
       </header>

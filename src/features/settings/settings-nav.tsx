@@ -1,6 +1,6 @@
 /**
  * @file settings-nav.tsx
- * @description Sub-navigation for Settings — user accounts for admins; categories for all authenticated roles.
+ * @description Sub-navigation for Settings — user account management for administrators.
  */
 
 "use client";
@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 
 const LINK_DEFS = [
   { href: "/settings/users", label: "User accounts", adminOnly: true },
-  { href: "/categories", label: "Categories", adminOnly: false },
 ] as const;
 
 interface SettingsNavProps {
