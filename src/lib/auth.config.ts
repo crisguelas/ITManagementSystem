@@ -19,9 +19,12 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
       const isLoginRoute = nextUrl.pathname.startsWith('/login');
+      const isPublicScanRoute = nextUrl.pathname.startsWith("/scan");
       
       /* Always allow API auth routes */
       if (isApiAuthRoute) return true;
+      /* Keep asset QR scan pages publicly accessible */
+      if (isPublicScanRoute) return true;
 
       /* Restrict dashboard access */
       if (!isLoginRoute) {
