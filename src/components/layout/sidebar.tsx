@@ -105,7 +105,7 @@ export const Sidebar = ({
       )}
       <aside
         className={cn(
-          "fixed left-0 right-0 top-0 z-40 flex max-h-[85vh] w-full flex-col rounded-b-2xl bg-primary-900 text-white shadow-2xl transition-transform duration-300 md:static md:inset-auto md:h-screen md:max-h-none md:w-[260px] md:max-w-none md:rounded-none md:shadow-none md:transition-all md:translate-x-0 md:shrink-0",
+          "fixed left-0 right-0 top-0 z-40 flex max-h-[85vh] w-full flex-col rounded-b-2xl bg-primary-900 text-white shadow-2xl transition-transform duration-300 md:static md:inset-auto md:h-screen md:max-h-none md:w-[260px] md:max-w-none md:rounded-none md:shadow-none md:transition-all md:translate-x-0 md:translate-y-0 md:shrink-0",
           isMobileOpen ? "translate-y-0" : "-translate-y-full",
           isDesktopCollapsed ? "md:w-[72px]" : "md:w-[260px]",
         )}

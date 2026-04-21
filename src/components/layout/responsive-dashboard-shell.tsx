@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -22,13 +22,19 @@ export const ResponsiveDashboardShell = ({
   currentUserRole,
 }: ResponsiveDashboardShellProps) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const handleMobileSidebarClose = useCallback(() => {
+    setIsMobileSidebarOpen(false);
+  }, []);
+  const handleMobileSidebarOpen = useCallback(() => {
+    setIsMobileSidebarOpen(true);
+  }, []);
 
   return (
     <div className="relative flex min-h-screen bg-background">
       <Sidebar
         isAdmin={isAdmin}
         isMobileOpen={isMobileSidebarOpen}
-        onMobileClose={() => setIsMobileSidebarOpen(false)}
+        onMobileClose={handleMobileSidebarClose}
       />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -36,7 +42,7 @@ export const ResponsiveDashboardShell = ({
           currentUserName={currentUserName}
           currentUserRole={currentUserRole}
           isMobileSidebarOpen={isMobileSidebarOpen}
-          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          onOpenMobileSidebar={handleMobileSidebarOpen}
         />
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background p-3 sm:p-4 md:p-6 lg:p-8">
