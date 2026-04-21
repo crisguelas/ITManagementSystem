@@ -230,6 +230,13 @@
 - **Responsive sidebar fix (April 21)** — Resolved regression where the mobile hamburger menu closed immediately and the desktop sidebar could disappear after mobile-state transforms. `ResponsiveDashboardShell` now passes stable open/close callbacks, and `Sidebar` explicitly resets desktop vertical transform (`md:translate-y-0`).
 - **Desktop sidebar behavior update (April 21)** — Updated desktop toggle behavior to icon-only collapse (hide labels while keeping menu icons visible) and kept the sidebar pinned full-height during page scrolling.
 
+### Data integrity and stock UI hardening — April 21, 2026
+
+- **QR temporary mode (current)** — Updated asset QR payload to plain IMC ownership text (no URL redirect) while deferring dynamic public scan URLs to pre-deployment tasks.
+- **Asset edit lock by history** — Prevented asset edits once any assignment history exists (service + API `409` + disabled Edit button in asset detail UI).
+- **Stock item edit lock by history** — Prevented stock item edits when transaction history exists (service + API protection + disabled Edit button in Stock Room table).
+- **Stock actions visual consistency** — Standardized Stock Room item action controls to labeled buttons (`Transact`, `View`, `Edit`, `Delete`) for layout parity with other sections.
+
 ### Post-phase enhancements quality check — April 20, 2026
 
 - `npx eslint src/components/layout/header.tsx` — pass.
@@ -251,3 +258,4 @@
 1. **Phase 8 — Reporting follow-up** — Add filters/date ranges and wider report coverage as needed.
 2. **API consistency sweep** — Align remaining routes to shared auth guard helpers where applicable.
 3. **UX follow-up** — Organization / modals after API and reporting behavior is stable.
+4. **Pre-deployment QR scan enhancement (required before go-live)** — Replace temporary plain-text QR payloads with dynamic public scan URLs (`/scan/assets/{id}`) served from a fixed production domain (for example `NEXT_PUBLIC_QR_BASE_URL`) so printed labels always show current assignment/availability without requiring app login or Vercel authentication.

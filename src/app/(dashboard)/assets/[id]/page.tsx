@@ -144,6 +144,7 @@ export default function AssetDetailsPage() {
   const activeAssignment = asset.assignments.find(
     (a: AssetAssignmentWithRelations) => !a.returnedAt
   );
+  const hasAssignmentHistory = asset.assignments.length > 0;
   const canAssign =
     asset.status !== AssetStatus.RETIRED && asset.status !== AssetStatus.DISPOSED;
 
@@ -237,7 +238,16 @@ export default function AssetDetailsPage() {
                 <Button leftIcon={<Printer className="w-4 h-4" />} variant="outline" onClick={handlePrint}>
                   Print Label
                 </Button>
-                <Button variant="primary" onClick={() => setEditModalOpen(true)}>
+                <Button
+                  variant="primary"
+                  onClick={() => setEditModalOpen(true)}
+                  disabled={hasAssignmentHistory}
+                  title={
+                    hasAssignmentHistory
+                      ? "Editing is disabled because this asset already has assignment history."
+                      : "Edit asset details"
+                  }
+                >
                   Edit Asset
                 </Button>
                 <Button

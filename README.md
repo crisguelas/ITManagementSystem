@@ -13,10 +13,11 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ## Features
 
 ### Core
-- **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR codes link to the asset record (by id), specs
+- **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), specs
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
 - **Categories** — Custom asset categories with tag prefixes; dedicated UI at **`/categories`** (sidebar: Settings → Categories, **administrators only**) to list and add categories
+- **Audit lock on edits** — Assets with assignment history are read-only for edits to preserve historical integrity
 
 ### Locations & people
 - **Buildings & rooms** — Campus or office structure; register buildings and **rooms** under **Organization → Places** (room form posts to `/api/rooms`)
@@ -26,6 +27,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ### Stock room
 - **Stock categories & items** — Quantities, low-stock thresholds
 - **Transactions** — IN, OUT, RETURN, ADJUSTMENT with audit fields
+- **Audit lock on edits/deletes** — Stock items with transaction history cannot be edited or deleted
 
 ### Assignment & tracking
 - **Assignments** — Assign assets to employees and/or rooms; return workflow and history

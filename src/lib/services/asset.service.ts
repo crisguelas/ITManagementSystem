@@ -257,6 +257,16 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
     throw new Error("Asset not found");
   }
 
+  /* Preserve assignment audit integrity: once history exists, core asset fields are locked */
+  const assignmentHistoryCount = await prisma.assetAssignment.count({
+    where: { assetId: id },
+  });
+  if (assignmentHistoryCount > 0) {
+    throw new Error(
+      "Cannot edit asset because assignment history already exists. Create a new asset record for corrected data."
+    );
+  }
+
   /* Check unique constraint: pcNumber (if provided), excluding current asset */
   if (data.pcNumber) {
     const existingPc = await prisma.asset.findFirst({

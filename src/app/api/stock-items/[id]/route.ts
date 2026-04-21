@@ -60,7 +60,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update stock item";
     console.error("[StockItemsAPI] PATCH error:", error);
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
+    const status =
+      error instanceof Error && error.message.includes("transaction history already exists")
+        ? 409
+        : 400;
+    return NextResponse.json({ success: false, error: message }, { status });
   }
 }
 

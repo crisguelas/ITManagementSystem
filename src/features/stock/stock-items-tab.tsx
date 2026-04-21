@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Edit2, Trash2, Package, Eye, AlertTriangle } from "lucide-react";
+import { Edit2, Trash2, Package, AlertTriangle } from "lucide-react";
 import type { StockItem, StockCategory } from "@prisma/client";
 
 import { useToast } from "@/components/ui/toast";
@@ -108,6 +108,7 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
               <tbody className="divide-y divide-gray-100">
                 {items.map((item) => {
                   const isLow = item.quantity <= item.minQuantity;
+                  const hasTransactionHistory = item._count.transactions > 0;
                   return (
                     <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-5 py-3">
@@ -136,20 +137,39 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
                         {item.location}
                       </td>
                       <td className="px-5 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleOpenTx(item)} className="text-xs">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button variant="outline" size="sm" onClick={() => handleOpenTx(item)} className="h-8 px-3 text-xs">
                             Transact
                           </Button>
                           <Link href={`/stock/${item.id}`} passHref>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50">
-                              <Eye className="h-4 w-4" />
+                            <Button variant="outline" size="sm" className="h-8 px-3 text-xs text-primary-700">
+                              View
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" onClick={() => handleOpenForm(item)} className="h-8 w-8 p-0 text-gray-500">
-                            <Edit2 className="h-4 w-4" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenForm(item)}
+                            className="h-8 px-3 text-xs"
+                            disabled={hasTransactionHistory}
+                            title={
+                              hasTransactionHistory
+                                ? "Editing is disabled because this item already has transaction history."
+                                : "Edit stock item"
+                            }
+                          >
+                            <Edit2 className="h-3.5 w-3.5 mr-1" />
+                            Edit
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setDeleteId(item.id)} className="h-8 w-8 p-0 text-red-500 hover:bg-red-50" disabled={item._count.transactions > 0}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteId(item.id)}
+                            className="h-8 px-3 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                            disabled={hasTransactionHistory}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </td>

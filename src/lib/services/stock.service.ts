@@ -131,6 +131,16 @@ export async function updateStockItem(
   id: string,
   data: z.infer<typeof stockItemSchema>
 ) {
+  /* Preserve transaction audit integrity: once transactions exist, item details are locked */
+  const transactionCount = await prisma.stockTransaction.count({
+    where: { stockItemId: id },
+  });
+  if (transactionCount > 0) {
+    throw new Error(
+      "Cannot edit this stock item because transaction history already exists. Create a new item record for corrected data."
+    );
+  }
+
   /* Guard: SKU must be unique among other items */
   if (data.sku) {
     const duplicate = await prisma.stockItem.findFirst({

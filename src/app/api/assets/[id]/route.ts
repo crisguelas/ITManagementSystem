@@ -88,6 +88,13 @@ export async function PATCH(
         );
       }
 
+      if (error.message.includes("assignment history already exists")) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 409 }
+        );
+      }
+
       if (error.message.includes("already in use")) {
         return NextResponse.json(
           { success: false, error: error.message },
