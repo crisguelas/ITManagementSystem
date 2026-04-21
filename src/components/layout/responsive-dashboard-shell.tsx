@@ -22,18 +22,11 @@ export const ResponsiveDashboardShell = ({
   currentUserRole,
 }: ResponsiveDashboardShellProps) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isDesktopSidebarHidden, setIsDesktopSidebarHidden] = useState(false);
   const handleMobileSidebarClose = useCallback(() => {
     setIsMobileSidebarOpen(false);
   }, []);
   const handleMobileSidebarOpen = useCallback(() => {
     setIsMobileSidebarOpen(true);
-  }, []);
-  const handleDesktopSidebarToggle = useCallback(() => {
-    setIsDesktopSidebarHidden((prev) => !prev);
-  }, []);
-  const handleDesktopSidebarShow = useCallback(() => {
-    setIsDesktopSidebarHidden(false);
   }, []);
 
   return (
@@ -42,19 +35,7 @@ export const ResponsiveDashboardShell = ({
         isAdmin={isAdmin}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={handleMobileSidebarClose}
-        isDesktopHidden={isDesktopSidebarHidden}
-        onDesktopToggle={handleDesktopSidebarToggle}
       />
-      {isDesktopSidebarHidden && (
-        <button
-          type="button"
-          onClick={handleDesktopSidebarShow}
-          className="fixed left-3 top-20 z-30 hidden items-center justify-center rounded-md border border-gray-200 bg-white p-2 text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 md:flex"
-          aria-label="Show sidebar"
-        >
-          <span className="text-lg leading-none">☰</span>
-        </button>
-      )}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header

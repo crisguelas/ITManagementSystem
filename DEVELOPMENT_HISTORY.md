@@ -228,7 +228,7 @@
 
 - **Asset categories** — Moved the **Categories** link from the **Assets** submenu to **Settings** (`NAV_ITEMS` in `src/lib/constants.ts`), alongside **User accounts**, so category/tag prefix configuration sits with other admin configuration.
 - **Responsive sidebar fix (April 21)** — Resolved regression where the mobile hamburger menu closed immediately and the desktop sidebar could disappear after mobile-state transforms. `ResponsiveDashboardShell` now passes stable open/close callbacks, and `Sidebar` explicitly resets desktop vertical transform (`md:translate-y-0`).
-- **Desktop sidebar behavior restore (April 21)** — Restored full hide/show behavior for the desktop sidebar toggle (instead of icon-only collapse), added a desktop reopen button when hidden, and made the sidebar stay pinned full-height during page scrolling.
+- **Desktop sidebar behavior update (April 21)** — Updated desktop toggle behavior to icon-only collapse (hide labels while keeping menu icons visible) and kept the sidebar pinned full-height during page scrolling.
 
 ### Post-phase enhancements quality check — April 20, 2026
 

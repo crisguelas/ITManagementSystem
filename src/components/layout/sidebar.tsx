@@ -54,21 +54,17 @@ interface SidebarProps {
   isMobileOpen?: boolean;
   /** Closes the mobile drawer */
   onMobileClose?: () => void;
-  /** Hides the desktop sidebar panel */
-  isDesktopHidden?: boolean;
-  /** Toggles desktop sidebar visibility */
-  onDesktopToggle?: () => void;
 }
 
 export const Sidebar = ({
   isAdmin = false,
   isMobileOpen = false,
   onMobileClose,
-  isDesktopHidden = false,
-  onDesktopToggle,
 }: SidebarProps) => {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const isDesktopCollapsed = collapsed;
 
   useEffect(() => {
     onMobileClose?.();
@@ -111,20 +107,27 @@ export const Sidebar = ({
         className={cn(
           "fixed left-0 right-0 top-0 z-40 flex max-h-[85vh] w-full flex-col rounded-b-2xl bg-primary-900 text-white shadow-2xl transition-transform duration-300 md:sticky md:top-0 md:h-screen md:max-h-none md:w-[260px] md:max-w-none md:rounded-none md:shadow-none md:transition-all md:translate-y-0 md:shrink-0",
           isMobileOpen ? "translate-y-0" : "-translate-y-full",
-          isDesktopHidden ? "md:-translate-x-full md:w-0 md:overflow-hidden" : "md:translate-x-0",
+          isDesktopCollapsed ? "md:w-[72px]" : "md:w-[260px]",
         )}
       >
       {/* Sidebar Header: Logo and App Name */}
       <div className="flex items-center justify-between h-16 px-4 shrink-0 border-b border-primary-800">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white shadow-sm">
-            I
+        {!isDesktopCollapsed && (
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white shadow-sm">
+              I
+            </div>
+            <div className="flex flex-col min-w-0">
+               <span className="font-semibold text-sm truncate">{APP_NAME}</span>
+               <span className="text-[10px] text-primary-300 truncate">IT Department</span>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-             <span className="font-semibold text-sm truncate">{APP_NAME}</span>
-             <span className="text-[10px] text-primary-300 truncate">IT Department</span>
-          </div>
-        </div>
+        )}
+        {isDesktopCollapsed && (
+           <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white mx-auto shadow-sm">
+             I
+           </div>
+        )}
         <button
           type="button"
           onClick={onMobileClose}
@@ -155,6 +158,7 @@ export const Sidebar = ({
                 {hasChildren ? (
                   <button
                     onClick={() => {
+                      if (isDesktopCollapsed) setCollapsed(false);
                       toggleDropdown(item.label);
                     }}
                     className={cn(
@@ -165,15 +169,19 @@ export const Sidebar = ({
                     )}
                   >
                     <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary-400" : "text-primary-300 group-hover:text-primary-200")} />
-                    <span className="ml-3 flex-1 text-left text-sm font-medium">
-                      {item.label}
-                    </span>
-                    <ChevronDown 
-                      className={cn(
-                        "w-4 h-4 transition-transform duration-200", 
-                        isDropdownOpen ? "rotate-180" : ""
-                      )} 
-                    />
+                    {!isDesktopCollapsed && (
+                      <>
+                        <span className="ml-3 flex-1 text-left text-sm font-medium">
+                          {item.label}
+                        </span>
+                        <ChevronDown 
+                          className={cn(
+                            "w-4 h-4 transition-transform duration-200", 
+                            isDropdownOpen ? "rotate-180" : ""
+                          )} 
+                        />
+                      </>
+                    )}
                   </button>
                 ) : (
                   <Link
@@ -186,14 +194,16 @@ export const Sidebar = ({
                     )}
                   >
                     <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary-400" : "text-primary-300 group-hover:text-primary-200")} />
-                    <span className="ml-3 text-sm font-medium">
-                      {item.label}
-                    </span>
+                    {!isDesktopCollapsed && (
+                      <span className="ml-3 text-sm font-medium">
+                        {item.label}
+                      </span>
+                    )}
                   </Link>
                 )}
 
                 {/* Submenu for items with children */}
-                {hasChildren && isDropdownOpen && (
+                {!isDesktopCollapsed && hasChildren && isDropdownOpen && (
                   <div className="mt-1 ml-4 pl-4 border-l border-primary-800/50 space-y-1">
                     {item.children
                       .filter((child) => {
@@ -228,9 +238,9 @@ export const Sidebar = ({
       {/* Toggle Sidebar Button */}
       <div className="hidden p-3 border-t border-primary-800 shrink-0 md:block">
           <button
-            onClick={onDesktopToggle}
+            onClick={() => setCollapsed(!collapsed)}
             className="flex items-center justify-center w-full p-2 text-primary-300 hover:text-white hover:bg-primary-800 rounded-lg transition-colors"
-            aria-label="Hide sidebar"
+            aria-label={isDesktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <Menu className="w-5 h-5" />
           </button>
