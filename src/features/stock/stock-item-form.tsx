@@ -151,7 +151,7 @@ export const StockItemForm = ({
 
         <Input
           label="Unit"
-          placeholder="e.g. pcs, meters, boxes"
+          placeholder="e.g. pcs, meters, boxes (no numbers)"
           {...register("unit")}
           error={errors.unit?.message}
           required

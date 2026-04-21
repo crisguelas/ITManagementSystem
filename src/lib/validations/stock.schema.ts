@@ -35,7 +35,14 @@ export const stockItemSchema = z.object({
     .int("Minimum quantity must be a whole number")
     .min(0, "Minimum quantity cannot be negative"),
   location: z.string().min(1, "Location is required"),
-  unit: z.string().min(1, "Unit is required"),
+  /* Unit must be a descriptive label only (for example: boxes, pcs, meters) */
+  unit: z
+    .string()
+    .trim()
+    .min(1, "Unit is required")
+    .refine((value) => !/\d/.test(value), {
+      message: "Unit must not include numbers. Enter only the unit label (e.g. boxes).",
+    }),
 });
 
 export type StockItemFormValues = z.infer<typeof stockItemSchema>;
