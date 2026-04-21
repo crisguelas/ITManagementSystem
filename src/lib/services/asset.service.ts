@@ -307,13 +307,23 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
 }
 
 export async function deleteAsset(id: string) {
-  /* You may want to prevent deletion if there are active assignments or stock items */
+  /* Guard: assets with active assignment cannot be deleted until returned */
   const activeAssignments = await prisma.assetAssignment.count({
     where: { assetId: id, returnedAt: null },
   });
 
   if (activeAssignments > 0) {
     throw new Error("Cannot delete asset because it is currently assigned. Return it first.");
+  }
+
+  /* Guard: preserve audit trail by blocking deletes when assignment history exists */
+  const assignmentHistoryCount = await prisma.assetAssignment.count({
+    where: { assetId: id },
+  });
+  if (assignmentHistoryCount > 0) {
+    throw new Error(
+      "Unable to delete this asset because it has transaction history. To preserve audit integrity, assets with historical transactions must remain in the system."
+    );
   }
 
   return prisma.asset.delete({

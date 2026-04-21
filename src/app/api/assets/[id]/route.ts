@@ -132,6 +132,13 @@ export async function DELETE(
         );
       }
 
+      if (error.message.includes("transaction history")) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: 409 }
+        );
+      }
+
       /* Explain audit lock clearly when related transaction history prevents deletion */
       if (error.message.includes("Foreign key constraint failed")) {
         return NextResponse.json(
