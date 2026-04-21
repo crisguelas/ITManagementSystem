@@ -6,7 +6,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 
 /* Third-party imports */
@@ -29,7 +29,6 @@ import { assetSchema } from "@/lib/validations/asset.schema";
 export default function AssetDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const assetId = params?.id as string;
 
   const [asset, setAsset] = useState<AssetWithRelations | null>(null);
@@ -42,7 +41,6 @@ export default function AssetDetailsPage() {
   const [returnLoading, setReturnLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [scanNoticeDismissed, setScanNoticeDismissed] = useState(false);
 
   const fetchAsset = useCallback(async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) {
@@ -157,20 +155,8 @@ export default function AssetDetailsPage() {
         ? "info"
         : "warning";
 
-  /* QR encodes the canonical asset URL (uses stable `id`, not the printed tag text — scans keep working if `ASSET_TAG_PREFIX` changes) */
+  /* QR encodes plain ownership text so scanners show a message without opening a website */
   const qrUrl =
-    typeof window !== "undefined" && asset?.id
-      ? new URL(`/scan/assets/${encodeURIComponent(asset.id)}`, window.location.origin).href
-      : "";
-  const openedFromQr = searchParams?.get("scan") === "1";
-  const scanNoticeOpen = openedFromQr && !scanNoticeDismissed;
-
-  const scanNoticeTitle =
-    asset.status === AssetStatus.DEPLOYED
-      ? "IMC Asset Assignment Notice"
-      : "IMC Property Notice";
-
-  const scanNoticeMessage =
     asset.status === AssetStatus.DEPLOYED
       ? `This IMC property is currently assigned to ${
           activeAssignment?.employee
@@ -205,19 +191,6 @@ export default function AssetDetailsPage() {
       <div className="print:hidden">
         {/* Navigation / Header */}
         <div className="mb-6">
-          <Modal
-            isOpen={scanNoticeOpen}
-            onClose={() => setScanNoticeDismissed(true)}
-            title={scanNoticeTitle}
-            description={scanNoticeMessage}
-            size="md"
-          >
-            <div className="flex justify-end">
-              <Button variant="primary" onClick={() => setScanNoticeDismissed(true)}>
-                Acknowledge
-              </Button>
-            </div>
-          </Modal>
           <button 
             onClick={() => router.back()}
             className="flex items-center text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors mb-4 focus-ring rounded"
