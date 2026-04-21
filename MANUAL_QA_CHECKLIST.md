@@ -48,9 +48,7 @@ Use this checklist for release validation, UAT, and post-merge smoke testing.
 - [ ] `Reports` opens `/reports`.
 - [ ] `Settings` (admin only) opens `/settings`.
 
-### Breadcrumbs and quick links
-- [ ] Breadcrumb home icon navigates to `/`.
-- [ ] Intermediate breadcrumb links resolve correctly.
+### Quick links
 - [ ] Dashboard quick links open correct modules.
 
 ---

@@ -203,7 +203,6 @@ This run focused on verifying that system navigation, interactive controls (butt
 ### Navigation and link checks
 
 - Sidebar navigation (`Dashboard`, `Assets`, `Categories`, `Organization`, `Stock Room`, `Reports`, `Settings`) maps to existing pages.
-- Breadcrumb links resolve to valid parent routes.
 - Dashboard quick-action links route to `assets`, `organization`, and `stock`.
 - Detail-page links (`/assets/[id]`, `/stock/[id]`) and back links are present and correctly targeted.
 - Settings links route to `/settings/users` and remain role-gated by admin checks.

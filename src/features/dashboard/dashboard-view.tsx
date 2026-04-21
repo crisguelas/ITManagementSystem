@@ -30,7 +30,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { Breadcrumb } from "@/components/layout/breadcrumb";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import type { DashboardStats } from "@/lib/services/dashboard.service";
 
@@ -69,8 +68,6 @@ export function DashboardView({ data }: DashboardViewProps) {
 
   return (
     <div className="animate-fade-in">
-      <Breadcrumb />
-
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">System Overview</h1>
         <p className="mt-1 text-sm text-gray-500">

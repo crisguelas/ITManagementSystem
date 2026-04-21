@@ -37,7 +37,7 @@
 - Configured strict TypeScript and ESLint
 - Built design system with a professional blue theme
 - Created base UI components (Button, Input, Modal, Badge, Card, Select, etc.)
-- Created layout components (Sidebar, Header, Breadcrumb)
+- Created layout components (Sidebar, Header)
 - Created error, loading, and empty state components
 
 ---
@@ -186,7 +186,7 @@
 ### What was checked
 
 - Reviewed `README.md`, `AGENTS.md`, and current phase history for route/feature expectations.
-- Audited navigation and interactions in dashboard pages/components (sidebar, breadcrumbs, quick links, forms, modals, CRUD action buttons, report export actions).
+- Audited navigation and interactions in dashboard pages/components (sidebar, quick links, forms, modals, CRUD action buttons, report export actions).
 - Confirmed all declared App Router pages compile and are generated in production build output.
 
 ### Results
