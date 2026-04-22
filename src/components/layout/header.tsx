@@ -65,11 +65,24 @@ export const Header = ({
   isMobileSidebarOpen,
   onOpenMobileSidebar,
 }: HeaderProps) => {
+  const NOTIFICATION_READ_STORAGE_KEY = "itms:read-notification-ids";
   const pathname = usePathname();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [lowStockNotifications, setLowStockNotifications] = useState<LowStockNotificationRow[]>([]);
   const [assignmentNotifications, setAssignmentNotifications] = useState<AssetAssignmentNotification[]>([]);
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = window.localStorage.getItem("itms:read-notification-ids");
+      if (!stored) return [];
+      const parsed: unknown = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((id): id is string => typeof id === "string");
+    } catch {
+      return [];
+    }
+  });
   const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
   const notificationRef = useRef<HTMLDivElement | null>(null);
@@ -178,6 +191,48 @@ export const Header = ({
     });
   }, [fetchNotifications]);
 
+  /* Persists read notification ids whenever they change */
+  useEffect(() => {
+    window.localStorage.setItem(
+      NOTIFICATION_READ_STORAGE_KEY,
+      JSON.stringify(readNotificationIds),
+    );
+  }, [NOTIFICATION_READ_STORAGE_KEY, readNotificationIds]);
+
+  const lowStockNotificationEntries = lowStockNotifications.map((item) => ({
+    ...item,
+    notificationId: `low-stock:${item.id}:${item.quantity}:${item.minQuantity}`,
+  }));
+
+  const assignmentNotificationEntries = assignmentNotifications.map((item) => ({
+    ...item,
+    notificationId: `assignment:${item.id}`,
+  }));
+
+  const allNotificationIds = [
+    ...lowStockNotificationEntries.map((item) => item.notificationId),
+    ...assignmentNotificationEntries.map((item) => item.notificationId),
+  ];
+
+  const unreadCount = allNotificationIds.filter(
+    (notificationId) => !readNotificationIds.includes(notificationId),
+  ).length;
+
+  /* Marks one or many notifications as read */
+  const markNotificationsAsRead = (notificationIds: string[]) => {
+    if (notificationIds.length === 0) return;
+    setReadNotificationIds((current) => {
+      const next = new Set(current);
+      for (const id of notificationIds) next.add(id);
+      return [...next];
+    });
+  };
+
+  /* Marks every currently visible notification as read and clears the badge */
+  const markAllNotificationsAsRead = () => {
+    markNotificationsAsRead(allNotificationIds);
+  };
+
   /* Close dropdowns when users click outside their containers */
   useEffect(() => {
     const onDocumentMouseDown = (event: MouseEvent) => {
@@ -257,11 +312,11 @@ export const Header = ({
           >
             <Bell className="w-5 h-5" />
             {/* Show unread count from low stock + assignment alerts */}
-            {lowStockNotifications.length + assignmentNotifications.length > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-danger text-white border-2 border-white text-[10px] leading-none font-semibold flex items-center justify-center">
-                {lowStockNotifications.length + assignmentNotifications.length > 9
+                {unreadCount > 9
                   ? "9+"
-                  : lowStockNotifications.length + assignmentNotifications.length}
+                  : unreadCount}
               </span>
             )}
           </button>
@@ -272,10 +327,23 @@ export const Header = ({
               role="menu"
             >
               <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-sm font-semibold text-gray-800">Notifications</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Low stock alerts and recent asset assignments.
-                </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Notifications</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Low stock alerts and recent asset assignments.
+                    </p>
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={markAllNotificationsAsRead}
+                      className="text-xs font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="max-h-80 overflow-y-auto">
@@ -313,11 +381,14 @@ export const Header = ({
                         </p>
                       </div>
                       <ul className="divide-y divide-gray-100">
-                        {lowStockNotifications.map((item) => (
+                        {lowStockNotificationEntries.map((item) => (
                           <li key={item.id}>
                             <Link
                               href={`/stock/${item.id}`}
-                              onClick={() => setIsNotificationsOpen(false)}
+                              onClick={() => {
+                                markNotificationsAsRead([item.notificationId]);
+                                setIsNotificationsOpen(false);
+                              }}
                               className="px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
                               role="menuitem"
                             >
@@ -349,11 +420,14 @@ export const Header = ({
                         </p>
                       </div>
                       <ul className="divide-y divide-gray-100">
-                        {assignmentNotifications.map((item) => (
+                        {assignmentNotificationEntries.map((item) => (
                           <li key={item.id}>
                             <Link
                               href={`/assets/${item.assetId}`}
-                              onClick={() => setIsNotificationsOpen(false)}
+                              onClick={() => {
+                                markNotificationsAsRead([item.notificationId]);
+                                setIsNotificationsOpen(false);
+                              }}
                               className="px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
                               role="menuitem"
                             >
