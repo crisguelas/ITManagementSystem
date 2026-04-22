@@ -22,6 +22,10 @@ import {
 } from "lucide-react";
 
 /* Local imports */
+import {
+  extractLowStockRowsFromItemsList,
+  type LowStockNotificationRow,
+} from "@/lib/stock/low-stock-from-api";
 import { capitalize } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -33,13 +37,6 @@ interface HeaderProps {
   currentUserRole: "ADMIN" | "MEMBER";
   isMobileSidebarOpen: boolean;
   onOpenMobileSidebar: () => void;
-}
-
-interface StockItemNotification {
-  id: string;
-  name: string;
-  quantity: number;
-  minQuantity: number;
 }
 
 interface AssetAssignmentNotification {
@@ -71,7 +68,7 @@ export const Header = ({
   const pathname = usePathname();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [lowStockNotifications, setLowStockNotifications] = useState<StockItemNotification[]>([]);
+  const [lowStockNotifications, setLowStockNotifications] = useState<LowStockNotificationRow[]>([]);
   const [assignmentNotifications, setAssignmentNotifications] = useState<AssetAssignmentNotification[]>([]);
   const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
@@ -79,14 +76,17 @@ export const Header = ({
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   /* Fetch low-stock and assignment notifications and map them into display-friendly rows */
-  const fetchNotifications = useCallback(async () => {
-    setIsNotificationsLoading(true);
+  const fetchNotifications = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent === true;
+    if (!silent) {
+      setIsNotificationsLoading(true);
+    }
     setNotificationsError(null);
 
     try {
       const [stockResponse, assetsResponse] = await Promise.all([
-        fetch("/api/stock-items"),
-        fetch("/api/assets"),
+        fetch("/api/stock-items", { credentials: "same-origin" }),
+        fetch("/api/assets", { credentials: "same-origin" }),
       ]);
       const stockPayload: unknown = await stockResponse.json();
       const assetsPayload: unknown = await assetsResponse.json();
@@ -113,21 +113,8 @@ export const Header = ({
         throw new Error("Invalid asset notification response");
       }
 
-      const lowStockItems = stockPayload.data
-        .filter((item): item is StockItemNotification => {
-          if (!item || typeof item !== "object") return false;
-          if (!("id" in item) || !("name" in item) || !("quantity" in item) || !("minQuantity" in item)) {
-            return false;
-          }
-
-          return (
-            typeof item.id === "string" &&
-            typeof item.name === "string" &&
-            typeof item.quantity === "number" &&
-            typeof item.minQuantity === "number"
-          );
-        })
-        .filter((item) => item.quantity <= item.minQuantity);
+      /* Same low-stock rule as `LowStockAlertBanner`, with tolerant numeric parsing for JSON payloads */
+      const lowStockItems = extractLowStockRowsFromItemsList(stockPayload.data).slice(0, 12);
 
       const assignmentItems = assetsPayload.data
         .filter((item): item is AssetNotificationPayload => {
@@ -179,7 +166,9 @@ export const Header = ({
         error instanceof Error ? error.message : "Unable to load notifications",
       );
     } finally {
-      setIsNotificationsLoading(false);
+      if (!silent) {
+        setIsNotificationsLoading(false);
+      }
     }
   }, []);
 
@@ -252,7 +241,15 @@ export const Header = ({
         <div ref={notificationRef} className="relative">
           <button
             type="button"
-            onClick={() => setIsNotificationsOpen((prev) => !prev)}
+            onClick={() => {
+              setIsNotificationsOpen((prev) => {
+                const next = !prev;
+                if (next) {
+                  void fetchNotifications({ silent: true });
+                }
+                return next;
+              });
+            }}
             className="relative p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors focus-ring"
             aria-label="Open notifications"
             aria-haspopup="menu"
@@ -308,6 +305,42 @@ export const Header = ({
 
                 {!isNotificationsLoading &&
                   !notificationsError &&
+                  lowStockNotifications.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50 border-y border-gray-100">
+                        <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                          Low stock
+                        </p>
+                      </div>
+                      <ul className="divide-y divide-gray-100">
+                        {lowStockNotifications.map((item) => (
+                          <li key={item.id}>
+                            <Link
+                              href={`/stock/${item.id}`}
+                              onClick={() => setIsNotificationsOpen(false)}
+                              className="px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
+                              role="menuitem"
+                            >
+                              <span className="mt-0.5 text-amber-500">
+                                <AlertTriangle className="w-4 h-4" />
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-sm font-medium text-gray-800 truncate">
+                                  {item.name}
+                                </span>
+                                <span className="block text-xs text-gray-500 mt-0.5">
+                                  Quantity is {item.quantity} (minimum {item.minQuantity})
+                                </span>
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                {!isNotificationsLoading &&
+                  !notificationsError &&
                   assignmentNotifications.length > 0 && (
                     <div>
                       <div className="px-4 py-2 bg-gray-50 border-y border-gray-100">
@@ -334,42 +367,6 @@ export const Header = ({
                                 <span className="block text-xs text-gray-500 mt-0.5">
                                   {item.assigneeName ?? "No employee"}
                                   {item.roomLabel ? ` · ${item.roomLabel}` : ""}
-                                </span>
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                {!isNotificationsLoading &&
-                  !notificationsError &&
-                  lowStockNotifications.length > 0 && (
-                    <div>
-                      <div className="px-4 py-2 bg-gray-50 border-y border-gray-100">
-                        <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-                          Low stock
-                        </p>
-                      </div>
-                      <ul className="divide-y divide-gray-100">
-                        {lowStockNotifications.map((item) => (
-                          <li key={item.id}>
-                            <Link
-                              href={`/stock/${item.id}`}
-                              onClick={() => setIsNotificationsOpen(false)}
-                              className="px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3"
-                              role="menuitem"
-                            >
-                              <span className="mt-0.5 text-amber-500">
-                                <AlertTriangle className="w-4 h-4" />
-                              </span>
-                              <span className="min-w-0">
-                                <span className="block text-sm font-medium text-gray-800 truncate">
-                                  {item.name}
-                                </span>
-                                <span className="block text-xs text-gray-500 mt-0.5">
-                                  Quantity is {item.quantity} (minimum {item.minQuantity})
                                 </span>
                               </span>
                             </Link>

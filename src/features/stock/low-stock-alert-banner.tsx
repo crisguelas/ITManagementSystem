@@ -8,6 +8,8 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
+import { isAtOrBelowMinimumStock } from "@/lib/stock/low-stock-from-api";
+
 /* Minimal stock item shape needed by this banner */
 interface LowStockItem {
   id: string;
@@ -22,7 +24,7 @@ interface LowStockAlertBannerProps {
 
 export const LowStockAlertBanner = ({ items }: LowStockAlertBannerProps) => {
   const lowStockItems = useMemo(() => {
-    return items.filter((item) => item.quantity <= item.minQuantity);
+    return items.filter((item) => isAtOrBelowMinimumStock(item.quantity, item.minQuantity));
   }, [items]);
 
   if (lowStockItems.length === 0) return null;
