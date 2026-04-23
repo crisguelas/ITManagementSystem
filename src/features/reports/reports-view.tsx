@@ -138,6 +138,7 @@ export function ReportsView({ data }: ReportsViewProps) {
   /* Exports employees in scope (created date respects the active period when set) */
   const exportEmployeesToExcel = () => {
     const rows = data.employees.map((row) => ({
+      "Employee ID": row.employeeId,
       Title: row.title,
       "First name": row.firstName,
       "Last name": row.lastName,
@@ -241,8 +242,9 @@ export function ReportsView({ data }: ReportsViewProps) {
     document.text("Employees (created date within report period when filtered)", 14, 12);
     autoTable(document, {
       startY: 16,
-      head: [["Title", "First", "Last", "Department", "Position", "Email", "Active", "Created"]],
+      head: [["Employee ID", "Title", "First", "Last", "Department", "Position", "Email", "Active", "Created"]],
       body: data.employees.slice(0, 35).map((row) => [
+        row.employeeId,
         row.title,
         row.firstName,
         row.lastName,

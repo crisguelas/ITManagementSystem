@@ -313,7 +313,7 @@ export async function deleteAsset(id: string) {
   });
 
   if (activeAssignments > 0) {
-    throw new Error("Cannot delete asset because it is currently assigned. Return it first.");
+    throw new Error("Cannot delete asset because it is currently assigned.");
   }
 
   /* Guard: preserve audit trail by blocking deletes when assignment history exists */

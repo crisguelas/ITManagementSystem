@@ -39,6 +39,7 @@ export type DepartmentFormValues = z.infer<typeof departmentSchema>;
 
 
 export const employeeSchema = z.object({
+  employeeId: z.string().trim().min(1, "Employee ID is required").max(50, "Employee ID is too long"),
   title: z.nativeEnum(Title),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),

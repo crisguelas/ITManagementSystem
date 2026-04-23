@@ -45,6 +45,7 @@ export interface ReportLowStockRow {
 
 /** Organization employees; `createdAt` respects the report period when a range is set */
 export interface ReportEmployeeRow {
+  employeeId: string;
   title: string;
   firstName: string;
   lastName: string;
@@ -270,6 +271,7 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
     }));
 
   const reportEmployees: ReportEmployeeRow[] = employees.map((emp) => ({
+    employeeId: emp.employeeId ?? "-",
     title: TITLE_LABELS[emp.title] ?? emp.title,
     firstName: emp.firstName,
     lastName: emp.lastName,

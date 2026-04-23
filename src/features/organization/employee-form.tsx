@@ -53,6 +53,7 @@ export const EmployeeForm = ({
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
+      employeeId: initialData?.employeeId ?? "",
       title: initialData?.title ?? Title.MR,
       firstName: initialData?.firstName ?? "",
       lastName: initialData?.lastName ?? "",
@@ -70,6 +71,7 @@ export const EmployeeForm = ({
 
   const onSubmit = async (data: EmployeeFormValues) => {
     const body: Record<string, unknown> = {
+      employeeId: data.employeeId.trim(),
       title: data.title,
       firstName: data.firstName.trim(),
       lastName: data.lastName.trim(),
@@ -109,6 +111,7 @@ export const EmployeeForm = ({
         variant: "success",
       });
       reset({
+        employeeId: "",
         title: Title.MR,
         firstName: "",
         lastName: "",
@@ -145,6 +148,9 @@ export const EmployeeForm = ({
           {...register("title")}
           error={errors.title?.message}
         />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input label="Employee ID" {...register("employeeId")} error={errors.employeeId?.message} required />
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input label="First name" {...register("firstName")} error={errors.firstName?.message} required />
           <Input label="Last name" {...register("lastName")} error={errors.lastName?.message} required />

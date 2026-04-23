@@ -182,6 +182,15 @@ export async function getEmployees() {
 }
 
 export async function createEmployee(data: z.infer<typeof employeeSchema>) {
+  /* employeeId is unique */
+  const existingEmployeeId = await prisma.employee.findFirst({
+    where: { employeeId: data.employeeId },
+    select: { id: true },
+  });
+  if (existingEmployeeId) {
+    throw new Error(`Employee ID "${data.employeeId}" is already in use`);
+  }
+
   /* email is unique if provided */
   if (data.email) {
     const existing = await prisma.employee.findUnique({ where: { email: data.email } });
@@ -199,6 +208,14 @@ export async function updateEmployee(id: string, data: z.infer<typeof employeeSc
     select: { id: true },
   });
   if (!existingEmployee) throw new Error("Employee not found");
+
+  const duplicateEmployeeId = await prisma.employee.findFirst({
+    where: { id: { not: id }, employeeId: data.employeeId },
+    select: { id: true },
+  });
+  if (duplicateEmployeeId) {
+    throw new Error(`Employee ID "${data.employeeId}" is already in use`);
+  }
 
   if (data.email) {
     const duplicateEmail = await prisma.employee.findFirst({

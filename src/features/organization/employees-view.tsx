@@ -5,8 +5,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { Pencil, Plus, Trash2, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Pencil, Plus, Search, Trash2, Users } from "lucide-react";
 import { Title, type Department, type Employee } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { SkeletonTable } from "@/components/ui/loading-state";
@@ -30,6 +30,7 @@ export const EmployeesView = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<(Employee & { department: Department }) | null>(null);
   const [deleteDepartmentId, setDeleteDepartmentId] = useState<string | null>(null);
   const [deleteEmployeeId, setDeleteEmployeeId] = useState<string | null>(null);
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState("");
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -103,6 +104,25 @@ export const EmployeesView = () => {
   if (error) {
     return <ErrorState message={error} onRetry={fetchData} />;
   }
+
+  const filteredEmployees = useMemo(() => {
+    const query = employeeSearchQuery.trim().toLowerCase();
+    if (!query) return employees;
+
+    return employees.filter((emp) => {
+      const employeeId = (emp.employeeId ?? "").toLowerCase();
+      const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+      const departmentName = emp.department.name.toLowerCase();
+      const position = (emp.position ?? "").toLowerCase();
+
+      return (
+        employeeId.includes(query) ||
+        fullName.includes(query) ||
+        departmentName.includes(query) ||
+        position.includes(query)
+      );
+    });
+  }, [employees, employeeSearchQuery]);
 
   return (
     <div className="space-y-6">
@@ -191,15 +211,29 @@ export const EmployeesView = () => {
             <Users className="w-5 h-5 text-gray-400" />
             Registered Employees
           </h2>
-          <Button
-            type="button"
-            size="sm"
-            variant="primary"
-            leftIcon={<Plus className="w-4 h-4" />}
-            onClick={() => setIsEmployeeModalOpen(true)}
-          >
-            Add Employee
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={employeeSearchQuery}
+                onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                placeholder="Search by employee ID, name, department, or position..."
+                className="block h-9 w-72 rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm placeholder-gray-400 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              leftIcon={<Plus className="w-4 h-4" />}
+              onClick={() => setIsEmployeeModalOpen(true)}
+            >
+              Add Employee
+            </Button>
+          </div>
         </CardHeader>
         <CardBody className="p-0">
           {isLoading ? (
@@ -208,10 +242,15 @@ export const EmployeesView = () => {
             </div>
           ) : employees.length === 0 ? (
             <div className="p-8 text-center text-gray-500 text-sm">No active employees yet.</div>
+          ) : filteredEmployees.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 text-sm">
+              No employees match the current search.
+            </div>
           ) : (
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200">
                 <tr>
+                  <th className="px-6 py-3">Employee ID</th>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Department</th>
                   <th className="px-6 py-3">Position</th>
@@ -220,8 +259,9 @@ export const EmployeesView = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {employees.map((emp) => (
+                {filteredEmployees.map((emp) => (
                   <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-mono text-xs text-gray-700">{emp.employeeId ?? "—"}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {emp.title} {emp.firstName} {emp.lastName}
                     </td>
@@ -332,6 +372,7 @@ export const EmployeesView = () => {
           initialData={
             selectedEmployee
               ? {
+                  employeeId: selectedEmployee.employeeId ?? "",
                   title: selectedEmployee.title as Title,
                   firstName: selectedEmployee.firstName,
                   lastName: selectedEmployee.lastName,
