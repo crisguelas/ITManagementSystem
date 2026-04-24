@@ -127,6 +127,8 @@ model Asset {
   name         String               // Descriptive name: "Dell Latitude 5530"
   categoryId   String               // FK to AssetCategory
   category     AssetCategory @relation(fields: [categoryId], references: [id])
+  catalogItemId String?             // Optional link to shared catalog identity
+  catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id])
   brand        String?              // Manufacturer: "Dell", "HP", "Lenovo"
   model        String?              // Model number: "Latitude 5530"
   serialNumber String?     @unique  // Equipment serial number
@@ -302,6 +304,8 @@ model StockItem {
   id          String        @id @default(cuid())
   assetId     String?       @unique  // Optional link to an individual asset
   asset       Asset?        @relation(fields: [assetId], references: [id])
+  catalogItemId String?              // Optional link to shared catalog identity
+  catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id])
   name        String                 // "Cat6 Cable 1m", "USB Mouse", "Dell Laptop"
   categoryId  String                 // FK to StockCategory
   category    StockCategory @relation(fields: [categoryId], references: [id])
@@ -317,6 +321,32 @@ model StockItem {
   transactions StockTransaction[]
 
   @@map("stock_items")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CATALOG — Unified identity for stock items and assets
+// ═══════════════════════════════════════════════════════════════
+
+// 
+// * Shared catalog identity for unifying stock items and asset instances.
+// * Stores product-like fields that should be consistent across both worlds.
+// 
+model CatalogItem {
+  id        String   @id @default(cuid())
+  name      String             // Display name: "Dell Latitude 5530", "Cat6 Cable 1m"
+  category  String             // Unified category label for reporting and UI
+  brand     String?            // Manufacturer where applicable
+  model     String?            // Model where applicable
+  unit      String   @default("pcs") // Unit of measure: pcs, meters, boxes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  assets     Asset[]
+  stockItems StockItem[]
+
+  @@index([category])
+  @@map("catalog_items")
 }
 
 // 

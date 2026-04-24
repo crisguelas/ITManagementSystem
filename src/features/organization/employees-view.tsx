@@ -101,10 +101,6 @@ export const EmployeesView = () => {
     }
   };
 
-  if (error) {
-    return <ErrorState message={error} onRetry={fetchData} />;
-  }
-
   const filteredEmployees = useMemo(() => {
     const query = employeeSearchQuery.trim().toLowerCase();
     if (!query) return employees;
@@ -123,6 +119,10 @@ export const EmployeesView = () => {
       );
     });
   }, [employees, employeeSearchQuery]);
+
+  if (error) {
+    return <ErrorState message={error} onRetry={fetchData} />;
+  }
 
   return (
     <div className="space-y-6">

@@ -173,7 +173,10 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `PATCH`, `DELETE` | `/api/stock-categories/[id]` | Update / delete stock category |
 | `GET`, `POST` | `/api/stock-items` | List / create stock items |
 | `GET`, `PATCH`, `DELETE` | `/api/stock-items/[id]` | Get / update / delete stock item |
+| `POST` | `/api/stock-items/[id]/convert-to-asset` | Convert 1 stock unit into a tracked asset (strict, atomic) |
 | `GET`, `POST` | `/api/stock-transactions` | List / create stock transactions |
+| `GET`, `POST` | `/api/catalog-items` | List / create unified catalog items |
+| `GET`, `PATCH`, `DELETE` | `/api/catalog-items/[id]` | Get / update / delete a catalog item |
 | `GET`, `POST` | `/api/users` | List / create **IT staff login** users |
 | `PATCH`, `DELETE` | `/api/users/[id]` | Update login user (name, role, active, password) or delete |
 | `POST` | `/api/account/change-password` | Change password for current authenticated user |

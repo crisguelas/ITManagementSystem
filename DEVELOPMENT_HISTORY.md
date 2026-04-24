@@ -253,6 +253,81 @@
 
 ---
 
+## Phase 9: Unified Catalog + Pull-from-Inventory Assets — (Completed)
+
+### Goal
+
+Unify inventory items and assets under a shared **Catalog** concept so that assets can be created by **pulling (converting)** from inventory while preserving:
+
+- **Stock ledger integrity** (transactions + low-stock thresholds)
+- **Asset lifecycle integrity** (per-unit identifiers, status, assignment history)
+- **Strict conversion**: do **not** allow converting to an asset when stock quantity is \(< 1\)
+
+### Key decisions
+
+- Use a **Catalog + Instances** model:
+  - **Catalog (what it is)** — shared fields like name/category/brand/model/unit
+  - **Stock (how many)** — SKU + quantities + thresholds + storage location + transaction history
+  - **Asset (this unit)** — tag/serial/MAC/specs/status + assignment history, linked back to Catalog
+- Add a first-class “Create asset from inventory” flow that:
+  - Prefills shared catalog fields from the selected inventory item
+  - Creates an **OUT** stock transaction (or a dedicated conversion transaction type) to decrement quantity
+  - Creates a new asset instance linked to the same catalog identity
+
+### Planned tasks
+
+#### Data model (Prisma)
+
+- Add a shared `CatalogItem` (or `Product`) model for unified fields:
+  - `name`, `category`, `brand`, `model`, `unit`
+  - Optional: spec defaults/template fields if desired later
+- Link `StockItem` → `CatalogItem` and `Asset` → `CatalogItem` (enforcing referential integrity).
+- Decide how to unify **categories**:
+  - Either merge asset categories + stock categories into Catalog categories, or keep existing tables and map them into Catalog.
+
+#### Validation & services
+
+- Add Zod schemas for:
+  - Catalog creation/update
+  - “Convert stock to asset” request payload (stock item id + asset instance fields)
+- Add service-layer workflow for conversion:
+  - Validate stock availability (strict mode)
+  - Create stock transaction atomically with asset creation
+  - Ensure consistent error handling and HTTP statuses
+
+#### API routes
+
+- Add routes for Catalog CRUD as needed (admin-gated where appropriate).
+- Add an API endpoint to create an asset from a stock item (authenticated; admin-gated if consistent with asset creation rules).
+- Update `README.md` → **API routes (summary)** to include any new handlers.
+
+#### UI / UX
+
+- Add a unified “Add” experience:
+  - Create inventory item
+  - Create asset
+  - **Create asset from inventory** (select stock item → prefilled asset form → submit converts)
+- Ensure loading/error/empty states follow project standards (skeleton, retry, empty state).
+- Ensure existing **edit locks** still apply:
+  - Assets lock once assignment history exists
+  - Stock items lock once transaction history exists (conversion should count as transaction history)
+
+#### Reporting & dashboard implications (follow-up)
+
+- Confirm reports that include assets and stock can now group/roll-up by Catalog identity.
+- Optionally add a “Converted to assets” view/report for auditability.
+
+### Phase 9 quality check — April 24, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [x] Smoke test:
+  - [x] Stock item detail page shows **Create Asset** action and blocks conversion when quantity is 0
+  - [x] Converting stock → asset creates a new asset and records an OUT transaction (inventory decremented by 1)
+
+---
+
 ## Deployment — (Pending)
 
 ### Suggested next tasks (team)
