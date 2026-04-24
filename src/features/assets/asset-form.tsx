@@ -6,10 +6,10 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AssetCategory } from "@prisma/client";
+import type { AssetCategory, StockCategory, StockItem } from "@prisma/client";
 
 /* Base Components */
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,16 @@ import type { z } from "zod";
 /* ═══════════════════════════════════════════════════════════════ */
 /* TYPE DEFINITIONS                                                */
 /* ═══════════════════════════════════════════════════════════════ */
+
+/* Stock list payload as returned by GET /api/stock-items (includes relations + count) */
+type StockListItem = StockItem & {
+  category: StockCategory;
+  _count: { transactions: number };
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
 
 interface AssetFormProps {
   onSuccess: () => void;
@@ -45,6 +55,12 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
   const [categories, setCategories] = useState<AssetCategory[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
+
+  /* State for optional stock-sourced registration (only used in create mode) */
+  const [stockItems, setStockItems] = useState<StockListItem[]>([]);
+  const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [stockError, setStockError] = useState<string | null>(null);
+  const [sourceStockItemId, setSourceStockItemId] = useState("");
 
   /* Setup react-hook-form */
   const {
@@ -108,16 +124,126 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     return () => window.clearTimeout(t);
   }, []);
 
+  const fetchAvailableStock = useCallback(async () => {
+    if (isEditMode) return;
+    setIsLoadingStock(true);
+    setStockError(null);
+    try {
+      const res = await fetch("/api/stock-items");
+      const json = (await res.json()) as { success: boolean; data?: StockListItem[]; error?: string };
+      if (!res.ok || !json.success) throw new Error(json.error || "Failed to load stock items");
+      setStockItems(json.data ?? []);
+    } catch (err: unknown) {
+      setStockError(err instanceof Error ? err.message : "Failed to load stock items");
+    } finally {
+      setIsLoadingStock(false);
+    }
+  }, [isEditMode]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    const t = window.setTimeout(() => {
+      void fetchAvailableStock();
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [fetchAvailableStock, isEditMode]);
+
+  const normalizeOptionalText = (value: unknown) => {
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    return trimmed === "" ? undefined : trimmed;
+  };
+
+  const readJsonError = (json: unknown): string | undefined => {
+    if (!json || typeof json !== "object") return undefined;
+    if (!("error" in json)) return undefined;
+    const err = (json as { error: unknown }).error;
+    if (typeof err === "string") return err;
+    return undefined;
+  };
+
+  const availableStockOptions = useMemo(() => {
+    return stockItems
+      .filter((row) => row.quantity > 0)
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [stockItems]);
+
+  const selectedSourceStock = useMemo(() => {
+    if (!sourceStockItemId) return null;
+    return stockItems.find((row) => row.id === sourceStockItemId) ?? null;
+  }, [sourceStockItemId, stockItems]);
+
   /* Form submission handler */
   const onSubmit = async (data: z.input<typeof assetSchema>) => {
     try {
+      if (!isEditMode && sourceStockItemId) {
+        const selected = stockItems.find((row) => row.id === sourceStockItemId);
+        if (!selected) throw new Error("Selected stock item is no longer available. Refresh and try again.");
+        if (selected.quantity < 1) throw new Error("Cannot register from this stock line — quantity is 0.");
+
+        const normalizedBody = {
+          ...data,
+          pcNumber: normalizeOptionalText(data.pcNumber),
+          serialNumber: normalizeOptionalText(data.serialNumber),
+          macAddress: normalizeOptionalText(data.macAddress),
+          brand: typeof data.brand === "string" ? data.brand.trim() : data.brand,
+          model: typeof data.model === "string" ? data.model.trim() : data.model,
+          osInstalled: normalizeOptionalText(data.osInstalled),
+          ram: normalizeOptionalText(data.ram),
+          storage: normalizeOptionalText(data.storage),
+          notes: `Registered asset from stock SKU ${selected.sku ?? "N/A"} (${selected.name})`,
+        };
+
+        const res = await fetch(`/api/stock-items/${sourceStockItemId}/convert-to-asset`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(normalizedBody),
+        });
+
+        const json: unknown = await res.json();
+        if (!res.ok || !isRecord(json) || json.success !== true) {
+          throw new Error(
+            readJsonError(json) || "Failed to create asset from stock"
+          );
+        }
+
+        const createdTag =
+          isRecord(json.data) && typeof json.data.assetTag === "string" ? json.data.assetTag : "Asset";
+
+        addToast({
+          title: "Asset Created",
+          message: `${createdTag} registered and stock decremented by 1`,
+          variant: "success",
+        });
+
+        setSourceStockItemId("");
+        reset();
+        onSuccess();
+        return;
+      }
+
       const endpoint = isEditMode ? `/api/assets/${assetId}` : "/api/assets";
       const method = isEditMode ? "PATCH" : "POST";
+
+      const directBody = isEditMode
+        ? data
+        : {
+            ...data,
+            pcNumber: normalizeOptionalText(data.pcNumber),
+            serialNumber: normalizeOptionalText(data.serialNumber),
+            macAddress: normalizeOptionalText(data.macAddress),
+            brand: typeof data.brand === "string" ? data.brand.trim() : data.brand,
+            model: typeof data.model === "string" ? data.model.trim() : data.model,
+            osInstalled: normalizeOptionalText(data.osInstalled),
+            ram: normalizeOptionalText(data.ram),
+            storage: normalizeOptionalText(data.storage),
+          };
 
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(directBody),
       });
 
       const json = await res.json();
@@ -166,7 +292,55 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
-      
+      {!isEditMode && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">Inventory Source (Optional)</h3>
+          {stockError ? (
+            <ErrorState message={stockError} onRetry={fetchAvailableStock} />
+          ) : (
+            <div className="space-y-2">
+              <Select
+                label="Pull from available stock (qty &gt; 0)"
+                options={[
+                  { label: "None — register without consuming stock", value: "" },
+                  ...availableStockOptions.map((row) => ({
+                    label: `${row.name} • ${row.sku ?? "No SKU"} • ${row.quantity} ${row.unit} left`,
+                    value: row.id,
+                  })),
+                ]}
+                value={sourceStockItemId}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setSourceStockItemId(next);
+                }}
+                disabled={isLoadingStock}
+                required={false}
+              />
+              {isLoadingStock && (
+                <div className="text-xs text-gray-500">Loading available stock items…</div>
+              )}
+              {selectedSourceStock && (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                  <div className="font-medium text-gray-900">{selectedSourceStock.name}</div>
+                  <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                    <span>
+                      <span className="text-gray-500">SKU:</span> {selectedSourceStock.sku ?? "—"}
+                    </span>
+                    <span>
+                      <span className="text-gray-500">Category:</span> {selectedSourceStock.category.name}
+                    </span>
+                    <span>
+                      <span className="text-gray-500">Available:</span> {selectedSourceStock.quantity}{" "}
+                      {selectedSourceStock.unit}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Basic Setup */}
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">Classification</h3>
@@ -265,7 +439,11 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           Cancel
         </Button>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
-          {isEditMode ? "Save Changes" : "Register Asset"}
+          {isEditMode
+            ? "Save Changes"
+            : sourceStockItemId
+              ? "Register Asset (consume 1 from stock)"
+              : "Register Asset"}
         </Button>
       </div>
 

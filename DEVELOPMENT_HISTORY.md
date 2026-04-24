@@ -306,7 +306,7 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - Add a unified “Add” experience:
   - Create inventory item
   - Create asset
-  - **Create asset from inventory** (select stock item → prefilled asset form → submit converts)
+  - **Create asset from inventory** via **Register Asset** (optional stock source dropdown → submit converts)
 - Ensure loading/error/empty states follow project standards (skeleton, retry, empty state).
 - Ensure existing **edit locks** still apply:
   - Assets lock once assignment history exists
@@ -323,8 +323,18 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [x] Smoke test:
-  - [x] Stock item detail page shows **Create Asset** action and blocks conversion when quantity is 0
+  - [x] **Register Asset** supports an optional **available stock** selector
   - [x] Converting stock → asset creates a new asset and records an OUT transaction (inventory decremented by 1)
+
+### Phase 9 UX follow-up — April 25, 2026
+
+- Moved the stock → asset conversion entry point to **Assets → Register Asset** (stock source dropdown) and removed the per-stock **Create Asset** button from stock item detail pages.
+
+#### Phase 9 UX follow-up quality check — April 25, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
 
 ---
 

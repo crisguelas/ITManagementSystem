@@ -13,11 +13,9 @@ import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSpinner } from "@/components/ui/loading-state";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { useToast } from "@/components/ui/toast";
 
 import { StockTransactionTable } from "@/features/stock/stock-transaction-table";
 import { StockTransactionForm } from "@/features/stock/stock-transaction-form";
-import { StockToAssetForm } from "@/features/stock/stock-to-asset-form";
 
 type StockTransactionWithActors = StockTransaction & {
   performedBy: { id: string; name: string | null };
@@ -31,13 +29,11 @@ type StockItemDetailPayload = StockItem & {
 
 export default function StockItemDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { addToast } = useToast();
   
   const [item, setItem] = useState<StockItemDetailPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [txModalOpen, setTxModalOpen] = useState(false);
-  const [convertModalOpen, setConvertModalOpen] = useState(false);
 
   const fetchItem = useCallback(async () => {
     setLoading(true);
@@ -67,7 +63,6 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
   if (!item) return <ErrorState message="Item not found" />;
 
   const isLowStock = item.quantity <= item.minQuantity;
-  const isOutOfStock = item.quantity < 1;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -89,20 +84,9 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button
-            onClick={() => setConvertModalOpen(true)}
-            variant="outline"
-            size="lg"
-            disabled={isOutOfStock}
-            title={isOutOfStock ? "Cannot create an asset when quantity is 0" : "Convert one unit to a tracked asset"}
-          >
-            Create Asset
-          </Button>
-          <Button onClick={() => setTxModalOpen(true)} variant="primary" size="lg">
-            Record Transaction
-          </Button>
-        </div>
+        <Button onClick={() => setTxModalOpen(true)} variant="primary" size="lg">
+          Record Transaction
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,29 +128,6 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
           unit={item.unit}
           onSuccess={() => { setTxModalOpen(false); fetchItem(); }}
           onCancel={() => setTxModalOpen(false)}
-        />
-      </Modal>
-
-      <Modal
-        isOpen={convertModalOpen}
-        onClose={() => setConvertModalOpen(false)}
-        title="Create Asset from Inventory"
-        size="lg"
-      >
-        <StockToAssetForm
-          stockItemId={item.id}
-          stockItemName={item.name}
-          onSuccess={(assetId) => {
-            setConvertModalOpen(false);
-            addToast({
-              title: "Conversion complete",
-              message: "Asset created successfully.",
-              variant: "success",
-            });
-            void fetchItem();
-            void Promise.resolve(assetId);
-          }}
-          onCancel={() => setConvertModalOpen(false)}
         />
       </Modal>
     </div>
