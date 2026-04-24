@@ -248,7 +248,7 @@ Use the release sign-off checklist in `MANUAL_QA_CHECKLIST.md` for a strict, scr
 
 ## Deployment (overview)
 
-- **Cloud (e.g. Vercel):** connect the repo, set environment variables in the provider dashboard (same variables as above; never paste secrets into public issues). The build runs **`prisma generate`** before `next build` (and again after `npm install` via `postinstall`) so Prisma Client is always generated on Vercel’s cached installs.
+- **Cloud (e.g. Vercel):** connect the repo, set environment variables in the provider dashboard (same variables as above; never paste secrets into public issues). The build runs **`prisma db push`** then **`prisma generate`** before `next build` (and again after `npm install` via `postinstall`) so the database schema stays in sync and Prisma Client is always generated on Vercel’s cached installs.
 - **Self-hosted:** build with `npm run build`, run `npm run start`, protect with HTTPS and a reverse proxy, and keep secrets in environment variables or a secrets manager.
 
 ---
