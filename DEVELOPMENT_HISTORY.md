@@ -229,6 +229,7 @@
 - **Asset categories** — Moved the **Categories** link from the **Assets** submenu to **Settings** (`NAV_ITEMS` in `src/lib/constants.ts`), alongside **User accounts**, so category/tag prefix configuration sits with other admin configuration.
 - **Responsive sidebar fix (April 21)** — Resolved regression where the mobile hamburger menu closed immediately and the desktop sidebar could disappear after mobile-state transforms. `ResponsiveDashboardShell` now passes stable open/close callbacks, and `Sidebar` explicitly resets desktop vertical transform (`md:translate-y-0`).
 - **Desktop sidebar behavior update (April 21)** — Updated desktop toggle behavior to icon-only collapse (hide labels while keeping menu icons visible) and kept the sidebar pinned full-height during page scrolling.
+- **Assets module tabs (April 23)** — Consolidated **All Assets** and **Categories** into tabs under `/assets` and simplified sidebar navigation to a single **Assets** item; legacy `/categories` now redirects to `/assets?tab=categories`.
 
 ### Data integrity and stock UI hardening — April 21, 2026
 

@@ -16,7 +16,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), specs
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
-- **Categories** — Custom asset categories with tag prefixes; dedicated UI at **`/categories`** (sidebar: Assets → Categories, **administrators only**) to list and add categories
+- **Categories** — Custom asset categories with tag prefixes; managed inside **Assets** via the **Categories** tab (legacy `/categories` redirects to `assets?tab=categories`)
 - **Audit lock on edits** — Assets with assignment history are read-only for edits to preserve historical integrity
 
 ### Locations & people
@@ -202,7 +202,7 @@ This run focused on verifying that system navigation, interactive controls (butt
 
 ### Navigation and link checks
 
-- Sidebar navigation (`Dashboard`, `Assets`, `Categories`, `Organization`, `Stock Room`, `Reports`, `Settings`) maps to existing pages.
+- Sidebar navigation (`Dashboard`, `Assets`, `Organization`, `Stock Room`, `Reports`, `Settings`) maps to existing pages.
 - Dashboard quick-action links route to `assets`, `organization`, and `stock`.
 - Detail-page links (`/assets/[id]`, `/stock/[id]`) and back links are present and correctly targeted.
 - Settings links route to `/settings/users` and remain role-gated by admin checks.

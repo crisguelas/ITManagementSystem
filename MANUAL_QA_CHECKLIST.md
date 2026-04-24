@@ -42,7 +42,7 @@ Use this checklist for release validation, UAT, and post-merge smoke testing.
 ### Sidebar
 - [ ] `Dashboard` opens `/`.
 - [ ] `Assets` opens `/assets`.
-- [ ] `Assets -> Categories` opens `/categories`.
+- [ ] `Assets` opens `/assets` and shows tabs for `All Assets` and `Categories`.
 - [ ] `Organization` opens `/organization`.
 - [ ] `Stock Room` opens `/stock`.
 - [ ] `Reports` opens `/reports`.
@@ -63,7 +63,7 @@ Use this checklist for release validation, UAT, and post-merge smoke testing.
 
 ---
 
-## 5) Assets module (`/assets`, `/assets/[id]`, `/categories`)
+## 5) Assets module (`/assets`, `/assets/[id]`)
 
 ### Assets list
 - [ ] `Register Asset` button opens modal/form.
@@ -84,7 +84,7 @@ Use this checklist for release validation, UAT, and post-merge smoke testing.
 - [ ] `Return` works for assigned assets.
 - [ ] Assignment history updates correctly after assign/return.
 
-### Categories page
+### Categories tab
 - [ ] Add category works with valid name/prefix.
 - [ ] Duplicate category name/prefix is rejected with clear error.
 - [ ] Edit category updates data.

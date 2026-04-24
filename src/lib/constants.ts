@@ -155,10 +155,6 @@ export const NAV_ITEMS = [
     label: "Assets",
     href: "/assets",
     icon: "Monitor",
-    children: [
-      { label: "All Assets", href: "/assets" },
-      { label: "Categories", href: "/categories" },
-    ],
   },
   {
     label: "Organization",
