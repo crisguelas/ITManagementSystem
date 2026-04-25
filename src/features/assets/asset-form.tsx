@@ -309,7 +309,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           ) : (
             <div className="space-y-2">
               <Select
-                label="Pull from available stock (qty &gt; 0)"
+                label="Pull from available stock (qty > 0)"
                 options={[
                   { label: "None — register without consuming stock", value: "" },
                   ...availableStockOptions.map((row) => ({
