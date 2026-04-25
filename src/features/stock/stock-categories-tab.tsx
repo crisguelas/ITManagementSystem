@@ -5,7 +5,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Trash2, Tags } from "lucide-react";
+import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import type { StockCategory } from "@prisma/client";
 
 import { useToast } from "@/components/ui/toast";
@@ -26,7 +26,8 @@ interface StockCategoriesTabProps {
 }
 
 /**
- * StockCategoriesTab — Renders the category management cards with Add/Edit/Delete actions.
+ * StockCategoriesTab — Renders stock category management in a table layout.
+ * Supports add, edit, and guarded delete actions for stock categories.
  */
 export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTabProps) => {
   const { addToast } = useToast();
@@ -69,7 +70,7 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-900">Stock Categories</h2>
         <Button onClick={() => handleOpenForm()} variant="primary" className="flex items-center gap-2">
-          <Tags className="h-4 w-4" /> Add Category
+          <Plus className="h-4 w-4" /> Add Category
         </Button>
       </div>
 
@@ -80,38 +81,61 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
           <p className="text-gray-500 text-sm mt-1">Add categories to organize your stock items.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categories.map((cat) => (
-            <div key={cat.id} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-gray-900">{cat.name}</h3>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => handleOpenForm(cat)} className="h-7 w-7 p-0 text-gray-500">
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteId(cat.id)}
-                    className="h-7 w-7 p-0 text-red-500 hover:bg-red-50"
-                    disabled={cat._count.stockItems > 0}
-                    title={cat._count.stockItems > 0 ? "Cannot delete category with items" : "Delete category"}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 min-h-[40px] line-clamp-2">
-                {cat.description ?? "No description provided."}
-              </p>
-              <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
-                <span className="text-xs text-gray-400">Items tracked:</span>
-                <span className="text-sm font-medium bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full">
-                  {cat._count.stockItems}
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-50/80 text-gray-600 font-medium border-b border-gray-200">
+                <tr>
+                  <th className="px-5 py-3">Name</th>
+                  <th className="px-5 py-3">Description</th>
+                  <th className="px-5 py-3 text-right">Items Tracked</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {categories.map((cat) => {
+                  const hasLinkedItems = cat._count.stockItems > 0;
+                  return (
+                    <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 font-medium text-gray-900">{cat.name}</td>
+                      <td className="px-5 py-3 text-gray-600">{cat.description || "—"}</td>
+                      <td className="px-5 py-3 text-right font-semibold text-gray-900">
+                        {cat._count.stockItems}
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenForm(cat)}
+                            className="h-8 px-3 text-xs"
+                          >
+                            <Pencil className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteId(cat.id)}
+                            className="h-8 px-3 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                            disabled={hasLinkedItems}
+                            title={
+                              hasLinkedItems
+                                ? "Cannot delete category with linked stock items."
+                                : "Delete category"
+                            }
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
