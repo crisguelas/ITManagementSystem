@@ -105,6 +105,48 @@ export async function createRoom(data: z.infer<typeof roomSchema>) {
   return prisma.room.create({ data });
 }
 
+export async function updateRoom(id: string, data: z.infer<typeof roomSchema>) {
+  const existingRoom = await prisma.room.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!existingRoom) throw new Error("Room not found");
+
+  /* Enforce exact unique constraint from Prisma Schema: [buildingId, name] */
+  const duplicateRoom = await prisma.room.findUnique({
+    where: {
+      buildingId_name: {
+        buildingId: data.buildingId,
+        name: data.name,
+      },
+    },
+    select: { id: true },
+  });
+
+  if (duplicateRoom && duplicateRoom.id !== id) {
+    throw new Error(`Room "${data.name}" already exists in this building`);
+  }
+
+  return prisma.room.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteRoom(id: string) {
+  const activeAssignments = await prisma.assetAssignment.count({
+    where: { roomId: id, returnedAt: null },
+  });
+
+  if (activeAssignments > 0) {
+    throw new Error("Cannot delete a room with active assignments");
+  }
+
+  return prisma.room.delete({
+    where: { id },
+  });
+}
+
 /* ═══════════════════════════════════════════════════════════════ */
 /* DEPARTMENTS                                                     */
 /* ═══════════════════════════════════════════════════════════════ */

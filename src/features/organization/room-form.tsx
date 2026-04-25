@@ -26,6 +26,8 @@ interface RoomFormProps {
   buildings: BuildingOption[];
   onSuccess: () => void;
   onCancel: () => void;
+  roomId?: string;
+  initialData?: RoomFormValues;
 }
 
 const ROOM_TYPE_OPTIONS = (Object.keys(RoomType) as RoomType[]).map((value) => ({
@@ -33,8 +35,9 @@ const ROOM_TYPE_OPTIONS = (Object.keys(RoomType) as RoomType[]).map((value) => (
   label: ROOM_TYPE_LABELS[value] ?? value,
 }));
 
-export const RoomForm = ({ buildings, onSuccess, onCancel }: RoomFormProps) => {
+export const RoomForm = ({ buildings, onSuccess, onCancel, roomId, initialData }: RoomFormProps) => {
   const { addToast } = useToast();
+  const isEditMode = Boolean(roomId);
 
   const {
     register,
@@ -44,11 +47,11 @@ export const RoomForm = ({ buildings, onSuccess, onCancel }: RoomFormProps) => {
   } = useForm<RoomFormValues>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
-      name: "",
-      roomNumber: "",
-      floor: "",
-      buildingId: "",
-      type: RoomType.OFFICE,
+      name: initialData?.name ?? "",
+      roomNumber: initialData?.roomNumber ?? "",
+      floor: initialData?.floor ?? "",
+      buildingId: initialData?.buildingId ?? "",
+      type: initialData?.type ?? RoomType.OFFICE,
     },
   });
 
@@ -67,26 +70,28 @@ export const RoomForm = ({ buildings, onSuccess, onCancel }: RoomFormProps) => {
     };
 
     try {
-      const res = await fetch("/api/rooms", {
-        method: "POST",
+      const endpoint = isEditMode ? `/api/rooms/${roomId}` : "/api/rooms";
+      const method = isEditMode ? "PATCH" : "POST";
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "Failed to add room");
+        throw new Error(json.error || "Failed to save room");
       }
 
       addToast({
-        title: "Room registered",
-        message: `${json.data.name} has been added.`,
+        title: isEditMode ? "Room updated" : "Room registered",
+        message: isEditMode ? `${json.data.name} has been updated.` : `${json.data.name} has been added.`,
         variant: "success",
       });
       reset({ name: "", roomNumber: "", floor: "", buildingId: "", type: RoomType.OFFICE });
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed";
-      addToast({ title: "Registration failed", message, variant: "error" });
+      addToast({ title: isEditMode ? "Update failed" : "Registration failed", message, variant: "error" });
     }
   };
 
@@ -123,7 +128,7 @@ export const RoomForm = ({ buildings, onSuccess, onCancel }: RoomFormProps) => {
           Cancel
         </Button>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
-          Register room
+          {isEditMode ? "Save changes" : "Register room"}
         </Button>
       </div>
     </form>

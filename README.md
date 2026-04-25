@@ -169,6 +169,7 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `GET`, `POST` | `/api/buildings` | List / create buildings |
 | `PATCH`, `DELETE` | `/api/buildings/[id]` | Update / delete a building |
 | `GET`, `POST` | `/api/rooms` | List / create rooms |
+| `PATCH`, `DELETE` | `/api/rooms/[id]` | Update / delete a room |
 | `GET`, `POST` | `/api/departments` | List / create departments |
 | `PATCH`, `DELETE` | `/api/departments/[id]` | Update / delete a department |
 | `GET`, `POST` | `/api/employees` | List / create organization employees |

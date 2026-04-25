@@ -384,3 +384,17 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Organization rooms table + room CRUD — April 26, 2026
+
+- Added a **Rooms table** under **Organization → Places** (Manage Rooms) to display room data with consistent table styling.
+- Extended **RoomForm** to support **edit mode** (PATCH) in addition to room registration (POST).
+- Added room CRUD routes: `PATCH`/`DELETE /api/rooms/[id]` with service-layer uniqueness and assignment safety checks.
+
+### Rooms table/CRUD quality check — April 26, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
