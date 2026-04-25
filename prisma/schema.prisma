@@ -93,25 +93,6 @@ model User {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ASSET CATEGORIES
-// ═══════════════════════════════════════════════════════════════
-
-// Categories for classifying assets (e.g., PC, Laptop, Monitor, Printer) 
-model AssetCategory {
-  id          String   @id @default(cuid())
-  name        String   @unique  // Display name: "PC", "Laptop", "Monitor"
-  prefix      String   @unique  // Used in auto-tag generation: "PC", "MON", "PRN"
-  description String?           // Optional description of the category
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relation — all assets belonging to this category 
-  assets Asset[]
-
-  @@map("asset_categories")
-}
-
-// ═══════════════════════════════════════════════════════════════
 // ASSETS — Main tracking entity
 // ═══════════════════════════════════════════════════════════════
 
@@ -121,19 +102,19 @@ model AssetCategory {
 // * can be tracked by MAC address, serial number, or PC number.
  
 model Asset {
-  id           String      @id @default(cuid())
-  assetTag     String      @unique  // Auto-generated human-readable tag (format from app config)
-  pcNumber     String?     @unique  // PCs only: C000001 (manual entry)
-  name         String               // Descriptive name: "Dell Latitude 5530"
-  categoryId   String               // FK to AssetCategory
-  category     AssetCategory @relation(fields: [categoryId], references: [id])
-  catalogItemId String?             // Optional link to shared catalog identity
-  catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id])
-  brand        String?              // Manufacturer: "Dell", "HP", "Lenovo"
-  model        String?              // Model number: "Latitude 5530"
-  serialNumber String?     @unique  // Equipment serial number
-  macAddress   String?              // Network MAC address for PCs/laptops/routers
-  status       AssetStatus @default(AVAILABLE)
+  id              String        @id @default(cuid())
+  assetTag        String        @unique  // Auto-generated human-readable tag (format from app config)
+  pcNumber        String?       @unique  // PCs only: C000001 (manual entry)
+  name            String                 // Descriptive name: "Dell Latitude 5530"
+  stockCategoryId String                 // FK to unified stock category source
+  stockCategory   StockCategory @relation(fields: [stockCategoryId], references: [id])
+  catalogItemId   String?               // Optional link to shared catalog identity
+  catalogItem     CatalogItem? @relation(fields: [catalogItemId], references: [id])
+  brand           String                // Manufacturer: "Dell", "HP", "Lenovo"
+  model           String                // Model number: "Latitude 5530"
+  serialNumber    String?       @unique  // Equipment serial number
+  macAddress      String?              // Network MAC address for PCs/laptops/routers
+  status          AssetStatus   @default(AVAILABLE)
 
   // Hardware specifications (applicable to PCs/laptops) 
   osInstalled  String?    // Operating system: "Windows 11 Pro"
@@ -285,12 +266,14 @@ model AssetAssignment {
 model StockCategory {
   id          String   @id @default(cuid())
   name        String   @unique  // "Cables", "Accessories", "Spare Parts"
+  prefix      String   @unique  // Used in asset tag generation when stock converts to asset
   description String?           // Optional description
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // Relation — stock items in this category 
   stockItems StockItem[]
+  assets     Asset[]
 
   @@map("stock_categories")
 }
@@ -306,7 +289,8 @@ model StockItem {
   asset       Asset?        @relation(fields: [assetId], references: [id])
   catalogItemId String?              // Optional link to shared catalog identity
   catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id])
-  name        String                 // "Cat6 Cable 1m", "USB Mouse", "Dell Laptop"
+  brand       String                 // Manufacturer: "Dell", "HP", "Ugreen"
+  model       String                 // Model or product line: "Latitude 5530", "Cat6 1m"
   categoryId  String                 // FK to StockCategory
   category    StockCategory @relation(fields: [categoryId], references: [id])
   sku         String?       @unique  // Optional internal SKU code
@@ -333,10 +317,9 @@ model StockItem {
 // 
 model CatalogItem {
   id        String   @id @default(cuid())
-  name      String             // Display name: "Dell Latitude 5530", "Cat6 Cable 1m"
+  brand     String             // Manufacturer where applicable
+  model     String             // Model or product line for unified identity
   category  String             // Unified category label for reporting and UI
-  brand     String?            // Manufacturer where applicable
-  model     String?            // Model where applicable
   unit      String   @default("pcs") // Unit of measure: pcs, meters, boxes
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

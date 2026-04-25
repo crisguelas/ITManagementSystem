@@ -7,7 +7,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Asset, AssetCategory } from "@prisma/client";
+import type { Asset, StockCategory } from "@prisma/client";
 
 /* Third-party imports */
 import { Plus, Search } from "lucide-react";
@@ -28,7 +28,7 @@ import Link from "next/link";
 
 /* Complex type including relations joined from the backend */
 type AssetWithRelations = Asset & {
-  category: AssetCategory;
+  stockCategory: StockCategory;
   assignments: unknown[];
 };
 
@@ -162,7 +162,7 @@ export const AssetTable = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant="outline">{asset.category.name}</Badge>
+                      <Badge variant="outline">{asset.stockCategory.name}</Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col text-xs text-gray-600 gap-0.5">

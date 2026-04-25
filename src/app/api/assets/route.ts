@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 
       if (error.message === "Category not found") {
         return NextResponse.json(
-          { success: false, error: "Selected category no longer exists. Refresh and try again." },
+          { success: false, error: "Selected inventory category no longer exists. Refresh and try again." },
           { status: 404 }
         );
       }

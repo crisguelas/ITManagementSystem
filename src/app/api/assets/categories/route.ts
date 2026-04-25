@@ -1,11 +1,12 @@
 /**
  * @file route.ts
- * @description API Routes for Asset Categories.
+ * @description Compatibility API routes for asset categories.
+ * Uses stock categories as the unified category source.
  */
 
 import { NextResponse } from "next/server";
-import { getCategories, createCategory } from "@/lib/services/asset.service";
-import { categorySchema } from "@/lib/validations/asset.schema";
+import { getStockCategories, createStockCategory } from "@/lib/services/stock.service";
+import { stockCategorySchema } from "@/lib/validations/stock.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
 
-    const categories = await getCategories();
+    const categories = await getStockCategories();
     return NextResponse.json({ success: true, data: categories });
   } catch (error: unknown) {
     console.error("[API_CATEGORIES_GET]", error);
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     
     /* Validate body with Zod */
-    const validationResult = categorySchema.safeParse(body);
+    const validationResult = stockCategorySchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
         { success: false, error: "Invalid data", details: validationResult.error.flatten() },
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     }
     
     /* Call Service */
-    const newCategory = await createCategory(validationResult.data);
+    const newCategory = await createStockCategory(validationResult.data);
     
     return NextResponse.json({ success: true, data: newCategory }, { status: 201 });
   } catch (error: unknown) {

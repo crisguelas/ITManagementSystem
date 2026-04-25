@@ -346,3 +346,23 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 2. **API consistency sweep** — Align remaining routes to shared auth guard helpers where applicable.
 3. **UX follow-up** — Organization / modals after API and reporting behavior is stable.
 4. **Pre-deployment QR scan enhancement (required before go-live)** — Replace temporary plain-text QR payloads with dynamic public scan URLs (`/scan/assets/{id}`) served from a fixed production domain (for example `NEXT_PUBLIC_QR_BASE_URL`) so printed labels always show current assignment/availability without requiring app login or Vercel authentication.
+
+---
+
+## Unified category + reset migration — April 25, 2026
+
+- Performed schema-only backup to `backups/db-schema-backup.sql` (no row data).
+- Hard reset database to a zero-data baseline (including users and history tables).
+- Removed `AssetCategory` model and switched assets to `StockCategory` relation (`stockCategoryId`).
+- Switched stock identity fields from `name` to required `brand` + `model`.
+- Updated conversion, reporting, dashboard activity, and notification naming to use `brand + model`.
+- Simplified Assets module by removing the categories tab from `/assets`; legacy `/categories` now redirects to `/assets`.
+- Updated seed behavior to create default admin credentials:
+  - Email: `admin@itms.imc`
+  - Password: `admin123`
+
+### Migration quality check — April 25, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

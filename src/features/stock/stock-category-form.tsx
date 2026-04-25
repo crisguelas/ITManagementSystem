@@ -41,6 +41,7 @@ export const StockCategoryForm = ({
     resolver: zodResolver(stockCategorySchema),
     defaultValues: {
       name: category?.name || "",
+      prefix: category?.prefix || "",
       description: category?.description || "",
     },
   });
@@ -89,6 +90,13 @@ export const StockCategoryForm = ({
           placeholder="e.g. Cables, Consumables"
           {...register("name")}
           error={errors.name?.message}
+          required
+        />
+        <Input
+          label="Tag Prefix"
+          placeholder="e.g. CBL"
+          {...register("prefix")}
+          error={errors.prefix?.message}
           required
         />
         <Textarea

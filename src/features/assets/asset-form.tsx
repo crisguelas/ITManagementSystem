@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { AssetCategory, StockCategory, StockItem } from "@prisma/client";
+import type { StockCategory, StockItem } from "@prisma/client";
 
 /* Base Components */
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
   const isEditMode = Boolean(assetId);
   
   /* State for external data (categories) */
-  const [categories, setCategories] = useState<AssetCategory[]>([]);
+  const [categories, setCategories] = useState<StockCategory[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
 
@@ -68,10 +68,11 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<z.input<typeof assetSchema>>({
     resolver: zodResolver(assetSchema),
     defaultValues: {
-      categoryId: "",
+      stockCategoryId: "",
       brand: "",
       model: "",
       pcNumber: "",
@@ -87,7 +88,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
   useEffect(() => {
     if (!initialData) return;
     reset({
-      categoryId: initialData.categoryId ?? "",
+      stockCategoryId: initialData.stockCategoryId ?? "",
       brand: initialData.brand ?? "",
       model: initialData.model ?? "",
       pcNumber: initialData.pcNumber ?? "",
@@ -105,7 +106,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     setIsLoadingCategories(true);
     setCategoryError(null);
     try {
-      const res = await fetch("/api/assets/categories");
+      const res = await fetch("/api/stock-categories");
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Failed to load categories");
       setCategories(json.data);
@@ -166,13 +167,21 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     return stockItems
       .filter((row) => row.quantity > 0)
       .slice()
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`));
   }, [stockItems]);
 
   const selectedSourceStock = useMemo(() => {
     if (!sourceStockItemId) return null;
     return stockItems.find((row) => row.id === sourceStockItemId) ?? null;
   }, [sourceStockItemId, stockItems]);
+
+  useEffect(() => {
+    if (!selectedSourceStock) return;
+    /* Auto-populate unified asset fields from the selected inventory source. */
+    setValue("stockCategoryId", selectedSourceStock.categoryId);
+    setValue("brand", selectedSourceStock.brand);
+    setValue("model", selectedSourceStock.model);
+  }, [selectedSourceStock, setValue]);
 
   /* Form submission handler */
   const onSubmit = async (data: z.input<typeof assetSchema>) => {
@@ -192,7 +201,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           osInstalled: normalizeOptionalText(data.osInstalled),
           ram: normalizeOptionalText(data.ram),
           storage: normalizeOptionalText(data.storage),
-          notes: `Registered asset from stock SKU ${selected.sku ?? "N/A"} (${selected.name})`,
+          notes: `Registered asset from stock SKU ${selected.sku ?? "N/A"} (${selected.brand} ${selected.model})`,
         };
 
         const res = await fetch(`/api/stock-items/${sourceStockItemId}/convert-to-asset`, {
@@ -304,7 +313,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
                 options={[
                   { label: "None — register without consuming stock", value: "" },
                   ...availableStockOptions.map((row) => ({
-                    label: `${row.name} • ${row.sku ?? "No SKU"} • ${row.quantity} ${row.unit} left`,
+                    label: `${row.brand} ${row.model} • ${row.sku ?? "No SKU"} • ${row.quantity} ${row.unit} left`,
                     value: row.id,
                   })),
                 ]}
@@ -321,7 +330,9 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
               )}
               {selectedSourceStock && (
                 <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700">
-                  <div className="font-medium text-gray-900">{selectedSourceStock.name}</div>
+                  <div className="font-medium text-gray-900">
+                    {selectedSourceStock.brand} {selectedSourceStock.model}
+                  </div>
                   <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:gap-3">
                     <span>
                       <span className="text-gray-500">SKU:</span> {selectedSourceStock.sku ?? "—"}
@@ -348,8 +359,8 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           <Select
             label="Category"
             options={categoryOptions}
-            {...register("categoryId")}
-            error={errors.categoryId?.message}
+            {...register("stockCategoryId")}
+            error={errors.stockCategoryId?.message}
             required
           />
           <Select

@@ -75,7 +75,7 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-            {item.name}
+            {item.brand} {item.model}
           </h1>
           <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
             <span className="flex items-center gap-1"><Hash className="h-4 w-4" /> {item.sku || "No SKU"}</span>
@@ -123,7 +123,7 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
       <Modal isOpen={txModalOpen} onClose={() => setTxModalOpen(false)} title="Record Transaction" size="md">
         <StockTransactionForm
           stockItemId={item.id}
-          itemName={item.name}
+          itemName={`${item.brand} ${item.model}`}
           currentQuantity={item.quantity}
           unit={item.unit}
           onSuccess={() => { setTxModalOpen(false); fetchItem(); }}

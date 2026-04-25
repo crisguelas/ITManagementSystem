@@ -6,7 +6,6 @@
 
 import type {
   Asset,
-  AssetCategory,
   AssetAssignment,
   Building,
   Room,
@@ -57,12 +56,12 @@ export interface PaginatedResponse<T> {
 
 /* Asset with its category relation included */
 export interface AssetWithCategory extends Asset {
-  category: AssetCategory;
+  stockCategory: StockCategory;
 }
 
 /* Asset with all relations for the detail view */
 export interface AssetWithRelations extends Asset {
-  category: AssetCategory;
+  stockCategory: StockCategory;
   assignments: AssetAssignmentWithRelations[];
   stockItem: StockItem | null;
 }

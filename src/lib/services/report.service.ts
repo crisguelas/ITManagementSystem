@@ -176,7 +176,7 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
     prisma.asset.findMany({
       where: assetWhere,
       include: {
-        category: { select: { name: true } },
+        stockCategory: { select: { name: true } },
         assignments: {
           where: { returnedAt: null },
           take: 1,
@@ -197,14 +197,15 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
       include: {
         category: { select: { name: true } },
       },
-      orderBy: { name: "asc" },
+      orderBy: [{ brand: "asc" }, { model: "asc" }],
     }),
     prisma.stockTransaction.findMany({
       where: stockTxWhere,
       include: {
         stockItem: {
           select: {
-            name: true,
+            brand: true,
+            model: true,
             category: { select: { name: true } },
           },
         },
@@ -233,7 +234,7 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
     return {
       assetTag: asset.assetTag,
       name: asset.name,
-      category: asset.category.name,
+      category: asset.stockCategory.name,
       status: asset.status,
       condition: asset.condition,
       serialNumber: asset.serialNumber ?? "-",
@@ -245,7 +246,7 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
   });
 
   const reportStockTransactions: ReportStockTransactionRow[] = stockTransactions.map((transaction) => ({
-    itemName: transaction.stockItem.name,
+    itemName: `${transaction.stockItem.brand} ${transaction.stockItem.model}`,
     category: transaction.stockItem.category.name,
     type: transaction.type,
     quantity: transaction.quantity,
@@ -261,7 +262,7 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
   const lowStockRows: ReportLowStockRow[] = stockItems
     .filter((item) => item.quantity <= item.minQuantity)
     .map((item) => ({
-      name: item.name,
+      name: `${item.brand} ${item.model}`,
       category: item.category.name,
       sku: item.sku ?? "-",
       quantity: item.quantity,

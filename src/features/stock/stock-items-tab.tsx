@@ -97,7 +97,7 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50/80 text-gray-600 font-medium border-b border-gray-200">
                 <tr>
-                  <th className="px-5 py-3">Item Name</th>
+                  <th className="px-5 py-3">Brand / Model</th>
                   <th className="px-5 py-3">SKU</th>
                   <th className="px-5 py-3">Category</th>
                   <th className="px-5 py-3 text-right">Quantity</th>
@@ -113,7 +113,9 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
                     <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">{item.name}</span>
+                          <span className="font-medium text-gray-900">
+                            {item.brand} {item.model}
+                          </span>
                           {isLow && (
                             <span title="Low Stock Warning">
                               <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -194,7 +196,7 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
         {selectedItem && (
           <StockTransactionForm
             stockItemId={selectedItem.id}
-            itemName={selectedItem.name}
+            itemName={`${selectedItem.brand} ${selectedItem.model}`}
             currentQuantity={selectedItem.quantity}
             unit={selectedItem.unit}
             onSuccess={() => { setTxModalOpen(false); onRefresh(); }}

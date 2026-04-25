@@ -20,11 +20,11 @@ import { stockToAssetSchema } from "@/lib/validations/stock-to-asset.schema";
  */
 async function generateNextAssetTag(
   tx: Prisma.TransactionClient,
-  categoryId: string
+  stockCategoryId: string
 ): Promise<string> {
   const globalPrefix = getAssetTagPrefix();
-  const category = await tx.assetCategory.findUnique({
-    where: { id: categoryId },
+  const category = await tx.stockCategory.findUnique({
+    where: { id: stockCategoryId },
     select: { prefix: true },
   });
 
@@ -77,7 +77,8 @@ export async function convertStockItemToAsset(
       (
         await tx.catalogItem.create({
           data: {
-            name: stockItem.name,
+            brand: stockItem.brand,
+            model: stockItem.model,
             category: stockItem.category.name,
             unit: stockItem.unit,
           },
@@ -109,12 +110,12 @@ export async function convertStockItemToAsset(
       if (existingSn) throw new Error(`Serial Number "${input.serialNumber}" is already in use`);
     }
 
-    const assetTag = await generateNextAssetTag(tx, input.categoryId);
+    const assetTag = await generateNextAssetTag(tx, input.stockCategoryId);
     const name = `${input.brand} ${input.model}`.trim();
 
     const asset = await tx.asset.create({
       data: {
-        categoryId: input.categoryId,
+        stockCategoryId: input.stockCategoryId,
         catalogItemId,
         assetTag,
         name,
@@ -128,7 +129,7 @@ export async function convertStockItemToAsset(
         storage: input.storage,
         status: input.status,
       },
-      include: { category: true },
+      include: { stockCategory: true },
     });
 
     await tx.stockItem.update({
@@ -144,7 +145,7 @@ export async function convertStockItemToAsset(
         performedById,
         notes:
           input.notes ??
-          `Converted 1 ${stockItem.unit} to asset ${asset.assetTag} (${asset.id})`,
+          `Converted 1 ${stockItem.unit} ${stockItem.brand} ${stockItem.model} to asset ${asset.assetTag} (${asset.id})`,
       },
     });
 

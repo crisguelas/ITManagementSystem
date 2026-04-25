@@ -33,15 +33,18 @@ export async function getStockCategories() {
 export async function createStockCategory(
   data: z.infer<typeof stockCategorySchema>
 ) {
+  const prefix = data.prefix.toUpperCase();
   /* Guard: prevent duplicate category names */
-  const existing = await prisma.stockCategory.findUnique({
-    where: { name: data.name },
+  const existing = await prisma.stockCategory.findFirst({
+    where: {
+      OR: [{ name: data.name }, { prefix }],
+    },
   });
   if (existing) {
-    throw new Error(`Stock category "${data.name}" already exists`);
+    throw new Error(`Stock category "${data.name}" or prefix "${prefix}" already exists`);
   }
 
-  return prisma.stockCategory.create({ data });
+  return prisma.stockCategory.create({ data: { ...data, prefix } });
 }
 
 /** Updates an existing stock category with duplicate name check */
@@ -49,15 +52,19 @@ export async function updateStockCategory(
   id: string,
   data: z.infer<typeof stockCategorySchema>
 ) {
+  const prefix = data.prefix.toUpperCase();
   /* Guard: prevent duplicate name collision with other categories */
   const duplicate = await prisma.stockCategory.findFirst({
-    where: { name: data.name, NOT: { id } },
+    where: {
+      NOT: { id },
+      OR: [{ name: data.name }, { prefix }],
+    },
   });
   if (duplicate) {
-    throw new Error(`Stock category "${data.name}" already exists`);
+    throw new Error(`Stock category "${data.name}" or prefix "${prefix}" already exists`);
   }
 
-  return prisma.stockCategory.update({ where: { id }, data });
+  return prisma.stockCategory.update({ where: { id }, data: { ...data, prefix } });
 }
 
 /** Deletes a stock category — blocked if it has associated stock items */
@@ -82,9 +89,10 @@ export async function deleteStockCategory(id: string) {
 /** Fetches all stock items with category info and transaction count */
 export async function getStockItems() {
   return prisma.stockItem.findMany({
-    orderBy: { name: "asc" },
+    orderBy: [{ brand: "asc" }, { model: "asc" }],
     include: {
       category: true,
+      catalogItem: true,
       _count: { select: { transactions: true } },
     },
   });
@@ -96,6 +104,7 @@ export async function getStockItemById(id: string) {
     where: { id },
     include: {
       category: true,
+      catalogItem: true,
       transactions: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -135,11 +144,30 @@ export async function createStockItem(
   data: z.infer<typeof stockItemSchema>
 ) {
   const sku = await generateNextStockSku();
+  const catalogCategory = await prisma.stockCategory.findUnique({
+    where: { id: data.categoryId },
+    select: { name: true },
+  });
+
+  if (!catalogCategory) {
+    throw new Error("Stock category not found");
+  }
+
+  const catalogItem = await prisma.catalogItem.create({
+    data: {
+      brand: data.brand,
+      model: data.model,
+      category: catalogCategory.name,
+      unit: data.unit,
+    },
+    select: { id: true },
+  });
 
   return prisma.stockItem.create({
     data: {
       ...data,
       sku,
+      catalogItemId: catalogItem.id,
     },
     include: { category: true },
   });

@@ -123,7 +123,7 @@ export default function AssetDetailsPage() {
   if (!asset) return null;
 
   const editFormDefaults: z.input<typeof assetSchema> = {
-    categoryId: asset.categoryId,
+    stockCategoryId: asset.stockCategoryId,
     brand: asset.brand ?? "",
     model: asset.model ?? "",
     pcNumber: asset.pcNumber ?? "",
@@ -407,11 +407,11 @@ export default function AssetDetailsPage() {
                <CardBody className="py-4 text-sm">
                  <div className="flex justify-between items-center mb-2">
                    <span className="text-gray-500">Category Name</span>
-                   <span className="font-medium">{asset.category.name}</span>
+                  <span className="font-medium">{asset.stockCategory.name}</span>
                  </div>
                  <div className="flex justify-between items-center mb-2">
                    <span className="text-gray-500">Prefix</span>
-                   <Badge>{asset.category.prefix}</Badge>
+                  <Badge>{asset.stockCategory.prefix}</Badge>
                  </div>
                  <div className="flex justify-between items-center pt-2 border-t border-gray-100 mt-2">
                    <span className="text-gray-500">Registered On</span>

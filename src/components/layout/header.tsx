@@ -397,7 +397,7 @@ export const Header = ({
                               </span>
                               <span className="min-w-0">
                                 <span className="block text-sm font-medium text-gray-800 truncate">
-                                  {item.name}
+                                  {item.itemLabel}
                                 </span>
                                 <span className="block text-xs text-gray-500 mt-0.5">
                                   Quantity is {item.quantity} (minimum {item.minQuantity})

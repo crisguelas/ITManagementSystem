@@ -1,12 +1,13 @@
 /**
  * @file route.ts
- * @description API routes for a specific asset category (PATCH, DELETE).
+ * @description Compatibility routes for category update/delete.
+ * Uses stock categories as the unified category source.
  */
 
 import { NextResponse } from "next/server";
 
-import { deleteCategory, updateCategory } from "@/lib/services/asset.service";
-import { categorySchema } from "@/lib/validations/asset.schema";
+import { deleteStockCategory, updateStockCategory } from "@/lib/services/stock.service";
+import { stockCategorySchema } from "@/lib/validations/stock.schema";
 import { requireAdmin } from "@/lib/api-auth";
 
 export async function PATCH(
@@ -20,7 +21,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    const validationResult = categorySchema.safeParse(body);
+    const validationResult = stockCategorySchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
         { success: false, error: "Invalid data", details: validationResult.error.flatten() },
@@ -28,13 +29,13 @@ export async function PATCH(
       );
     }
 
-    const updatedCategory = await updateCategory(id, validationResult.data);
+    const updatedCategory = await updateStockCategory(id, validationResult.data);
     return NextResponse.json({ success: true, data: updatedCategory });
   } catch (error: unknown) {
     console.error("[API_ASSET_CATEGORY_ID_PATCH]", error);
 
     if (error instanceof Error) {
-      if (error.message === "Category not found") {
+      if (error.message.includes("not found")) {
         return NextResponse.json(
           { success: false, error: "Category not found" },
           { status: 404 }
@@ -65,13 +66,13 @@ export async function DELETE(
     if (authResult.response) return authResult.response;
 
     const { id } = await params;
-    await deleteCategory(id);
+    await deleteStockCategory(id);
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error("[API_ASSET_CATEGORY_ID_DELETE]", error);
 
     if (error instanceof Error) {
-      if (error.message.includes("associated assets")) {
+      if (error.message.includes("stock items")) {
         return NextResponse.json(
           { success: false, error: error.message },
           { status: 409 }

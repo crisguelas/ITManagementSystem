@@ -5,7 +5,7 @@
 
 export interface LowStockNotificationRow {
   id: string;
-  name: string;
+  itemLabel: string;
   quantity: number;
   minQuantity: number;
 }
@@ -37,14 +37,18 @@ export const extractLowStockRowsFromItemsList = (
   for (const entry of items) {
     if (!entry || typeof entry !== "object") continue;
     const obj = entry as Record<string, unknown>;
-    if (typeof obj.id !== "string" || typeof obj.name !== "string") continue;
+    if (typeof obj.id !== "string") continue;
+    const brand = typeof obj.brand === "string" ? obj.brand : "";
+    const model = typeof obj.model === "string" ? obj.model : "";
+    const itemLabel = `${brand} ${model}`.trim();
+    if (!itemLabel) continue;
 
     const quantity = toInt(obj.quantity);
     const minQuantity = toInt(obj.minQuantity);
     if (quantity === null || minQuantity === null) continue;
 
     if (isAtOrBelowMinimumStock(quantity, minQuantity)) {
-      rows.push({ id: obj.id, name: obj.name, quantity, minQuantity });
+      rows.push({ id: obj.id, itemLabel, quantity, minQuantity });
     }
   }
 

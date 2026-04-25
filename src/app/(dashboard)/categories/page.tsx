@@ -1,6 +1,6 @@
 /**
  * @file page.tsx
- * @description Legacy categories route; redirects to Assets module categories tab.
+ * @description Legacy categories route; redirects to Assets module.
  */
 
 import { redirect } from "next/navigation";
@@ -10,5 +10,5 @@ export const metadata = {
 };
 
 export default function CategoriesPage() {
-  redirect("/assets?tab=categories");
+  redirect("/assets");
 }

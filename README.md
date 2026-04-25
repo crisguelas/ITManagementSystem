@@ -16,7 +16,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), specs. **Register Asset** can optionally **pull 1 unit** from a stock line that still has available quantity, creating the asset and recording a stock **OUT** transaction
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
-- **Categories** — Custom asset categories with tag prefixes; managed inside **Assets** via the **Categories** tab (legacy `/categories` redirects to `assets?tab=categories`)
+- **Unified categories** — Asset classification now uses **Stock categories** as the single source of truth
 - **Audit lock on edits** — Assets with assignment history are read-only for edits to preserve historical integrity
 
 ### Locations & people
@@ -105,7 +105,11 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### First login
 
-After a successful seed, sign in with the **email** you set in `SEED_ADMIN_EMAIL` and the **password** from `SEED_ADMIN_PASSWORD`. **Change the password** after first login if your deployment allows user password updates.
+After a successful seed, sign in with:
+- Email: `admin@itms.imc`
+- Password: `admin123`
+
+Change the password after first login.
 
 ---
 
@@ -158,8 +162,8 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | *(NextAuth)* | `/api/auth/[...nextauth]` | Sign-in, session, callbacks |
 | `GET`, `POST` | `/api/assets` | List / create IT assets |
 | `GET`, `PATCH`, `DELETE` | `/api/assets/[id]` | Single asset (detail), update, delete |
-| `GET`, `POST` | `/api/assets/categories` | List / create asset categories (tag prefixes) |
-| `PATCH`, `DELETE` | `/api/assets/categories/[id]` | Update / delete an asset category |
+| `GET`, `POST` | `/api/assets/categories` | Compatibility alias for unified stock categories |
+| `PATCH`, `DELETE` | `/api/assets/categories/[id]` | Compatibility alias for unified stock categories |
 | `POST` | `/api/assets/[id]/assignments` | Assign asset to employee and/or room |
 | `POST` | `/api/assets/[id]/assignments/return` | Return asset from assignment |
 | `GET`, `POST` | `/api/buildings` | List / create buildings |

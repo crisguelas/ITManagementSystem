@@ -13,7 +13,8 @@ import { isAtOrBelowMinimumStock } from "@/lib/stock/low-stock-from-api";
 /* Minimal stock item shape needed by this banner */
 interface LowStockItem {
   id: string;
-  name: string;
+  brand: string;
+  model: string;
   quantity: number;
   minQuantity: number;
 }
@@ -49,7 +50,7 @@ export const LowStockAlertBanner = ({ items }: LowStockAlertBannerProps) => {
         {lowStockItems.slice(0, 3).map(item => (
           <Link key={item.id} href={`/stock/${item.id}`}>
             <span className="text-xs bg-white text-amber-800 border border-amber-200 px-2 py-1 rounded-md whitespace-nowrap hover:bg-amber-100 flex items-center gap-1 transition-colors">
-              {item.name} 
+              {item.brand} {item.model}
               <span className="font-bold text-amber-600">({item.quantity})</span>
             </span>
           </Link>

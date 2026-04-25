@@ -1,6 +1,6 @@
 /**
  * @file asset.service.ts
- * @description Service layer for Asset and AssetCategory operations.
+ * @description Service layer for Asset operations.
  * Centralizes Prisma database queries keeping API routes clean.
  */
 
@@ -8,94 +8,7 @@ import { getAssetTagPrefix } from "@/lib/asset-tag-config";
 import { ASSET_TAG_DIGITS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { categorySchema, assetSchema } from "@/lib/validations/asset.schema";
-
-/* ═══════════════════════════════════════════════════════════════ */
-/* ASSET CATEGORY SERVICES                                         */
-/* ═══════════════════════════════════════════════════════════════ */
-
-export async function getCategories() {
-  return prisma.assetCategory.findMany({
-    orderBy: { name: "asc" },
-  });
-}
-
-export async function createCategory(data: z.infer<typeof categorySchema>) {
-  /* Ensure prefix is uppercase */
-  const prefix = data.prefix.toUpperCase();
-
-  /* Check for existing category or prefix */
-  const existing = await prisma.assetCategory.findFirst({
-    where: {
-      OR: [{ name: data.name }, { prefix }],
-    },
-  });
-
-  if (existing) {
-    if (existing.prefix === prefix) {
-      throw new Error(`Category with prefix "${prefix}" already exists`);
-    }
-    throw new Error(`Category with name "${data.name}" already exists`);
-  }
-
-  return prisma.assetCategory.create({
-    data: {
-      ...data,
-      prefix,
-    },
-  });
-}
-
-export async function updateCategory(id: string, data: z.infer<typeof categorySchema>) {
-  const prefix = data.prefix.toUpperCase();
-
-  const existingCategory = await prisma.assetCategory.findUnique({
-    where: { id },
-    select: { id: true },
-  });
-
-  if (!existingCategory) {
-    throw new Error("Category not found");
-  }
-
-  const conflicting = await prisma.assetCategory.findFirst({
-    where: {
-      id: { not: id },
-      OR: [{ name: data.name }, { prefix }],
-    },
-    select: { id: true, name: true, prefix: true },
-  });
-
-  if (conflicting) {
-    if (conflicting.prefix === prefix) {
-      throw new Error(`Category with prefix "${prefix}" already exists`);
-    }
-    throw new Error(`Category with name "${data.name}" already exists`);
-  }
-
-  return prisma.assetCategory.update({
-    where: { id },
-    data: {
-      ...data,
-      prefix,
-    },
-  });
-}
-
-export async function deleteCategory(id: string) {
-  /* Prevent deleting categories that have associated assets */
-  const assetCount = await prisma.asset.count({
-    where: { categoryId: id },
-  });
-
-  if (assetCount > 0) {
-    throw new Error("Cannot delete category with associated assets. Reassign them first.");
-  }
-
-  return prisma.assetCategory.delete({
-    where: { id },
-  });
-}
+import { assetSchema } from "@/lib/validations/asset.schema";
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* ASSET SERVICES                                                  */
@@ -106,7 +19,7 @@ export async function deleteCategory(id: string) {
  */
 async function generateNextAssetTag(categoryId: string): Promise<string> {
   const globalPrefix = getAssetTagPrefix();
-  const category = await prisma.assetCategory.findUnique({
+  const category = await prisma.stockCategory.findUnique({
     where: { id: categoryId },
   });
 
@@ -144,7 +57,7 @@ export async function getAssetById(id: string) {
   return prisma.asset.findUnique({
     where: { id },
     include: {
-      category: true,
+      stockCategory: true,
       stockItem: true,
       assignments: {
         include: {
@@ -161,7 +74,7 @@ export async function getAssetById(id: string) {
 export async function getAssets() {
   return prisma.asset.findMany({
     include: {
-      category: true,
+      stockCategory: true,
       assignments: {
         where: { returnedAt: null }, // Only active assignments
         include: { employee: true, room: { include: { building: true } } },
@@ -229,7 +142,7 @@ export async function createAsset(data: z.infer<typeof assetSchema>) {
   }
 
   /* Generate auto-tag */
-  const assetTag = await generateNextAssetTag(data.categoryId);
+  const assetTag = await generateNextAssetTag(data.stockCategoryId);
   
   /* Create descriptive name -> e.g. "Dell Latitude" */
   const name = `${data.brand} ${data.model}`.trim();
@@ -241,7 +154,7 @@ export async function createAsset(data: z.infer<typeof assetSchema>) {
       assetTag,
     },
     include: {
-      category: true,
+      stockCategory: true,
     },
   });
 }
@@ -301,7 +214,7 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
       name,
     },
     include: {
-      category: true,
+      stockCategory: true,
     },
   });
 }

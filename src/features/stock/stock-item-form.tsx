@@ -48,7 +48,8 @@ export const StockItemForm = ({
   } = useForm<z.input<typeof stockItemSchema>>({
     resolver: zodResolver(stockItemSchema),
     defaultValues: {
-      name: item?.name ?? "",
+      brand: item?.brand ?? "",
+      model: item?.model ?? "",
       categoryId: item?.categoryId ?? "",
       quantity: item?.quantity ?? 0,
       minQuantity: item?.minQuantity ?? 5,
@@ -92,14 +93,18 @@ export const StockItemForm = ({
         body: JSON.stringify(data),
       });
 
-      const json = (await res.json()) as { success: boolean; data?: { name: string }; error?: string };
+      const json = (await res.json()) as {
+        success: boolean;
+        data?: { brand: string; model: string };
+        error?: string;
+      };
       if (!res.ok || !json.success) {
         throw new Error(json.error ?? `Failed to ${isEditing ? "update" : "create"} stock item`);
       }
 
       addToast({
         title: `Item ${isEditing ? "Updated" : "Created"}`,
-        message: `${json.data?.name} has been ${isEditing ? "updated" : "created"} successfully.`,
+        message: `${json.data?.brand ?? ""} ${json.data?.model ?? ""} has been ${isEditing ? "updated" : "created"} successfully.`,
         variant: "success",
       });
 
@@ -128,10 +133,18 @@ export const StockItemForm = ({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          label="Item Name"
-          placeholder="e.g. Cat6 Cable 1m"
-          {...register("name")}
-          error={errors.name?.message}
+          label="Brand"
+          placeholder="e.g. Dell, HP, Ugreen"
+          {...register("brand")}
+          error={errors.brand?.message}
+          required
+        />
+
+        <Input
+          label="Model"
+          placeholder="e.g. Latitude 5530, Cat6 Cable 1m"
+          {...register("model")}
+          error={errors.model?.message}
           required
         />
 

@@ -88,7 +88,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const [
     totalAssets,
     statusGroups,
-    categoriesWithCounts,
     buildingCount,
     roomCount,
     employeeCount,
@@ -102,12 +101,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     prisma.asset.groupBy({
       by: ["status"],
       _count: { id: true },
-    }),
-    prisma.assetCategory.findMany({
-      orderBy: { name: "asc" },
-      include: {
-        _count: { select: { assets: true } },
-      },
     }),
     prisma.building.count(),
     prisma.room.count(),
@@ -142,7 +135,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       take: 10,
       orderBy: { createdAt: "desc" },
       include: {
-        stockItem: { select: { name: true, unit: true } },
+        stockItem: { select: { brand: true, model: true, unit: true } },
         performedBy: { select: { name: true } },
       },
     }),
@@ -165,12 +158,16 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     (i) => i.quantity <= i.minQuantity
   ).length;
 
-  const byCategory: DashboardCategorySlice[] = categoriesWithCounts
-    .map((c) => ({
-      name: c.name,
-      count: c._count.assets,
-    }))
-    .filter((c) => c.count > 0);
+  const byCategoryMap = new Map<string, number>();
+  for (const asset of await prisma.asset.findMany({
+    select: { stockCategory: { select: { name: true } } },
+  })) {
+    const name = asset.stockCategory.name;
+    byCategoryMap.set(name, (byCategoryMap.get(name) ?? 0) + 1);
+  }
+  const byCategory: DashboardCategorySlice[] = [...byCategoryMap.entries()].map(
+    ([name, count]) => ({ name, count })
+  );
 
   const byStatus: DashboardStatusSlice[] = (
     Object.values(AssetStatus) as AssetStatus[]
@@ -221,7 +218,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     id: t.id,
     kind: "stock" as const,
     at: t.createdAt.toISOString(),
-    headline: `Stock ${t.type}: ${t.stockItem.name}`,
+    headline: `Stock ${t.type}: ${t.stockItem.brand} ${t.stockItem.model}`,
     detail: `${t.quantity} ${t.stockItem.unit} · ${t.performedBy.name}`,
     t: t.createdAt.getTime(),
   }));

@@ -11,7 +11,7 @@ import type { catalogItemSchema } from "@/lib/validations/catalog-item.schema";
 
 export async function getCatalogItems() {
   return prisma.catalogItem.findMany({
-    orderBy: { name: "asc" },
+    orderBy: [{ brand: "asc" }, { model: "asc" }],
   });
 }
 
@@ -24,10 +24,9 @@ export async function getCatalogItemById(id: string) {
 export async function createCatalogItem(data: z.infer<typeof catalogItemSchema>) {
   return prisma.catalogItem.create({
     data: {
-      name: data.name.trim(),
+      brand: data.brand.trim(),
+      model: data.model.trim(),
       category: data.category.trim(),
-      brand: data.brand?.trim() || null,
-      model: data.model?.trim() || null,
       unit: data.unit.trim(),
     },
   });
@@ -40,10 +39,9 @@ export async function updateCatalogItem(id: string, data: z.infer<typeof catalog
   return prisma.catalogItem.update({
     where: { id },
     data: {
-      name: data.name.trim(),
+      brand: data.brand.trim(),
+      model: data.model.trim(),
       category: data.category.trim(),
-      brand: data.brand?.trim() || null,
-      model: data.model?.trim() || null,
       unit: data.unit.trim(),
     },
   });
