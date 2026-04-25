@@ -22,6 +22,7 @@ export async function PATCH(
 
     if (body.email === "") delete body.email;
     if (body.phone === "") delete body.phone;
+    if (body.phoneExt === "") delete body.phoneExt;
     if (body.position === "") delete body.position;
 
     const validationResult = employeeSchema.safeParse(body);

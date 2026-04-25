@@ -208,6 +208,7 @@ model Employee {
   lastName     String               // Last name
   email        String?    @unique   // Optional email address
   phone        String?              // Optional phone number
+  phoneExt     String?              // Optional phone extension
   departmentId String               // FK to Department
   department   Department @relation(fields: [departmentId], references: [id])
   position     String?              // Job title/position

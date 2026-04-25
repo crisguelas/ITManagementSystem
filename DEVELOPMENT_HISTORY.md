@@ -366,3 +366,21 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Organization employee contact + title UX polish — April 26, 2026
+
+- Updated Employee registration/edit forms under **Organization → Teams & People**:
+  - Renamed `Phone (optional)` to `Mobile (Optional)`.
+  - Added `Phone Ext. (Optional)` and persisted it through Prisma, API validation, and employee CRUD handlers.
+- Updated the **Registered Employees** table:
+  - Title now renders with friendly display labels (`Mr.`, `Ms.`, `Dr.`, `Prof.`) instead of enum caps.
+  - Added `Mobile / Ext` column to show contact details consistently.
+- Updated docs in `README.md` to reflect the new employee contact fields and title display behavior.
+
+### Employee contact/title quality check — April 26, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

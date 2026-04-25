@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     /* Clean up empty optional fields into proper nulls or undefines for zod/prisma */
     if (body.email === "") delete body.email;
     if (body.phone === "") delete body.phone;
+    if (body.phoneExt === "") delete body.phoneExt;
     if (body.position === "") delete body.position;
 
     const validationResult = employeeSchema.safeParse(body);

@@ -48,6 +48,7 @@ export const employeeSchema = z.object({
     .union([z.literal(""), z.string().email("Invalid email address")])
     .optional(),
   phone: z.string().optional(),
+  phoneExt: z.string().optional(),
   departmentId: z.string().min(1, "Please select a department"),
   position: z.string().optional(),
 });

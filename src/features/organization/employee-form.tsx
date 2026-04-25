@@ -59,6 +59,7 @@ export const EmployeeForm = ({
       lastName: initialData?.lastName ?? "",
       email: initialData?.email ?? "",
       phone: initialData?.phone ?? "",
+      phoneExt: initialData?.phoneExt ?? "",
       departmentId: initialData?.departmentId ?? "",
       position: initialData?.position ?? "",
     },
@@ -84,6 +85,10 @@ export const EmployeeForm = ({
     const phone = data.phone?.trim();
     if (phone) {
       body.phone = phone;
+    }
+    const phoneExt = data.phoneExt?.trim();
+    if (phoneExt) {
+      body.phoneExt = phoneExt;
     }
     const position = data.position?.trim();
     if (position) {
@@ -117,6 +122,7 @@ export const EmployeeForm = ({
         lastName: "",
         email: "",
         phone: "",
+        phoneExt: "",
         departmentId: "",
         position: "",
       });
@@ -169,7 +175,8 @@ export const EmployeeForm = ({
           {...register("email")}
           error={errors.email?.message}
         />
-        <Input label="Phone (optional)" {...register("phone")} error={errors.phone?.message} />
+        <Input label="Mobile (Optional)" {...register("phone")} error={errors.phone?.message} />
+        <Input label="Phone Ext. (Optional)" {...register("phoneExt")} error={errors.phoneExt?.message} />
         <Input label="Position / title (optional)" placeholder="e.g. Lecturer" {...register("position")} error={errors.position?.message} />
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">

@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { DepartmentForm } from "@/features/organization/department-form";
 import { EmployeeForm } from "@/features/organization/employee-form";
+import { TITLE_LABELS } from "@/lib/constants";
 
 export const EmployeesView = () => {
   const [departments, setDepartments] = useState<Array<Department & { _count?: { employees: number } }>>([]);
@@ -253,6 +254,7 @@ export const EmployeesView = () => {
                   <th className="px-6 py-3">Employee ID</th>
                   <th className="px-6 py-3">Name</th>
                   <th className="px-6 py-3">Department</th>
+                  <th className="px-6 py-3">Mobile / Ext</th>
                   <th className="px-6 py-3">Position</th>
                   <th className="px-6 py-3">Active Assignments</th>
                   <th className="px-6 py-3 text-right">Actions</th>
@@ -263,9 +265,12 @@ export const EmployeesView = () => {
                   <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-mono text-xs text-gray-700">{emp.employeeId ?? "—"}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">
-                      {emp.title} {emp.firstName} {emp.lastName}
+                      {TITLE_LABELS[emp.title] ?? emp.title} {emp.firstName} {emp.lastName}
                     </td>
                     <td className="px-6 py-4 text-gray-600">{emp.department.name}</td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {emp.phone ? `${emp.phone}${emp.phoneExt ? ` / ${emp.phoneExt}` : ""}` : "—"}
+                    </td>
                     <td className="px-6 py-4 text-gray-600">{emp.position || "—"}</td>
                     <td className="px-6 py-4 text-gray-500">{emp._count?.assignments || 0}</td>
                     <td className="px-6 py-4">
@@ -378,6 +383,7 @@ export const EmployeesView = () => {
                   lastName: selectedEmployee.lastName,
                   email: selectedEmployee.email ?? "",
                   phone: selectedEmployee.phone ?? "",
+                  phoneExt: selectedEmployee.phoneExt ?? "",
                   departmentId: selectedEmployee.departmentId,
                   position: selectedEmployee.position ?? "",
                 }
