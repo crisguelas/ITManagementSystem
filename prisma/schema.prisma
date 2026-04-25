@@ -202,7 +202,7 @@ model Department {
 // Employees (doctors, professors, staff) who receive IT assets 
 model Employee {
   id           String     @id @default(cuid())
-  employeeId   String?    @unique   // Organization employee ID number/code
+  employeeId   String     @unique   // Organization employee ID number/code
   title        Title               // DR, MR, MS, PROF
   firstName    String               // First name
   lastName     String               // Last name
@@ -294,7 +294,7 @@ model StockItem {
   model       String                 // Model or product line: "Latitude 5530", "Cat6 1m"
   categoryId  String                 // FK to StockCategory
   category    StockCategory @relation(fields: [categoryId], references: [id])
-  sku         String?       @unique  // Optional internal SKU code
+  sku         String        @unique  // Auto-generated internal SKU code (STK-######)
   quantity    Int           @default(0)   // Current stock quantity
   minQuantity Int           @default(5)   // Low-stock alert threshold
   location    String        @default("Main Stock Room")  // Physical location
