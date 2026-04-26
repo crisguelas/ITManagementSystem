@@ -4,7 +4,8 @@
  */
 
 import { useState, useEffect } from "react";
-import { Plus, Building, Pencil, Trash2 } from "lucide-react";
+import { Plus, Building, Pencil, Trash2, Eye } from "lucide-react";
+import Link from "next/link";
 import type { RoomType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { SkeletonTable } from "@/components/ui/loading-state";
@@ -193,6 +194,16 @@ export const LocationsView = () => {
                     <td className="px-6 py-4 text-gray-500">{bld._count?.rooms || 0} Rooms</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
+                        <Link href={`/organization/buildings/${bld.id}`} className="inline-flex">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            leftIcon={<Eye className="w-4 h-4" />}
+                          >
+                            View
+                          </Button>
+                        </Link>
                         <Button
                           type="button"
                           size="sm"

@@ -133,6 +133,14 @@ export async function createAsset(data: z.infer<typeof assetSchema>) {
     if (existingPc) throw new Error(`PC Number "${data.pcNumber}" is already in use`);
   }
 
+  /* Check unique constraint: ipAddress (if provided) */
+  if (data.ipAddress) {
+    const existingIp = await prisma.asset.findUnique({
+      where: { ipAddress: data.ipAddress },
+    });
+    if (existingIp) throw new Error(`IP Address "${data.ipAddress}" is already in use`);
+  }
+
   /* Check unique constraint: serialNumber (if provided) */
   if (data.serialNumber) {
     const existingSn = await prisma.asset.findUnique({
@@ -190,6 +198,18 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
       select: { id: true },
     });
     if (existingPc) throw new Error(`PC Number "${data.pcNumber}" is already in use`);
+  }
+
+  /* Check unique constraint: ipAddress (if provided), excluding current asset */
+  if (data.ipAddress) {
+    const existingIp = await prisma.asset.findFirst({
+      where: {
+        ipAddress: data.ipAddress,
+        id: { not: id },
+      },
+      select: { id: true },
+    });
+    if (existingIp) throw new Error(`IP Address "${data.ipAddress}" is already in use`);
   }
 
   /* Check unique constraint: serialNumber (if provided), excluding current asset */

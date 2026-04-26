@@ -129,6 +129,7 @@ export default function AssetDetailsPage() {
     pcNumber: asset.pcNumber ?? "",
     macAddress: asset.macAddress ?? "",
     serialNumber: asset.serialNumber ?? "",
+    ipAddress: asset.ipAddress ?? "",
     osInstalled: asset.osInstalled ?? "",
     ram: asset.ram ?? "",
     storage: asset.storage ?? "",

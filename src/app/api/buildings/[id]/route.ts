@@ -1,13 +1,35 @@
 /**
  * @file route.ts
- * @description API routes for a specific building (PATCH, DELETE).
+ * @description API routes for a specific building (GET, PATCH, DELETE).
  */
 
 import { NextResponse } from "next/server";
 
 import { buildingSchema } from "@/lib/validations/organization.schema";
-import { deleteBuilding, updateBuilding } from "@/lib/services/organization.service";
-import { requireAdmin } from "@/lib/api-auth";
+import { deleteBuilding, getBuildingById, updateBuilding } from "@/lib/services/organization.service";
+import { requireAdmin, requireSession } from "@/lib/api-auth";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authResult = await requireSession();
+    if (authResult.response) return authResult.response;
+
+    const { id } = await params;
+    const building = await getBuildingById(id);
+
+    if (!building) {
+      return NextResponse.json({ success: false, error: "Building not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: building });
+  } catch (error: unknown) {
+    console.error("[API_BUILDINGS_ID_GET]", error);
+    return NextResponse.json({ success: false, error: "Failed to fetch building" }, { status: 500 });
+  }
+}
 
 export async function PATCH(
   request: Request,

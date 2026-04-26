@@ -78,6 +78,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       pcNumber: "",
       macAddress: "",
       serialNumber: "",
+      ipAddress: "",
       osInstalled: "",
       ram: "",
       storage: "",
@@ -94,6 +95,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       pcNumber: initialData.pcNumber ?? "",
       macAddress: initialData.macAddress ?? "",
       serialNumber: initialData.serialNumber ?? "",
+      ipAddress: initialData.ipAddress ?? "",
       osInstalled: initialData.osInstalled ?? "",
       ram: initialData.ram ?? "",
       storage: initialData.storage ?? "",
@@ -196,6 +198,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           pcNumber: normalizeOptionalText(data.pcNumber),
           serialNumber: normalizeOptionalText(data.serialNumber),
           macAddress: normalizeOptionalText(data.macAddress),
+          ipAddress: normalizeOptionalText(data.ipAddress),
           brand: typeof data.brand === "string" ? data.brand.trim() : data.brand,
           model: typeof data.model === "string" ? data.model.trim() : data.model,
           osInstalled: normalizeOptionalText(data.osInstalled),
@@ -242,6 +245,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
             pcNumber: normalizeOptionalText(data.pcNumber),
             serialNumber: normalizeOptionalText(data.serialNumber),
             macAddress: normalizeOptionalText(data.macAddress),
+            ipAddress: normalizeOptionalText(data.ipAddress),
             brand: typeof data.brand === "string" ? data.brand.trim() : data.brand,
             model: typeof data.model === "string" ? data.model.trim() : data.model,
             osInstalled: normalizeOptionalText(data.osInstalled),
@@ -311,7 +315,6 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
               <Select
                 label="Pull from available stock"
                 options={[
-                  { label: "None — register without consuming stock", value: "" },
                   ...availableStockOptions.map((row) => ({
                     label: `${row.brand} ${row.model} • ${row.sku ?? "No SKU"} • ${row.quantity} ${row.unit} left`,
                     value: row.id,
@@ -325,6 +328,9 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
                 disabled={isLoadingStock}
                 required={false}
               />
+              <div className="text-xs text-gray-500">
+                Leave this blank to register an asset without consuming inventory.
+              </div>
               {isLoadingStock && (
                 <div className="text-xs text-gray-500">Loading available stock items…</div>
               )}
@@ -397,7 +403,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       {/* Tracking Identifiers */}
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">Identifiers (Optional)</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Input 
             label="PC Number" 
             placeholder="e.g. C000001" 
@@ -415,6 +421,12 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
             placeholder="00:1B:44:11:3A:B7" 
             {...register("macAddress")} 
             error={errors.macAddress?.message} 
+          />
+          <Input
+            label="IP Address"
+            placeholder="e.g. 192.168.1.10"
+            {...register("ipAddress")}
+            error={errors.ipAddress?.message}
           />
         </div>
       </div>

@@ -398,3 +398,17 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Assets registration UX + IP address identifier + Building rooms view — April 26, 2026
+
+- Assets → Register Asset: removed the explicit “None — register without consuming stock” dropdown option while keeping blank selection as the default non-consuming behavior.
+- Assets: added `ipAddress` as an optional **unique** identifier (Prisma + Zod validation + API normalization + service uniqueness checks).
+- Organization → Places & Locations: added a Buildings **View** action linking to `/organization/buildings/[id]` to display all rooms registered under the building.
+
+### Assets/Buildings updates quality check — April 26, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

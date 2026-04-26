@@ -114,6 +114,7 @@ model Asset {
   model           String                // Model number: "Latitude 5530"
   serialNumber    String?       @unique  // Equipment serial number
   macAddress      String?              // Network MAC address for PCs/laptops/routers
+  ipAddress       String?       @unique  // Optional per-asset IP address identifier
   status          AssetStatus   @default(AVAILABLE)
 
   // Hardware specifications (applicable to PCs/laptops) 

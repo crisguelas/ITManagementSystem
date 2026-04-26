@@ -25,6 +25,20 @@ export async function getBuildings() {
   });
 }
 
+export async function getBuildingById(id: string) {
+  return prisma.building.findUnique({
+    where: { id },
+    include: {
+      rooms: {
+        include: {
+          _count: { select: { assignments: { where: { returnedAt: null } } } },
+        },
+        orderBy: [{ floor: "asc" }, { name: "asc" }],
+      },
+    },
+  });
+}
+
 export async function createBuilding(data: z.infer<typeof buildingSchema>) {
   const existingName = await prisma.building.findUnique({ where: { name: data.name } });
   if (existingName) throw new Error(`Building "${data.name}" already exists`);

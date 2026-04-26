@@ -59,6 +59,7 @@ export async function PATCH(
       pcNumber: normalizeOptionalText(body.pcNumber),
       serialNumber: normalizeOptionalText(body.serialNumber),
       macAddress: normalizeOptionalText(body.macAddress),
+      ipAddress: normalizeOptionalText(body.ipAddress),
       brand: typeof body.brand === "string" ? body.brand.trim() : body.brand,
       model: typeof body.model === "string" ? body.model.trim() : body.model,
       osInstalled: normalizeOptionalText(body.osInstalled),
