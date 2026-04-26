@@ -65,7 +65,7 @@ export default function OrganizationPage() {
       </div>
 
       {activeTab === "employees" && <EmployeesView />}
-      {activeTab === "departments" && <DepartmentsView defaultMode="academic" />}
+      {activeTab === "departments" && <DepartmentsView />}
       {activeTab === "places" && <LocationsView />}
     </div>
   );

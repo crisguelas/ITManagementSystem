@@ -461,3 +461,21 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
   - [x] Top tabs switch correctly between Employees, Departments, and Places
   - [x] Department view toggles Academic/Admin and shows Unclassified entries
   - [x] Employee CRUD and Places/building-room flows remain functional
+
+---
+
+## Organization departments bucket rollback — April 26, 2026
+
+- Removed the UI-only Academic/Admin department bucket split from **Organization → Academic Departments**.
+- Removed keyword-based bucket classification and the Unclassified indicator from department management UI.
+- Kept the Organization top-tab layout and tab naming intact while returning department management to a single unified list.
+
+### Organization departments bucket rollback quality check — April 26, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [x] Smoke test (manual flow verification):
+  - [x] Departments tab lists all departments in one table without Academic/Admin toggle
+  - [x] Department Add/Edit/Delete actions remain functional
+  - [x] Employees and Places tabs remain functional

@@ -1,11 +1,11 @@
 /**
  * @file departments-view.tsx
- * @description Sub-view that manages departments and groups them into Academic/Admin buckets using UI-only name keywords.
+ * @description Sub-view that manages organization departments with CRUD actions.
  */
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { GraduationCap, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Building2, Pencil, Plus, Trash2 } from "lucide-react";
 import type { Department } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,28 +17,7 @@ import { Modal } from "@/components/ui/modal";
 import { DepartmentForm } from "@/features/organization/department-form";
 
 type DepartmentRow = Department & { _count?: { employees: number } };
-type DepartmentMode = "academic" | "admin";
-
-const ACADEMIC_KEYWORDS = ["college", "faculty", "school", "department", "program", "research", "curriculum"];
-const ADMIN_KEYWORDS = ["admin", "hr", "human resources", "finance", "accounting", "registrar", "procurement", "operations", "it", "support"];
-
-const getDepartmentBucket = (name: string): DepartmentMode | "unclassified" => {
-  const normalizedName = name.trim().toLowerCase();
-  const hasAcademicKeyword = ACADEMIC_KEYWORDS.some((keyword) => normalizedName.includes(keyword));
-  const hasAdminKeyword = ADMIN_KEYWORDS.some((keyword) => normalizedName.includes(keyword));
-
-  if (hasAcademicKeyword && !hasAdminKeyword) return "academic";
-  if (hasAdminKeyword && !hasAcademicKeyword) return "admin";
-  if (hasAcademicKeyword) return "academic";
-  return "unclassified";
-};
-
-interface DepartmentsViewProps {
-  defaultMode?: DepartmentMode;
-}
-
-export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewProps) => {
-  const [mode, setMode] = useState<DepartmentMode>(defaultMode);
+export const DepartmentsView = () => {
   const [departments, setDepartments] = useState<DepartmentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,17 +75,6 @@ export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewPro
     }
   };
 
-  const visibleDepartments = useMemo(() => {
-    return departments.filter((department) => {
-      const bucket = getDepartmentBucket(department.name);
-      return bucket === mode || bucket === "unclassified";
-    });
-  }, [departments, mode]);
-
-  const unclassifiedCount = useMemo(() => {
-    return departments.filter((department) => getDepartmentBucket(department.name) === "unclassified").length;
-  }, [departments]);
-
   if (error) {
     return <ErrorState message={error} onRetry={fetchDepartments} />;
   }
@@ -117,34 +85,9 @@ export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewPro
         <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
           <div className="flex items-center gap-4">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              {mode === "academic" ? (
-                <GraduationCap className="h-5 w-5 text-gray-400" />
-              ) : (
-                <ShieldCheck className="h-5 w-5 text-gray-400" />
-              )}
-              {mode === "academic" ? "Academic Departments" : "Admin Departments"}
+              <Building2 className="h-5 w-5 text-gray-400" />
+              Academic Departments
             </h2>
-
-            <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-100/60 p-1">
-              <button
-                type="button"
-                onClick={() => setMode("academic")}
-                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                  mode === "academic" ? "bg-white text-primary-700 shadow-sm" : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Academic
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("admin")}
-                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                  mode === "admin" ? "bg-white text-primary-700 shadow-sm" : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                Admin
-              </button>
-            </div>
           </div>
 
           <Button
@@ -163,9 +106,9 @@ export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewPro
             <div className="p-4">
               <SkeletonTable rows={4} />
             </div>
-          ) : visibleDepartments.length === 0 ? (
+          ) : departments.length === 0 ? (
             <div className="p-8 text-center text-sm text-gray-500">
-              No {mode === "academic" ? "academic" : "admin"} departments found with current keyword grouping.
+              No departments found.
             </div>
           ) : (
             <table className="w-full text-left text-sm">
@@ -173,15 +116,12 @@ export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewPro
                 <tr>
                   <th className="px-6 py-3">Department Name</th>
                   <th className="px-6 py-3">Short Code</th>
-                  <th className="px-6 py-3">Bucket</th>
                   <th className="px-6 py-3">Registered Employees</th>
                   <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {visibleDepartments.map((department) => {
-                  const bucket = getDepartmentBucket(department.name);
-
+                {departments.map((department) => {
                   return (
                     <tr key={department.id} className="transition-colors hover:bg-gray-50">
                       <td className="px-6 py-4 font-medium text-gray-900">{department.name}</td>
@@ -189,15 +129,6 @@ export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewPro
                         <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
                           {department.code}
                         </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        {bucket === "unclassified" ? (
-                          <Badge variant="warning">Unclassified</Badge>
-                        ) : (
-                          <Badge variant="outline" className="capitalize">
-                            {bucket}
-                          </Badge>
-                        )}
                       </td>
                       <td className="px-6 py-4 text-gray-500">{department._count?.employees ?? 0} Staff Members</td>
                       <td className="px-6 py-4">
@@ -234,11 +165,6 @@ export const DepartmentsView = ({ defaultMode = "academic" }: DepartmentsViewPro
           )}
         </CardBody>
       </Card>
-
-      <p className="text-sm text-gray-500">
-        Departments are grouped in the UI using name keywords only. Unclassified entries are shown to help you rename
-        them for clearer grouping. Current unclassified count: <span className="font-medium text-gray-700">{unclassifiedCount}</span>.
-      </p>
 
       <Modal
         isOpen={isDepartmentModalOpen}
