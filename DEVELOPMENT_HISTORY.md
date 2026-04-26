@@ -436,3 +436,28 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
   - [x] Places page shows buildings only with View/Edit/Delete actions
   - [x] Building detail supports room Add/Edit/Delete via modals
   - [x] Loading/error/empty states still render for organization/building views
+
+---
+
+## Organization top tabs + UI-only department split — April 26, 2026
+
+- Reverted the Organization landing page back to a **top-tab** layout.
+- Set **Registered Employees** as the default Organization tab.
+- Split Organization views into:
+  - `Registered Employees`
+  - `Academic Departments` (with in-view toggle to `Admin`)
+  - `Places & Locations`
+- Extracted department management into a dedicated `DepartmentsView` and moved department CRUD out of `EmployeesView`.
+- Implemented **UI-only Academic/Admin grouping** with keyword matching on department names and an **Unclassified** indicator for unmatched names.
+- Kept existing Places flow intact (buildings table in Organization and room CRUD in building detail page).
+
+### Organization top tabs quality check — April 26, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [x] Smoke test (manual flow verification):
+  - [x] `/organization` opens on Registered Employees by default
+  - [x] Top tabs switch correctly between Employees, Departments, and Places
+  - [x] Department view toggles Academic/Admin and shows Unclassified entries
+  - [x] Employee CRUD and Places/building-room flows remain functional
