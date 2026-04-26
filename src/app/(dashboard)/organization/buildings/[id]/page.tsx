@@ -7,7 +7,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Building2, DoorClosed, MapPin } from "lucide-react";
+import { ArrowLeft, Building2, DoorClosed, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import type { RoomType } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSpinner } from "@/components/ui/loading-state";
+import { Modal } from "@/components/ui/modal";
+import { RoomForm } from "@/features/organization/room-form";
 import { ROOM_TYPE_LABELS } from "@/lib/constants";
 
 type RoomRow = {
@@ -40,6 +42,10 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
   const [building, setBuilding] = useState<BuildingPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
+  const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<RoomRow | null>(null);
+  const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
 
   const fetchBuilding = useCallback(async () => {
     setIsLoading(true);
@@ -65,6 +71,36 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
     }, 0);
     return () => window.clearTimeout(t);
   }, [fetchBuilding]);
+
+  const handleEditRoom = (room: RoomRow) => {
+    setSelectedRoom(room);
+    setIsEditRoomModalOpen(true);
+  };
+
+  const handleDeleteRoom = async (room: RoomRow) => {
+    const confirmed = window.confirm(`Delete room ${room.name}?`);
+    if (!confirmed) return;
+
+    setDeleteRoomId(room.id);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/rooms/${room.id}`, { method: "DELETE" });
+      const json: unknown = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message =
+          typeof json === "object" && json !== null && "error" in json && typeof json.error === "string"
+            ? json.error
+            : "Failed to delete room";
+        throw new Error(message);
+      }
+      await fetchBuilding();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete room");
+    } finally {
+      setDeleteRoomId(null);
+    }
+  };
 
   if (isLoading) return <LoadingSpinner message="Loading building..." />;
   if (error) return <ErrorState message={error} onRetry={fetchBuilding} />;
@@ -104,8 +140,19 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
             <DoorClosed className="w-5 h-5 text-gray-400" />
             Rooms in this building
           </h2>
-          <div className="text-sm text-gray-500">
-            {building.rooms.length} {building.rooms.length === 1 ? "room" : "rooms"}
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-500">
+              {building.rooms.length} {building.rooms.length === 1 ? "room" : "rooms"}
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="primary"
+              leftIcon={<Plus className="w-4 h-4" />}
+              onClick={() => setIsAddRoomModalOpen(true)}
+            >
+              Add Room
+            </Button>
           </div>
         </CardHeader>
         <CardBody className="p-0">
@@ -119,7 +166,8 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
                   <th className="px-6 py-3">Room Number</th>
                   <th className="px-6 py-3">Floor</th>
                   <th className="px-6 py-3">Type</th>
-                  <th className="px-6 py-3 text-right">Active Assignments</th>
+                  <th className="px-6 py-3">Active Assignments</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -131,7 +179,30 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
                     <td className="px-6 py-4">
                       <Badge variant="outline">{ROOM_TYPE_LABELS[room.type] ?? room.type}</Badge>
                     </td>
-                    <td className="px-6 py-4 text-right text-gray-600">{room._count.assignments}</td>
+                    <td className="px-6 py-4 text-gray-600">{room._count.assignments}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          leftIcon={<Pencil className="w-4 h-4" />}
+                          onClick={() => handleEditRoom(room)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          leftIcon={<Trash2 className="w-4 h-4" />}
+                          isLoading={deleteRoomId === room.id}
+                          onClick={() => void handleDeleteRoom(room)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -139,6 +210,55 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
           )}
         </CardBody>
       </Card>
+
+      <Modal
+        isOpen={isAddRoomModalOpen}
+        onClose={() => setIsAddRoomModalOpen(false)}
+        title="Add Room"
+        description="Register a room under this building."
+        size="md"
+      >
+        <RoomForm
+          buildings={[{ id: building.id, name: building.name, code: building.code }]}
+          fixedBuildingId={building.id}
+          onSuccess={() => {
+            setIsAddRoomModalOpen(false);
+            void fetchBuilding();
+          }}
+          onCancel={() => setIsAddRoomModalOpen(false)}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isEditRoomModalOpen}
+        onClose={() => setIsEditRoomModalOpen(false)}
+        title="Edit Room"
+        description="Update room details."
+        size="md"
+      >
+        <RoomForm
+          key={selectedRoom?.id ?? "edit-room"}
+          roomId={selectedRoom?.id}
+          buildings={[{ id: building.id, name: building.name, code: building.code }]}
+          fixedBuildingId={building.id}
+          initialData={
+            selectedRoom
+              ? {
+                  name: selectedRoom.name,
+                  roomNumber: selectedRoom.roomNumber ?? "",
+                  floor: selectedRoom.floor ?? "",
+                  buildingId: building.id,
+                  type: selectedRoom.type,
+                }
+              : undefined
+          }
+          onSuccess={() => {
+            setIsEditRoomModalOpen(false);
+            void fetchBuilding();
+          }}
+          onCancel={() => setIsEditRoomModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 }

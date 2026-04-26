@@ -412,3 +412,27 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Organization declutter two-step (step 1 + split workspace) — April 26, 2026
+
+- Removed the global **Registered Rooms** table from **Organization → Places & Locations** to declutter the main page and keep Places focused on buildings.
+- Added building-context room management on **`/organization/buildings/[id]`**:
+  - `Add Room` modal on the building detail page
+  - row-level `Edit` and `Delete` actions in the rooms table
+- Extended `RoomForm` with a fixed-building mode so room CRUD in building detail no longer needs a building selector.
+- Updated **`/organization`** from tab-style controls to a split workspace layout:
+  - Left navigation panel (`Teams & People`, `Places & Locations`)
+  - Right focused content area with **Employees as default**
+
+### Organization declutter quality check — April 26, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [x] Smoke test (manual flow verification):
+  - [x] Organization defaults to Teams & People view
+  - [x] Places page shows buildings only with View/Edit/Delete actions
+  - [x] Building detail supports room Add/Edit/Delete via modals
+  - [x] Loading/error/empty states still render for organization/building views

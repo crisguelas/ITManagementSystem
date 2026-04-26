@@ -1,12 +1,11 @@
 /**
  * @file locations-view.tsx
- * @description Sub-view managing standard buildings and rooms.
+ * @description Sub-view for managing buildings and navigating to building-scoped room management.
  */
 
 import { useState, useEffect } from "react";
 import { Plus, Building, Pencil, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
-import type { RoomType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { SkeletonTable } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
@@ -14,8 +13,6 @@ import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Modal } from "@/components/ui/modal";
 import { BuildingForm } from "@/features/organization/building-form";
-import { RoomForm } from "@/features/organization/room-form";
-import { ROOM_TYPE_LABELS } from "@/lib/constants";
 
 type BuildingRow = {
   id: string;
@@ -27,44 +24,22 @@ type BuildingRow = {
   };
 };
 
-type RoomRow = {
-  id: string;
-  name: string;
-  roomNumber?: string | null;
-  floor?: string | null;
-  type: RoomType;
-  building: {
-    id: string;
-    name: string;
-    code: string;
-  };
-};
-
 export const LocationsView = () => {
   const [buildings, setBuildings] = useState<BuildingRow[]>([]);
-  const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBuildingModalOpen, setIsBuildingModalOpen] = useState(false);
   const [isEditBuildingModalOpen, setIsEditBuildingModalOpen] = useState(false);
-  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
-  const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingRow | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<RoomRow | null>(null);
   const [deleteBuildingId, setDeleteBuildingId] = useState<string | null>(null);
-  const [deleteRoomId, setDeleteRoomId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [buildingsRes, roomsRes] = await Promise.all([
-        fetch("/api/buildings"),
-        fetch("/api/rooms"),
-      ]);
+      const buildingsRes = await fetch("/api/buildings");
 
       const buildingsJson: unknown = await buildingsRes.json();
-      const roomsJson: unknown = await roomsRes.json();
 
       if (
         !buildingsRes.ok ||
@@ -75,23 +50,11 @@ export const LocationsView = () => {
         throw new Error("Failed to load buildings");
       }
 
-      if (
-        !roomsRes.ok ||
-        typeof roomsJson !== "object" ||
-        roomsJson === null ||
-        !("success" in roomsJson)
-      ) {
-        throw new Error("Failed to load rooms");
-      }
-
       const buildingsPayload = buildingsJson as { success: boolean; data?: BuildingRow[]; error?: string };
-      const roomsPayload = roomsJson as { success: boolean; data?: RoomRow[]; error?: string };
 
       if (!buildingsPayload.success) throw new Error(buildingsPayload.error ?? "Failed to load buildings");
-      if (!roomsPayload.success) throw new Error(roomsPayload.error ?? "Failed to load rooms");
 
       setBuildings(buildingsPayload.data ?? []);
-      setRooms(roomsPayload.data ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to fetch buildings");
     } finally {
@@ -111,11 +74,6 @@ export const LocationsView = () => {
     setIsEditBuildingModalOpen(true);
   };
 
-  const handleEditRoom = (room: RoomRow) => {
-    setSelectedRoom(room);
-    setIsEditRoomModalOpen(true);
-  };
-
   const handleDeleteBuilding = async (building: BuildingRow) => {
     const confirmed = window.confirm(`Delete building ${building.name}?`);
     if (!confirmed) return;
@@ -132,29 +90,6 @@ export const LocationsView = () => {
       setError(err instanceof Error ? err.message : "Failed to delete building");
     } finally {
       setDeleteBuildingId(null);
-    }
-  };
-
-  const handleDeleteRoom = async (room: RoomRow) => {
-    const confirmed = window.confirm(`Delete room ${room.name}?`);
-    if (!confirmed) return;
-    setDeleteRoomId(room.id);
-    setError(null);
-    try {
-      const res = await fetch(`/api/rooms/${room.id}`, { method: "DELETE" });
-      const json: unknown = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const message =
-          typeof json === "object" && json !== null && "error" in json && typeof json.error === "string"
-            ? json.error
-            : "Failed to delete room";
-        throw new Error(message);
-      }
-      await fetchData();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to delete room");
-    } finally {
-      setDeleteRoomId(null);
     }
   };
 
@@ -232,74 +167,10 @@ export const LocationsView = () => {
           )}
         </CardBody>
       </Card>
+      <p className="text-sm text-gray-500">
+        Manage rooms inside each building by opening its <span className="font-medium text-gray-700">View</span> page.
+      </p>
       
-      {/* Rooms Table */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">Registered Rooms</h2>
-          <Button
-            size="sm"
-            variant="primary"
-            leftIcon={<Plus className="w-4 h-4" />}
-            onClick={() => setIsRoomModalOpen(true)}
-          >
-            Register Room
-          </Button>
-        </CardHeader>
-        <CardBody className="p-0">
-          {rooms.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 text-sm">No rooms registered yet.</div>
-          ) : (
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3">Room Name</th>
-                  <th className="px-6 py-3">Room Number</th>
-                  <th className="px-6 py-3">Floor</th>
-                  <th className="px-6 py-3">Type</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {rooms.map((room) => (
-                  <tr key={room.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">{room.name}</td>
-                    <td className="px-6 py-4 text-gray-600">{room.roomNumber ?? "—"}</td>
-                    <td className="px-6 py-4 text-gray-600">{room.floor ?? "—"}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline">{ROOM_TYPE_LABELS[room.type] ?? room.type}</Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          leftIcon={<Pencil className="w-4 h-4" />}
-                          onClick={() => handleEditRoom(room)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="danger"
-                          leftIcon={<Trash2 className="w-4 h-4" />}
-                          isLoading={deleteRoomId === room.id}
-                          onClick={() => void handleDeleteRoom(room)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </CardBody>
-      </Card>
-
       <Modal
         isOpen={isBuildingModalOpen}
         onClose={() => setIsBuildingModalOpen(false)}
@@ -338,53 +209,6 @@ export const LocationsView = () => {
             void fetchData();
           }}
           onCancel={() => setIsEditBuildingModalOpen(false)}
-        />
-      </Modal>
-
-      <Modal
-        isOpen={isRoomModalOpen}
-        onClose={() => setIsRoomModalOpen(false)}
-        title="Register Room"
-        description="Rooms must belong to an existing building. The room name must be unique within that building."
-        size="md"
-      >
-        <RoomForm
-          buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code }))}
-          onSuccess={() => {
-            setIsRoomModalOpen(false);
-            fetchData();
-          }}
-          onCancel={() => setIsRoomModalOpen(false)}
-        />
-      </Modal>
-
-      <Modal
-        isOpen={isEditRoomModalOpen}
-        onClose={() => setIsEditRoomModalOpen(false)}
-        title="Edit Room"
-        description="Update room details."
-        size="md"
-      >
-        <RoomForm
-          key={selectedRoom?.id ?? "edit-room"}
-          roomId={selectedRoom?.id}
-          buildings={buildings.map((b) => ({ id: b.id, name: b.name, code: b.code }))}
-          initialData={
-            selectedRoom
-              ? {
-                  name: selectedRoom.name,
-                  roomNumber: selectedRoom.roomNumber ?? "",
-                  floor: selectedRoom.floor ?? "",
-                  buildingId: selectedRoom.building.id,
-                  type: selectedRoom.type,
-                }
-              : undefined
-          }
-          onSuccess={() => {
-            setIsEditRoomModalOpen(false);
-            void fetchData();
-          }}
-          onCancel={() => setIsEditRoomModalOpen(false)}
         />
       </Modal>
     </div>

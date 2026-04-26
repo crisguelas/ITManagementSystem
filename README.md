@@ -20,7 +20,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Audit lock on edits** — Assets with assignment history are read-only for edits to preserve historical integrity
 
 ### Locations & people
-- **Buildings & rooms** — Campus or office structure; register buildings and **rooms** under **Organization → Places** (room form posts to `/api/rooms`)
+- **Buildings & rooms** — Campus or office structure; manage buildings in **Organization → Places** and manage room CRUD inside each building’s **View** page (room form posts to `/api/rooms`)
 - **Departments** — Organizational units
 - **Employees** — Names, titles, departments, contact info; add staff from **Organization → Teams & People** (**Add Employee** opens a dialog; `POST /api/employees`). Employee forms support **Mobile (Optional)** and **Phone Ext. (Optional)**, and the employees table shows human-readable titles (`Mr.`, `Ms.`, `Dr.`, `Prof.`). The **Add Employee** action stays visible while departments load (only the table area shows a skeleton). Modals render in a **portal** above the dashboard UI.
 

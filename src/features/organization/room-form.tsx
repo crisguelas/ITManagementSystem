@@ -28,6 +28,7 @@ interface RoomFormProps {
   onCancel: () => void;
   roomId?: string;
   initialData?: RoomFormValues;
+  fixedBuildingId?: string;
 }
 
 const ROOM_TYPE_OPTIONS = (Object.keys(RoomType) as RoomType[]).map((value) => ({
@@ -35,9 +36,18 @@ const ROOM_TYPE_OPTIONS = (Object.keys(RoomType) as RoomType[]).map((value) => (
   label: ROOM_TYPE_LABELS[value] ?? value,
 }));
 
-export const RoomForm = ({ buildings, onSuccess, onCancel, roomId, initialData }: RoomFormProps) => {
+export const RoomForm = ({
+  buildings,
+  onSuccess,
+  onCancel,
+  roomId,
+  initialData,
+  fixedBuildingId,
+}: RoomFormProps) => {
   const { addToast } = useToast();
   const isEditMode = Boolean(roomId);
+  const isFixedBuildingMode = Boolean(fixedBuildingId);
+  const fixedBuilding = buildings.find((building) => building.id === fixedBuildingId);
 
   const {
     register,
@@ -50,7 +60,7 @@ export const RoomForm = ({ buildings, onSuccess, onCancel, roomId, initialData }
       name: initialData?.name ?? "",
       roomNumber: initialData?.roomNumber ?? "",
       floor: initialData?.floor ?? "",
-      buildingId: initialData?.buildingId ?? "",
+      buildingId: fixedBuildingId ?? initialData?.buildingId ?? "",
       type: initialData?.type ?? RoomType.OFFICE,
     },
   });
@@ -63,7 +73,7 @@ export const RoomForm = ({ buildings, onSuccess, onCancel, roomId, initialData }
   const onSubmit = async (data: RoomFormValues) => {
     const payload = {
       name: data.name.trim(),
-      buildingId: data.buildingId,
+      buildingId: fixedBuildingId ?? data.buildingId,
       type: data.type,
       roomNumber: data.roomNumber?.trim() ? data.roomNumber.trim() : undefined,
       floor: data.floor?.trim() ? data.floor.trim() : undefined,
@@ -87,7 +97,13 @@ export const RoomForm = ({ buildings, onSuccess, onCancel, roomId, initialData }
         message: isEditMode ? `${json.data.name} has been updated.` : `${json.data.name} has been added.`,
         variant: "success",
       });
-      reset({ name: "", roomNumber: "", floor: "", buildingId: "", type: RoomType.OFFICE });
+      reset({
+        name: "",
+        roomNumber: "",
+        floor: "",
+        buildingId: fixedBuildingId ?? "",
+        type: RoomType.OFFICE,
+      });
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed";
@@ -106,13 +122,21 @@ export const RoomForm = ({ buildings, onSuccess, onCancel, roomId, initialData }
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       <div className="space-y-4">
-        <Select
-          label="Building"
-          placeholder="Select building"
-          options={buildingOptions}
-          {...register("buildingId")}
-          error={errors.buildingId?.message}
-        />
+        {isFixedBuildingMode ? (
+          <Input
+            label="Building"
+            value={fixedBuilding ? `${fixedBuilding.name} (${fixedBuilding.code})` : "Selected building"}
+            readOnly
+          />
+        ) : (
+          <Select
+            label="Building"
+            placeholder="Select building"
+            options={buildingOptions}
+            {...register("buildingId")}
+            error={errors.buildingId?.message}
+          />
+        )}
         <Input label="Room name" placeholder="e.g. IT Office" {...register("name")} error={errors.name?.message} required />
         <Input label="Room number (optional)" {...register("roomNumber")} error={errors.roomNumber?.message} />
         <Input label="Floor (optional)" placeholder="e.g. 2 or Ground" {...register("floor")} error={errors.floor?.message} />
