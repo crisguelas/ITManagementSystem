@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Badge } from "@/components/ui/badge";
 
 import { StockCategoryForm } from "./stock-category-form";
 
@@ -87,6 +88,7 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
               <thead className="bg-gray-50/80 text-gray-600 font-medium border-b border-gray-200">
                 <tr>
                   <th className="px-5 py-3">Name</th>
+                  <th className="px-5 py-3">Tag Prefix</th>
                   <th className="px-5 py-3">Description</th>
                   <th className="px-5 py-3 text-right">Items Tracked</th>
                   <th className="px-5 py-3 text-right">Actions</th>
@@ -98,6 +100,9 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
                   return (
                     <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-5 py-3 font-medium text-gray-900">{cat.name}</td>
+                      <td className="px-5 py-3">
+                        <Badge variant="outline">{cat.prefix}</Badge>
+                      </td>
                       <td className="px-5 py-3 text-gray-600">{cat.description || "—"}</td>
                       <td className="px-5 py-3 text-right font-semibold text-gray-900">
                         {cat._count.stockItems}

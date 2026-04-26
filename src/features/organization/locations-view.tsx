@@ -222,28 +222,18 @@ export const LocationsView = () => {
         </CardBody>
       </Card>
       
-      {/* Rooms — register under a building */}
-      <div className="bg-gradient-to-r from-primary-50 to-white rounded-xl p-6 border border-primary-100 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="font-semibold text-primary-900">Manage Rooms</h3>
-          <p className="text-sm text-primary-600 mt-1">
-            Add offices, labs, and other spaces under a building for asset assignments.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          leftIcon={<Plus className="w-4 h-4" />}
-          onClick={() => setIsRoomModalOpen(true)}
-        >
-          Register Room
-        </Button>
-      </div>
-
       {/* Rooms Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-900">Registered Rooms</h2>
+          <Button
+            size="sm"
+            variant="primary"
+            leftIcon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsRoomModalOpen(true)}
+          >
+            Register Room
+          </Button>
         </CardHeader>
         <CardBody className="p-0">
           {rooms.length === 0 ? (
