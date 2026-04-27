@@ -10,6 +10,7 @@ import type { StockCategory } from "@prisma/client";
 
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -68,30 +69,30 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-900">Stock Categories</h2>
-        <Button onClick={() => handleOpenForm()} variant="primary" className="flex items-center gap-2">
-          <Plus className="h-4 w-4" /> Add Category
-        </Button>
-      </div>
-
-      {!categories.length ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-          <Tags className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-          <h3 className="text-gray-900 font-medium">No categories configured</h3>
-          <p className="text-gray-500 text-sm mt-1">Add categories to organize your stock items.</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900">Stock Categories</h2>
+          <Button onClick={() => handleOpenForm()} variant="primary" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" /> Add Category
+          </Button>
+        </CardHeader>
+        <CardBody className="p-0">
+          {!categories.length ? (
+            <div className="border border-dashed border-gray-300 p-12 text-center">
+              <Tags className="mx-auto mb-3 h-10 w-10 text-gray-400" />
+              <h3 className="font-medium text-gray-900">No categories configured</h3>
+              <p className="mt-1 text-sm text-gray-500">Add categories to organize your stock items.</p>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50/80 text-gray-600 font-medium border-b border-gray-200">
+              <thead className="border-b border-gray-200 bg-gray-50/80 text-gray-600 font-medium">
                 <tr>
-                  <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">Tag Prefix</th>
-                  <th className="px-5 py-3">Description</th>
-                  <th className="px-5 py-3 text-right">Items Tracked</th>
-                  <th className="px-5 py-3 text-right">Actions</th>
+                  <th className="px-6 py-3">Name</th>
+                  <th className="px-6 py-3">Tag Prefix</th>
+                  <th className="px-6 py-3">Description</th>
+                  <th className="px-6 py-3 text-right">Items Tracked</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -99,15 +100,15 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
                   const hasLinkedItems = cat._count.stockItems > 0;
                   return (
                     <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-3 font-medium text-gray-900">{cat.name}</td>
-                      <td className="px-5 py-3">
+                      <td className="px-6 py-4 font-medium text-gray-900">{cat.name}</td>
+                      <td className="px-6 py-4">
                         <Badge variant="outline">{cat.prefix}</Badge>
                       </td>
-                      <td className="px-5 py-3 text-gray-600">{cat.description || "—"}</td>
-                      <td className="px-5 py-3 text-right font-semibold text-gray-900">
+                      <td className="px-6 py-4 text-gray-600">{cat.description || "—"}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-gray-900">
                         {cat._count.stockItems}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"
@@ -141,8 +142,9 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+          )}
+        </CardBody>
+      </Card>
 
       <Modal isOpen={formModalOpen} onClose={() => setFormModalOpen(false)} title={selectedCategory ? "Edit Category" : "Add Stock Category"}>
         <StockCategoryForm

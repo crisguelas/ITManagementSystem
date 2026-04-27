@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, use } from "react";
 import Link from "next/link";
 import type { StockCategory, StockItem, StockTransaction } from "@prisma/client";
-import { ArrowLeft, Package, MapPin, AlertTriangle, Hash, Grid } from "lucide-react";
+import { ArrowLeft, MapPin, AlertTriangle, Hash, Grid } from "lucide-react";
 
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSpinner } from "@/components/ui/loading-state";
@@ -110,13 +110,7 @@ export default function StockItemDetailPage({ params }: { params: Promise<{ id: 
         </div>
 
         <div className="md:col-span-2">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-2">
-               <Package className="h-5 w-5 text-gray-500" />
-               <h3 className="font-semibold text-gray-900">Transaction History</h3>
-            </div>
-            <StockTransactionTable transactions={item.transactions} unit={item.unit} />
-          </div>
+          <StockTransactionTable transactions={item.transactions} unit={item.unit} />
         </div>
       </div>
 
