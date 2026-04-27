@@ -479,3 +479,32 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
   - [x] Departments tab lists all departments in one table without Academic/Admin toggle
   - [x] Department Add/Edit/Delete actions remain functional
   - [x] Employees and Places tabs remain functional
+
+---
+
+## Global search + employee profile delivery — April 27, 2026
+
+- Added an authenticated global search API (`GET /api/search`) for employee-first suggestions across:
+  - employee ID, employee name, employee email, mobile, assigned PC number, and assigned room number
+  - unassigned asset matches (PC/asset identifiers) as fallback results that route to `/assets/[id]`
+- Added global search UI in the shared dashboard header with:
+  - debounced query requests
+  - suggestion dropdown states (loading, empty, error)
+  - keyboard navigation (`ArrowUp`, `ArrowDown`, `Enter`, `Escape`)
+- Added an employee profile API (`GET /api/employees/[id]/profile`) returning:
+  - employee identity/contact fields
+  - active assignment location fields (building, room number/name, floor)
+  - assigned asset details for conditional rendering scenarios
+- Added employee profile page at `/organization/employees/[id]`:
+  - employee info card (name, ID, department, contact, position)
+  - active assignments with location context
+  - conditional asset details:
+    - desktop/laptop: PC number, brand/model, IP, MAC, OS, RAM, storage
+    - VoIP phone: phone extension, brand/model, MAC
+    - printer/other: available non-empty fields only
+
+### Global search/profile quality check — April 27, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

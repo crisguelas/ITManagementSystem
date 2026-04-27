@@ -302,3 +302,284 @@ export async function deleteEmployee(id: string) {
     data: { isActive: false },
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* GLOBAL SEARCH + EMPLOYEE PROFILE                               */
+/* ═══════════════════════════════════════════════════════════════ */
+
+export type SearchResultType = "employee" | "asset";
+
+export interface GlobalSearchResult {
+  type: SearchResultType;
+  id: string;
+  href: string;
+  label: string;
+  subLabel: string;
+  matchReason: string;
+}
+
+export interface EmployeeProfileAssetSummary {
+  id: string;
+  assetTag: string;
+  stockCategoryName: string;
+  brand: string;
+  model: string;
+  pcNumber: string | null;
+  ipAddress: string | null;
+  macAddress: string | null;
+  osInstalled: string | null;
+  ram: string | null;
+  storage: string | null;
+  serialNumber: string | null;
+  name: string;
+  status: string;
+}
+
+export interface EmployeeProfileAssignment {
+  id: string;
+  assignedAt: string;
+  notes: string | null;
+  location: {
+    buildingName: string | null;
+    roomNumber: string | null;
+    roomName: string | null;
+    floor: string | null;
+  };
+  asset: EmployeeProfileAssetSummary;
+}
+
+export interface EmployeeProfileData {
+  id: string;
+  employeeId: string;
+  fullName: string;
+  title: string;
+  departmentName: string;
+  email: string | null;
+  phone: string | null;
+  phoneExt: string | null;
+  position: string | null;
+  activeAssignments: EmployeeProfileAssignment[];
+}
+
+const normalizeSearchTerm = (value: string) => value.trim().toLowerCase();
+
+const scoreTextMatch = (value: string | null | undefined, query: string, base: number) => {
+  if (!value) return 0;
+  const normalized = value.toLowerCase();
+  if (normalized === query) return base + 40;
+  if (normalized.startsWith(query)) return base + 20;
+  if (normalized.includes(query)) return base + 10;
+  return 0;
+};
+
+export async function searchGlobalDirectory(rawQuery: string): Promise<GlobalSearchResult[]> {
+  const query = normalizeSearchTerm(rawQuery);
+  if (!query) return [];
+
+  const [employees, unassignedAssets] = await Promise.all([
+    prisma.employee.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { employeeId: { contains: query, mode: "insensitive" } },
+          { firstName: { contains: query, mode: "insensitive" } },
+          { lastName: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+          { phone: { contains: query, mode: "insensitive" } },
+          {
+            assignments: {
+              some: {
+                returnedAt: null,
+                asset: { pcNumber: { contains: query, mode: "insensitive" } },
+              },
+            },
+          },
+          {
+            assignments: {
+              some: {
+                returnedAt: null,
+                room: { roomNumber: { contains: query, mode: "insensitive" } },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        department: true,
+        assignments: {
+          where: { returnedAt: null },
+          include: {
+            asset: {
+              select: {
+                id: true,
+                pcNumber: true,
+                assetTag: true,
+                brand: true,
+                model: true,
+              },
+            },
+            room: {
+              select: {
+                roomNumber: true,
+                name: true,
+                building: { select: { name: true, code: true } },
+              },
+            },
+          },
+          orderBy: { assignedAt: "desc" },
+        },
+      },
+      take: 25,
+    }),
+    prisma.asset.findMany({
+      where: {
+        assignments: { none: { returnedAt: null } },
+        OR: [
+          { pcNumber: { contains: query, mode: "insensitive" } },
+          { assetTag: { contains: query, mode: "insensitive" } },
+          { brand: { contains: query, mode: "insensitive" } },
+          { model: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        pcNumber: true,
+        assetTag: true,
+        brand: true,
+        model: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+    }),
+  ]);
+
+  const employeeResults = employees.map((employee) => {
+    const fullName = `${employee.firstName} ${employee.lastName}`.trim();
+    const firstAssignment = employee.assignments[0];
+    const assignmentRoom = firstAssignment?.room;
+    const assignmentAsset = firstAssignment?.asset;
+    const bestPcNumber =
+      assignmentAsset?.pcNumber ??
+      employee.assignments.find((assignment) => assignment.asset.pcNumber)?.asset.pcNumber ??
+      null;
+    const bestRoomNumber =
+      assignmentRoom?.roomNumber ??
+      employee.assignments.find((assignment) => assignment.room?.roomNumber)?.room?.roomNumber ??
+      null;
+
+    const score =
+      scoreTextMatch(employee.employeeId, query, 140) +
+      scoreTextMatch(fullName, query, 120) +
+      scoreTextMatch(employee.email, query, 100) +
+      scoreTextMatch(employee.phone, query, 95) +
+      scoreTextMatch(bestPcNumber, query, 130) +
+      scoreTextMatch(bestRoomNumber, query, 90);
+
+    const roomLabel = assignmentRoom
+      ? `${assignmentRoom.building.code} ${assignmentRoom.roomNumber ?? assignmentRoom.name}`
+      : "No active room assignment";
+
+    return {
+      score,
+      item: {
+        type: "employee" as const,
+        id: employee.id,
+        href: `/organization/employees/${employee.id}`,
+        label: fullName,
+        subLabel: `${employee.employeeId} · ${employee.department.name} · ${roomLabel}`,
+        matchReason: "Employee/assignment match",
+      },
+    };
+  });
+
+  const assetResults = unassignedAssets.map((asset) => {
+    const score =
+      scoreTextMatch(asset.pcNumber, query, 160) +
+      scoreTextMatch(asset.assetTag, query, 120) +
+      scoreTextMatch(`${asset.brand} ${asset.model}`, query, 80);
+
+    return {
+      score,
+      item: {
+        type: "asset" as const,
+        id: asset.id,
+        href: `/assets/${asset.id}`,
+        label: asset.pcNumber ? `${asset.pcNumber} · ${asset.brand} ${asset.model}` : `${asset.brand} ${asset.model}`,
+        subLabel: `${asset.assetTag} · Unassigned asset`,
+        matchReason: "Unassigned asset match",
+      },
+    };
+  });
+
+  return [...employeeResults, ...assetResults]
+    .filter((result) => result.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 12)
+    .map((result) => result.item);
+}
+
+export async function getEmployeeProfileById(id: string): Promise<EmployeeProfileData | null> {
+  const employee = await prisma.employee.findUnique({
+    where: { id },
+    include: {
+      department: true,
+      assignments: {
+        where: { returnedAt: null },
+        include: {
+          room: {
+            include: {
+              building: true,
+            },
+          },
+          asset: {
+            include: {
+              stockCategory: true,
+            },
+          },
+        },
+        orderBy: { assignedAt: "desc" },
+      },
+    },
+  });
+
+  if (!employee || !employee.isActive) return null;
+
+  return {
+    id: employee.id,
+    employeeId: employee.employeeId,
+    fullName: `${employee.firstName} ${employee.lastName}`.trim(),
+    title: employee.title,
+    departmentName: employee.department.name,
+    email: employee.email,
+    phone: employee.phone,
+    phoneExt: employee.phoneExt,
+    position: employee.position,
+    activeAssignments: employee.assignments.map((assignment) => ({
+      id: assignment.id,
+      assignedAt: assignment.assignedAt.toISOString(),
+      notes: assignment.notes,
+      location: {
+        buildingName: assignment.room?.building.name ?? null,
+        roomNumber: assignment.room?.roomNumber ?? null,
+        roomName: assignment.room?.name ?? null,
+        floor: assignment.room?.floor ?? null,
+      },
+      asset: {
+        id: assignment.asset.id,
+        assetTag: assignment.asset.assetTag,
+        stockCategoryName: assignment.asset.stockCategory.name,
+        brand: assignment.asset.brand,
+        model: assignment.asset.model,
+        pcNumber: assignment.asset.pcNumber,
+        ipAddress: assignment.asset.ipAddress,
+        macAddress: assignment.asset.macAddress,
+        osInstalled: assignment.asset.osInstalled,
+        ram: assignment.asset.ram,
+        storage: assignment.asset.storage,
+        serialNumber: assignment.asset.serialNumber,
+        name: assignment.asset.name,
+        status: assignment.asset.status,
+      },
+    })),
+  };
+}

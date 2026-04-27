@@ -174,6 +174,7 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `PATCH`, `DELETE` | `/api/departments/[id]` | Update / delete a department |
 | `GET`, `POST` | `/api/employees` | List / create organization employees |
 | `PATCH`, `DELETE` | `/api/employees/[id]` | Update / deactivate an employee |
+| `GET` | `/api/employees/[id]/profile` | Get employee profile with active assignments, asset details, and location details |
 | `GET`, `POST` | `/api/stock-categories` | List / create stock categories |
 | `PATCH`, `DELETE` | `/api/stock-categories/[id]` | Update / delete stock category |
 | `GET`, `POST` | `/api/stock-items` | List / create stock items |
@@ -184,6 +185,7 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `GET`, `PATCH`, `DELETE` | `/api/catalog-items/[id]` | Get / update / delete a catalog item |
 | `GET`, `POST` | `/api/users` | List / create **IT staff login** users |
 | `PATCH`, `DELETE` | `/api/users/[id]` | Update login user (name, role, active, password) or delete |
+| `GET` | `/api/search` | Global search suggestions (employee-first, with unassigned-asset fallbacks) |
 | `POST` | `/api/account/change-password` | Change password for current authenticated user |
 
 **Auth notes (current code):** Shared guards from `src/lib/api-auth.ts` are used across `app/api`: **`requireSession`** for authenticated reads and staff actions (stock listings/transactions, asset assignments/returns, **`/api/rooms` GET**), **`requireAdmin`** for privileged mutations (assets/categories/buildings/departments/employees, **`/api/rooms` POST**, and **`/api/users`**). **Update this table** when you add or change routes.

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 /* Local imports */
+import { GlobalSearch } from "@/components/layout/global-search";
 import {
   extractLowStockRowsFromItemsList,
   type LowStockNotificationRow,
@@ -273,8 +274,8 @@ export const Header = ({
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3 shadow-sm sm:px-4 md:px-6">
-      {/* Left side: Page Title */}
-      <div className="flex items-center">
+      {/* Left side: Page title + global search */}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         {!isMobileSidebarOpen && (
           <button
             type="button"
@@ -288,10 +289,17 @@ export const Header = ({
         <h1 className="text-lg font-semibold tracking-tight text-gray-800 sm:text-xl">
           {getPageTitle()}
         </h1>
+        <div className="ml-1 hidden min-w-0 flex-1 lg:block">
+          <GlobalSearch />
+        </div>
       </div>
 
       {/* Right side: Actions & Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
+        <div className="w-full max-w-sm lg:hidden">
+          <GlobalSearch />
+        </div>
+
         {/* Notifications */}
         <div ref={notificationRef} className="relative">
           <button
