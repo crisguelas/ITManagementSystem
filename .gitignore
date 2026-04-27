@@ -34,6 +34,11 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local backup artifacts — schema/data snapshots must remain local
+backups/db-data-backup-*.json
+backups/schema-prisma-backup-*.prisma
+backups/db-full-backup-*.sql
+
 # vercel
 .vercel
 

@@ -107,9 +107,9 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### First login
 
-After a successful seed, sign in with:
-- Email: `admin@itms.imc`
-- Password: `admin123`
+After a successful seed, sign in with the credentials you set in your local `.env`:
+- Email: value of `SEED_ADMIN_EMAIL`
+- Password: value of `SEED_ADMIN_PASSWORD`
 
 Change the password after first login.
 
@@ -137,6 +137,10 @@ See `.env.example` for placeholders. **Do not commit `.env`.**
 - Restrict database access by **firewall/VPC**; use TLS for remote PostgreSQL where possible.
 - Treat this app as **internal** — deploy behind authentication and HTTPS in production.
 - Review **seed and admin** access after deployment; rotate credentials if a secret was exposed.
+- Keep generated database backup snapshots (`backups/db-data-backup-*`, `backups/schema-prisma-backup-*`) local-only and out of git history.
+- Repository secret scanning runs in GitHub Actions via `Secret Scan` workflow on pushes and pull requests.
+
+See [Secret exposure report](docs/secret-exposure-report.md) for current assessment and remediation notes.
 
 ---
 

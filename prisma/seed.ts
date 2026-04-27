@@ -10,15 +10,23 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting database seeding...");
+  console.log("Starting database seeding...");
 
   /* ═══════════════════════════════════════════════════════════════ */
   /* DEFAULT ADMIN USER                                              */
   /* ═══════════════════════════════════════════════════════════════ */
 
-  /* Requested bootstrap credentials for fresh reset baseline */
-  const adminEmail = "admin@itms.imc";
-  const rawPassword = "admin123";
+  /* Reads bootstrap admin credentials from environment to avoid hard-coded secrets in source control */
+  const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim();
+  const rawPassword = process.env.SEED_ADMIN_PASSWORD;
+
+  /* Fails fast when required seed credentials are missing or weak for safer first-admin provisioning */
+  if (!adminEmail) {
+    throw new Error("SEED_ADMIN_EMAIL is required for seeding.");
+  }
+  if (!rawPassword || rawPassword.trim().length < 10) {
+    throw new Error("SEED_ADMIN_PASSWORD is required and must be at least 10 characters.");
+  }
 
   /* Hash the password (10 rounds) */
   const hashedPassword = await bcrypt.hash(rawPassword, 10);
@@ -36,16 +44,16 @@ async function main() {
     },
   });
 
-  console.log("✅ Admin user seeded successfully!");
+  console.log("Admin user seeded successfully.");
   console.log("  Email:", adminUser.email);
-  console.log("  Password: admin123");
+  console.log("  Password: [provided via SEED_ADMIN_PASSWORD]");
 
-  console.log("🌱 Database seeding completed.");
+  console.log("Database seeding completed.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seeding failed:", e);
+    console.error("Seeding failed:", e);
     process.exit(1);
   })
   .finally(async () => {

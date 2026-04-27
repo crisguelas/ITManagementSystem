@@ -357,9 +357,9 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - Switched stock identity fields from `name` to required `brand` + `model`.
 - Updated conversion, reporting, dashboard activity, and notification naming to use `brand + model`.
 - Simplified Assets module by removing the categories tab from `/assets`; legacy `/categories` now redirects to `/assets`.
-- Updated seed behavior to create default admin credentials:
-  - Email: `admin@itms.imc`
-  - Password: `admin123`
+- Updated seed behavior to require environment-provided admin credentials:
+  - Email: `SEED_ADMIN_EMAIL`
+  - Password: `SEED_ADMIN_PASSWORD`
 
 ### Migration quality check — April 25, 2026
 
@@ -559,3 +559,30 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] Smoke test scope (code-path validation):
   - [x] Assets list/detail/update/delete and assignment API flows still compile and pass build/type checks
   - [x] Stock, conversion, dashboard, reporting, and auth APIs still compile and pass build/type checks
+
+---
+
+## Secrets exposure audit + hardening — April 27, 2026
+
+- Removed hard-coded seed credentials from `prisma/seed.ts` and switched bootstrap admin creation to required env values (`SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`).
+- Added seed safeguards:
+  - explicit failure when credentials are missing
+  - minimum password length validation
+  - removed plaintext password logging
+- Removed explicit default password references from tracked docs:
+  - `README.md`
+  - `DEVELOPMENT_HISTORY.md`
+- Added backup leak prevention in `.gitignore` for local generated backup artifacts:
+  - `backups/db-data-backup-*.json`
+  - `backups/schema-prisma-backup-*.prisma`
+  - `backups/db-full-backup-*.sql`
+- Added credential exposure assessment document:
+  - `docs/secret-exposure-report.md`
+- Added automated CI secret scan workflow:
+  - `.github/workflows/secret-scan.yml` (gitleaks on `push`/`pull_request`).
+
+### Secrets hardening quality check — April 27, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
