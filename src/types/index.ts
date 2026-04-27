@@ -63,7 +63,6 @@ export interface AssetWithCategory extends Asset {
 export interface AssetWithRelations extends Asset {
   stockCategory: StockCategory;
   assignments: AssetAssignmentWithRelations[];
-  stockItem: StockItem | null;
 }
 
 /* ═══════════════════════════════════════════════════════════════ */

@@ -13,7 +13,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ## Features
 
 ### Core
-- **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), specs. **Register Asset** can optionally **pull 1 unit** from a stock line that still has available quantity, creating the asset and recording a stock **OUT** transaction
+- **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), and structured hardware fields (OS/RAM/storage). **Register Asset** can optionally **pull 1 unit** from a stock line that still has available quantity, creating the asset and recording a stock **OUT** transaction
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
 - **Unified categories** — Asset classification now uses **Stock categories** as the single source of truth
@@ -151,6 +151,8 @@ src/
 prisma/
 ├── schema.prisma
 └── seed.ts
+docs/
+└── db-schema.md
 ```
 
 ---

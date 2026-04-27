@@ -121,20 +121,15 @@ model Asset {
   osInstalled  String?    // Operating system: "Windows 11 Pro"
   ram          String?    // RAM: "16GB DDR4"
   storage      String?    // Storage: "512GB SSD"
-  specs        Json?      // Flexible JSON for any additional specs
 
   // Lifecycle tracking 
-  purchaseDate   DateTime?  // When the asset was purchased
-  warrantyExpiry DateTime?  // When the warranty expires
   condition      Condition  @default(GOOD)
-  notes          String?    // Free-text notes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations 
   assignments AssetAssignment[]  // History of who/where this asset was assigned
-  stockItem   StockItem?         // Link if this asset is also a stock item
 
   @@map("assets")
 }
@@ -287,8 +282,6 @@ model StockCategory {
  
 model StockItem {
   id          String        @id @default(cuid())
-  assetId     String?       @unique  // Optional link to an individual asset
-  asset       Asset?        @relation(fields: [assetId], references: [id])
   catalogItemId String?              // Optional link to shared catalog identity
   catalogItem   CatalogItem? @relation(fields: [catalogItemId], references: [id])
   brand       String                 // Manufacturer: "Dell", "HP", "Ugreen"

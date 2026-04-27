@@ -528,3 +528,34 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Prisma schema cleanup + full DB map — April 27, 2026
+
+- Performed pre-change backups before schema updates:
+  - Data snapshot: `backups/db-data-backup-20260427-221407.json`
+  - Schema snapshot: `backups/schema-prisma-backup-20260427-221319.prisma`
+- Cleaned unused Prisma schema items verified as non-operational in current code paths:
+  - Removed `Asset.specs`
+  - Removed `Asset.purchaseDate`
+  - Removed `Asset.warrantyExpiry`
+  - Removed `Asset.notes`
+  - Removed unused direct `StockItem.assetId -> Asset` relation
+- Aligned service/type usage after schema cleanup:
+  - Removed `stockItem` include from asset detail service response
+  - Removed `stockItem` field from `AssetWithRelations` shared type
+- Added full schema architecture documentation and chart:
+  - `docs/db-schema.md` with model summary, enum list, relationship map, cardinality notes, and Mermaid diagram.
+- Updated README project structure/features wording to match cleaned schema and new DB documentation.
+
+### Prisma schema cleanup quality check — April 27, 2026
+
+- [x] `npx prisma validate` — pass
+- [x] `npm run db:push` — pass
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [x] Smoke test scope (code-path validation):
+  - [x] Assets list/detail/update/delete and assignment API flows still compile and pass build/type checks
+  - [x] Stock, conversion, dashboard, reporting, and auth APIs still compile and pass build/type checks

@@ -58,7 +58,6 @@ export async function getAssetById(id: string) {
     where: { id },
     include: {
       stockCategory: true,
-      stockItem: true,
       assignments: {
         include: {
           employee: { include: { department: true } },
