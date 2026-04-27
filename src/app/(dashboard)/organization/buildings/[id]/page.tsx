@@ -7,7 +7,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Building2, DoorClosed, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, DoorClosed, Pencil, Plus, Trash2 } from "lucide-react";
 import type { RoomType } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
@@ -128,9 +128,6 @@ export default function BuildingRoomsPage({ params }: { params: Promise<{ id: st
               {building.description?.trim() ? building.description : "No building description provided."}
             </p>
           </div>
-          <Button variant="outline" leftIcon={<MapPin className="h-4 w-4" />} onClick={() => void fetchBuilding()}>
-            Refresh
-          </Button>
         </div>
       </div>
 
