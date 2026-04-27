@@ -76,43 +76,39 @@ export default function StockRoomPage() {
 
       <LowStockAlertBanner items={items} />
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 pt-6">
-          <div className="mb-6 flex w-full max-w-3xl gap-1 rounded-xl border border-gray-200/60 bg-gray-100/50 p-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab("items")}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
-                activeTab === "items"
-                  ? "bg-white text-primary-700 shadow-sm ring-1 ring-black/5"
-                  : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-700"
-              }`}
-            >
-              <Package className="h-4 w-4" />
-              Inventory Items
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("categories")}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
-                activeTab === "categories"
-                  ? "bg-white text-primary-700 shadow-sm ring-1 ring-black/5"
-                  : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-700"
-              }`}
-            >
-              <Tags className="h-4 w-4" />
-              Categories
-            </button>
-          </div>
-        </div>
+      <div className="mb-6 flex w-full max-w-3xl gap-1 rounded-xl border border-gray-200/60 bg-gray-100/50 p-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab("items")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+            activeTab === "items"
+              ? "bg-white text-primary-700 shadow-sm ring-1 ring-black/5"
+              : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-700"
+          }`}
+        >
+          <Package className="h-4 w-4" />
+          Inventory Items
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("categories")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+            activeTab === "categories"
+              ? "bg-white text-primary-700 shadow-sm ring-1 ring-black/5"
+              : "text-gray-500 hover:bg-gray-200/50 hover:text-gray-700"
+          }`}
+        >
+          <Tags className="h-4 w-4" />
+          Categories
+        </button>
+      </div>
 
-        <div className="px-6 pb-6">
-          {activeTab === "items" ? (
-            <StockItemsTab items={items} onRefresh={fetchData} />
-          ) : (
-            <StockCategoriesTab categories={categories} onRefresh={fetchData} />
-          )}
-        </div>
+      <div>
+        {activeTab === "items" ? (
+          <StockItemsTab items={items} onRefresh={fetchData} />
+        ) : (
+          <StockCategoriesTab categories={categories} onRefresh={fetchData} />
+        )}
       </div>
     </div>
   );
