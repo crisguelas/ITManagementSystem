@@ -105,6 +105,10 @@ const buildNonEmptyFieldRows = (asset: EmployeeProfileAssetSummary) => {
   return rows.filter((row) => row.value.trim().length > 0);
 };
 
+/**
+ * EmployeeProfilePage — Displays employee profile, location assignments, and asset details.
+ * Renders device-specific detail blocks and hides empty fields for non-PC equipment.
+ */
 export default function EmployeeProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [profile, setProfile] = useState<EmployeeProfileData | null>(null);

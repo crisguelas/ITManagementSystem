@@ -26,6 +26,10 @@ import type { AssetAssignmentWithRelations, AssetWithRelations } from "@/types";
 import type { z } from "zod";
 import { assetSchema } from "@/lib/validations/asset.schema";
 
+/**
+ * AssetDetailsPage — Displays one asset with specs, assignment history, and label actions.
+ * Supports assignment lifecycle actions and guarded edit/delete operations.
+ */
 export default function AssetDetailsPage() {
   const params = useParams();
   const router = useRouter();

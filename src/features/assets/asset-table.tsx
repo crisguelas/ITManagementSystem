@@ -36,6 +36,10 @@ type AssetWithRelations = Asset & {
 /* COMPONENT                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/**
+ * AssetTable — Lists registered assets with local search and quick navigation actions.
+ * Includes modal-based registration and table refresh after successful creation.
+ */
 export const AssetTable = () => {
   const [data, setData] = useState<AssetWithRelations[]>([]);
   const [isLoading, setIsLoading] = useState(true);

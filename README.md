@@ -24,7 +24,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Departments** — Organizational units managed from **Organization → Academic Departments** with standard department CRUD management
 - **Employees** — Names, titles, departments, contact info; add staff from **Organization → Registered Employees** (**Add Employee** opens a dialog; `POST /api/employees`). Employee forms support **Mobile (Optional)** and **Phone Ext. (Optional)**, and the employees table shows human-readable titles (`Mr.`, `Ms.`, `Dr.`, `Prof.`). Modals render in a **portal** above the dashboard UI.
 
-### Stock room
+### Inventory
 - **Stock categories & items** — Quantities, low-stock thresholds
 - **Auto-generated SKU** — New stock items receive system-generated SKU values (`STK-000001`, `STK-000002`, ...)
 - **Transactions** — IN, OUT, RETURN, ADJUSTMENT with audit fields
@@ -36,6 +36,8 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ### Dashboard
 - **Summary metrics**, **charts** (category, status, location), **recent activity**, **quick links**
 - **Responsive dashboard shell** — Mobile uses a hamburger-triggered top-sheet sidebar with backdrop/close controls; desktop collapses to an icon-only rail (hides labels) and keeps the sidebar pinned to viewport height while content scrolls
+- **Header notifications** — Low-stock and recent assignment alerts are surfaced from the bell panel with direct links
+- **Global search** — Header search provides employee-first suggestions across employee/profile assignment identifiers and can fall back to unassigned asset matches
 
 ### Reporting
 - **Reports hub** — **`/reports`** with Excel (assets, stock transactions, **low-stock lines**, **employees**) and a multi-section PDF summary
@@ -188,7 +190,7 @@ Handlers live under `src/app/api/`. Most responses use **`{ success: true, data 
 | `GET` | `/api/search` | Global search suggestions (employee-first, with unassigned-asset fallbacks) |
 | `POST` | `/api/account/change-password` | Change password for current authenticated user |
 
-**Auth notes (current code):** Shared guards from `src/lib/api-auth.ts` are used across `app/api`: **`requireSession`** for authenticated reads and staff actions (stock listings/transactions, asset assignments/returns, **`/api/rooms` GET**), **`requireAdmin`** for privileged mutations (assets/categories/buildings/departments/employees, **`/api/rooms` POST**, and **`/api/users`**). **Update this table** when you add or change routes.
+**Auth notes (current code):** Shared guards from `src/lib/api-auth.ts` are used across `app/api`: **`requireSession`** for authenticated reads and staff actions (assets, buildings, departments, employees, rooms, stock listings/transactions, global search, assignment reads/returns); **`requireAdmin`** for privileged mutations (assets/categories/buildings/departments/employees/rooms, users, catalog items, and stock-to-asset conversion via `/api/stock-items/[id]/convert-to-asset`). **Update this table** when you add or change routes.
 
 ---
 
@@ -212,7 +214,7 @@ This run focused on verifying that system navigation, interactive controls (butt
 
 ### Navigation and link checks
 
-- Sidebar navigation (`Dashboard`, `Assets`, `Organization`, `Stock Room`, `Reports`, `Settings`) maps to existing pages.
+- Sidebar navigation (`Dashboard`, `Assets`, `Organization`, `Inventory`, `Reports`, `Settings`) maps to existing pages.
 - Dashboard quick-action links route to `assets`, `organization`, and `stock`.
 - Detail-page links (`/assets/[id]`, `/stock/[id]`) and back links are present and correctly targeted.
 - Settings links route to `/settings/users` and remain role-gated by admin checks.
@@ -275,5 +277,5 @@ Maintained by **your IT department** or project owners. Replace this section wit
 ## Asset tags & QR codes
 
 - **Format:** `{ASSET_TAG_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}` (e.g. `AST-PC-0001`). Set optional **`ASSET_TAG_PREFIX`** in `.env` (default **`AST`**). Category prefixes come from your asset categories.
-- **QR labels:** The QR code points to **`/assets/{id}`** (the database id), not the tag string, so labels stay scannable even if you change the tag prefix later.
+- **QR labels (current mode):** The QR code currently renders an IMC ownership notice text payload (temporary pre-deployment mode). A public scan route exists at **`/scan/assets/{id}`** for dynamic lookup workflows.
 - Existing rows in the database are **not** rewritten when you change `ASSET_TAG_PREFIX`; only **new** assets use the new prefix.

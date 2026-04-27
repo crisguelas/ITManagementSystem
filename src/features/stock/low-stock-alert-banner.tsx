@@ -23,6 +23,10 @@ interface LowStockAlertBannerProps {
   items: LowStockItem[];
 }
 
+/**
+ * LowStockAlertBanner — Highlights low-stock lines and links directly to item detail pages.
+ * Keeps urgent stock shortages visible without leaving the current view.
+ */
 export const LowStockAlertBanner = ({ items }: LowStockAlertBannerProps) => {
   const lowStockItems = useMemo(() => {
     return items.filter((item) => isAtOrBelowMinimumStock(item.quantity, item.minQuantity));

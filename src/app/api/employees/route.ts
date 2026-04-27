@@ -9,6 +9,7 @@ import { employeeSchema } from "@/lib/validations/organization.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 export async function GET() {
+  /* Returns active employee records for authenticated users in organization screens */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
@@ -21,6 +22,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  /* Creates an employee for admin users after cleaning optional fields and validating body */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;

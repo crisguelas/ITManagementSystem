@@ -27,6 +27,10 @@ interface StockTransactionTableProps {
   unit: string;
 }
 
+/**
+ * StockTransactionTable — Presents stock transaction rows with type/status formatting.
+ * Keeps quantity signs and recipient context readable for stock audits.
+ */
 export const StockTransactionTable = ({
   transactions,
   unit,

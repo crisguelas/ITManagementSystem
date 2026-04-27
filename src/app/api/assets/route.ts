@@ -16,6 +16,7 @@ const normalizeOptionalText = (value: unknown) => {
 };
 
 export async function GET() {
+  /* Returns the asset list for authenticated users to power inventory-style asset views */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
@@ -32,6 +33,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  /* Creates a new asset for admin users after payload normalization and schema validation */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;

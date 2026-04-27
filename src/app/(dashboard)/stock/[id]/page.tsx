@@ -27,6 +27,10 @@ type StockItemDetailPayload = StockItem & {
   transactions: StockTransactionWithActors[];
 };
 
+/**
+ * StockItemDetailPage — Shows one inventory line item and its transaction history.
+ * Allows recording transactions while keeping the detail view synchronized.
+ */
 export default function StockItemDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   

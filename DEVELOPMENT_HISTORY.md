@@ -508,3 +508,23 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Documentation + comment standardization sweep — April 27, 2026
+
+- Updated `README.md` to align current behavior and naming:
+  - inventory/navigation wording
+  - header notifications and global search feature notes
+  - expanded auth-guard notes for API routes
+  - QR behavior description aligned to current temporary mode
+- Performed a full-repo comment quality pass aligned to `AGENTS.md`:
+  - added missing function-level comments in service layers
+  - added handler-level comments in API routes
+  - added missing file headers and component JSDoc in prioritized dashboard/feature components
+
+### Documentation/comment sweep quality check — April 27, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

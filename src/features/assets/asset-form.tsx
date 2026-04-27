@@ -47,6 +47,10 @@ interface AssetFormProps {
 /* COMPONENT                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/**
+ * AssetForm — Handles asset create/edit flows with optional stock-to-asset sourcing.
+ * Validates identifiers/specs and normalizes optional fields before API submission.
+ */
 export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFormProps) => {
   const { addToast } = useToast();
   const isEditMode = Boolean(assetId);

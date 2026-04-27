@@ -19,6 +19,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  /* Loads a single asset detail payload for authenticated asset detail pages */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
@@ -48,6 +49,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  /* Updates one asset for admin users while enforcing audit and uniqueness safeguards */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;
@@ -115,6 +117,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  /* Deletes one asset for admin users when assignment and history guards permit deletion */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;

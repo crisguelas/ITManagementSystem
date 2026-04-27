@@ -9,6 +9,7 @@ import { requireSession } from "@/lib/api-auth";
 import { searchGlobalDirectory } from "@/lib/services/organization.service";
 
 export async function GET(request: Request) {
+  /* Returns global search suggestions for authenticated users across people and assets */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;

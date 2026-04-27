@@ -71,6 +71,9 @@ export async function getAssetById(id: string) {
   });
 }
 
+/**
+ * Loads assets with current assignment snapshots for assets list and dashboard views.
+ */
 export async function getAssets() {
   return prisma.asset.findMany({
     include: {
@@ -124,6 +127,9 @@ export async function getAssetScanDetails(id: string) {
   });
 }
 
+/**
+ * Creates an asset after unique checks and generated tag/name normalization.
+ */
 export async function createAsset(data: z.infer<typeof assetSchema>) {
   /* Check unique constraint: pcNumber (if provided) */
   if (data.pcNumber) {
@@ -167,6 +173,9 @@ export async function createAsset(data: z.infer<typeof assetSchema>) {
   });
 }
 
+/**
+ * Updates an asset only when edit locks and unique identifier constraints are satisfied.
+ */
 export async function updateAsset(id: string, data: z.infer<typeof assetSchema>) {
   /* Ensure the target asset exists before running unique checks */
   const existingAsset = await prisma.asset.findUnique({
@@ -239,6 +248,9 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
   });
 }
 
+/**
+ * Deletes an asset only when no active or historical assignments would break audit integrity.
+ */
 export async function deleteAsset(id: string) {
   /* Guard: assets with active assignment cannot be deleted until returned */
   const activeAssignments = await prisma.assetAssignment.count({

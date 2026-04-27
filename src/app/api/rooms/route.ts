@@ -10,6 +10,7 @@ import { getRooms, createRoom } from "@/lib/services/organization.service";
 import { roomSchema } from "@/lib/validations/organization.schema";
 
 export async function GET() {
+  /* Returns rooms with building context for authenticated organization/location pages */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
@@ -22,6 +23,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  /* Creates a room for admin users after validating room payload constraints */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;

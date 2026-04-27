@@ -16,6 +16,7 @@ import {
 /* BUILDINGS                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/* Loads all buildings with room counts for organization overview tables */
 export async function getBuildings() {
   return prisma.building.findMany({
     include: {
@@ -25,6 +26,7 @@ export async function getBuildings() {
   });
 }
 
+/* Loads one building and its rooms so building detail pages can manage room records */
 export async function getBuildingById(id: string) {
   return prisma.building.findUnique({
     where: { id },
@@ -39,6 +41,7 @@ export async function getBuildingById(id: string) {
   });
 }
 
+/* Creates a building after guarding name/code uniqueness for clean location references */
 export async function createBuilding(data: z.infer<typeof buildingSchema>) {
   const existingName = await prisma.building.findUnique({ where: { name: data.name } });
   if (existingName) throw new Error(`Building "${data.name}" already exists`);
@@ -49,6 +52,7 @@ export async function createBuilding(data: z.infer<typeof buildingSchema>) {
   return prisma.building.create({ data });
 }
 
+/* Updates a building while preserving unique name/code constraints across all rows */
 export async function updateBuilding(id: string, data: z.infer<typeof buildingSchema>) {
   const existingBuilding = await prisma.building.findUnique({
     where: { id },
@@ -74,6 +78,7 @@ export async function updateBuilding(id: string, data: z.infer<typeof buildingSc
   });
 }
 
+/* Deletes a building only when no rooms exist to avoid orphaned room/location data */
 export async function deleteBuilding(id: string) {
   const roomCount = await prisma.room.count({
     where: { buildingId: id },
@@ -91,6 +96,7 @@ export async function deleteBuilding(id: string) {
 /* ROOMS                                                           */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/* Loads rooms with building and active assignment counts for rooms listing screens */
 export async function getRooms() {
   return prisma.room.findMany({
     include: {
@@ -101,6 +107,7 @@ export async function getRooms() {
   });
 }
 
+/* Creates a room under a building while enforcing per-building room-name uniqueness */
 export async function createRoom(data: z.infer<typeof roomSchema>) {
   /* Enforce exact unique constraint from Prisma Schema: [buildingId, name] */
   const existingRoom = await prisma.room.findUnique({
@@ -119,6 +126,7 @@ export async function createRoom(data: z.infer<typeof roomSchema>) {
   return prisma.room.create({ data });
 }
 
+/* Updates room details and prevents duplicate room names within the same building */
 export async function updateRoom(id: string, data: z.infer<typeof roomSchema>) {
   const existingRoom = await prisma.room.findUnique({
     where: { id },
@@ -147,6 +155,7 @@ export async function updateRoom(id: string, data: z.infer<typeof roomSchema>) {
   });
 }
 
+/* Deletes a room only if it has no active assignments to preserve assignment integrity */
 export async function deleteRoom(id: string) {
   const activeAssignments = await prisma.assetAssignment.count({
     where: { roomId: id, returnedAt: null },
@@ -165,6 +174,7 @@ export async function deleteRoom(id: string) {
 /* DEPARTMENTS                                                     */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/* Loads departments with employee counts for department administration screens */
 export async function getDepartments() {
   return prisma.department.findMany({
     include: {
@@ -174,6 +184,7 @@ export async function getDepartments() {
   });
 }
 
+/* Creates a department after validating unique display name and department code */
 export async function createDepartment(data: z.infer<typeof departmentSchema>) {
   const existingName = await prisma.department.findUnique({ where: { name: data.name } });
   if (existingName) throw new Error(`Department "${data.name}" already exists`);
@@ -184,6 +195,7 @@ export async function createDepartment(data: z.infer<typeof departmentSchema>) {
   return prisma.department.create({ data });
 }
 
+/* Updates department data while preserving unique name/code constraints */
 export async function updateDepartment(id: string, data: z.infer<typeof departmentSchema>) {
   const existingDepartment = await prisma.department.findUnique({
     where: { id },
@@ -209,6 +221,7 @@ export async function updateDepartment(id: string, data: z.infer<typeof departme
   });
 }
 
+/* Deletes a department only when there are no active employees mapped to it */
 export async function deleteDepartment(id: string) {
   const activeEmployees = await prisma.employee.count({
     where: { departmentId: id, isActive: true },
@@ -226,6 +239,7 @@ export async function deleteDepartment(id: string) {
 /* EMPLOYEES                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
 
+/* Loads active employees with department and active assignment count for people views */
 export async function getEmployees() {
   return prisma.employee.findMany({
     where: { isActive: true },
@@ -237,6 +251,7 @@ export async function getEmployees() {
   });
 }
 
+/* Creates an employee after checking unique organization identifiers and optional email */
 export async function createEmployee(data: z.infer<typeof employeeSchema>) {
   /* employeeId is unique */
   const existingEmployeeId = await prisma.employee.findFirst({
@@ -258,6 +273,7 @@ export async function createEmployee(data: z.infer<typeof employeeSchema>) {
   return prisma.employee.create({ data });
 }
 
+/* Updates an employee while keeping unique employeeId/email guarantees intact */
 export async function updateEmployee(id: string, data: z.infer<typeof employeeSchema>) {
   const existingEmployee = await prisma.employee.findUnique({
     where: { id },
@@ -289,6 +305,7 @@ export async function updateEmployee(id: string, data: z.infer<typeof employeeSc
   });
 }
 
+/* Soft-deactivates an employee only if they have no active asset assignments */
 export async function deleteEmployee(id: string) {
   const activeAssignments = await prisma.assetAssignment.count({
     where: { employeeId: id, returnedAt: null },
@@ -361,8 +378,10 @@ export interface EmployeeProfileData {
   activeAssignments: EmployeeProfileAssignment[];
 }
 
+/* Normalizes user search text for case-insensitive matching across mixed fields */
 const normalizeSearchTerm = (value: string) => value.trim().toLowerCase();
 
+/* Scores exact/prefix/contains matches so stronger identifier hits sort first */
 const scoreTextMatch = (value: string | null | undefined, query: string, base: number) => {
   if (!value) return 0;
   const normalized = value.toLowerCase();
@@ -372,6 +391,7 @@ const scoreTextMatch = (value: string | null | undefined, query: string, base: n
   return 0;
 };
 
+/* Returns employee-first global search suggestions with unassigned-asset fallbacks */
 export async function searchGlobalDirectory(rawQuery: string): Promise<GlobalSearchResult[]> {
   const query = normalizeSearchTerm(rawQuery);
   if (!query) return [];
@@ -518,6 +538,7 @@ export async function searchGlobalDirectory(rawQuery: string): Promise<GlobalSea
     .map((result) => result.item);
 }
 
+/* Loads one employee profile with active assignments, locations, and device details */
 export async function getEmployeeProfileById(id: string): Promise<EmployeeProfileData | null> {
   const employee = await prisma.employee.findUnique({
     where: { id },

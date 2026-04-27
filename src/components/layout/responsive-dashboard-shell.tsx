@@ -1,3 +1,8 @@
+/**
+ * @file responsive-dashboard-shell.tsx
+ * @description Responsive dashboard shell wiring sidebar/header and scrollable content area.
+ */
+
 "use client";
 
 import { useCallback, useState } from "react";

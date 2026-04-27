@@ -12,6 +12,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  /* Returns one employee profile and active assignment details for authenticated viewers */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;

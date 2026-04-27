@@ -36,6 +36,10 @@ type BuildingPayload = {
   rooms: RoomRow[];
 };
 
+/**
+ * BuildingRoomsPage — Manages room records scoped to a single building.
+ * Handles room list loading and room add/edit/delete actions in-context.
+ */
 export default function BuildingRoomsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 

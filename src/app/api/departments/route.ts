@@ -9,6 +9,7 @@ import { departmentSchema } from "@/lib/validations/organization.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 export async function GET() {
+  /* Returns department data for authenticated organization and employee workflows */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
@@ -21,6 +22,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  /* Creates a new department for admin users after schema validation */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;

@@ -9,6 +9,7 @@ import { buildingSchema } from "@/lib/validations/organization.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 export async function GET() {
+  /* Returns all buildings for authenticated organization/location management pages */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
@@ -21,6 +22,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  /* Creates a building for admin users after validating required building fields */
   try {
     const authResult = await requireAdmin();
     if (authResult.response) return authResult.response;

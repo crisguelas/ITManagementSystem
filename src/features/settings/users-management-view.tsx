@@ -28,6 +28,10 @@ interface UsersManagementViewProps {
   currentUserId: string;
 }
 
+/**
+ * UsersManagementView — Admin panel for IT login account lifecycle operations.
+ * Supports create, edit, role change, and activate/deactivate flows.
+ */
 export const UsersManagementView = ({ currentUserId }: UsersManagementViewProps) => {
   const { addToast } = useToast();
   const [users, setUsers] = useState<UserPublic[]>([]);
