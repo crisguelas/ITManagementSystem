@@ -170,6 +170,27 @@ export default function AssetDetailsPage() {
         }. Please return this item to the IT Department if found.`
       : "This asset is marked as IMC property and is currently available in inventory. Please return it to the IT Department if found.";
 
+  /* Builds a present-only details list so asset pages show only meaningful populated fields */
+  const buildNonEmptySpecRows = () => {
+    const rows = [
+      { label: "PC Number", value: asset.pcNumber ?? "", mono: false },
+      { label: "Serial Number", value: asset.serialNumber ?? "", mono: true },
+      { label: "MAC Address", value: asset.macAddress ?? "", mono: true },
+      { label: "IP Address", value: asset.ipAddress ?? "", mono: true },
+    ];
+
+    return rows.filter((row) => row.value.trim().length > 0);
+  };
+
+  /* Shows system detail chips only when at least one field is present */
+  const systemDetails = [
+    { label: "Operating System", value: asset.osInstalled ?? "" },
+    { label: "Memory (RAM)", value: asset.ram ?? "" },
+    { label: "Storage", value: asset.storage ?? "" },
+  ].filter((row) => row.value.trim().length > 0);
+
+  const specRows = buildNonEmptySpecRows();
+
   return (
     <div className="animate-fade-in pb-12">
       
@@ -284,37 +305,39 @@ export default function AssetDetailsPage() {
                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
                    <div>
                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Manufacturer</dt>
-                     <dd className="mt-1 text-sm font-medium text-gray-900">{asset.brand || "—"}</dd>
+                     <dd className="mt-1 text-sm font-medium text-gray-900">{asset.brand}</dd>
                    </div>
                    <div>
                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Model</dt>
-                     <dd className="mt-1 text-sm font-medium text-gray-900">{asset.model || "—"}</dd>
+                     <dd className="mt-1 text-sm font-medium text-gray-900">{asset.model}</dd>
                    </div>
-                   <div>
-                     <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">PC Number</dt>
-                     <dd className="mt-1 text-sm font-medium text-gray-900">{asset.pcNumber || "—"}</dd>
-                   </div>
-                   <div>
-                     <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Number</dt>
-                     <dd className="mt-1 text-sm font-medium text-gray-900 font-mono text-xs">{asset.serialNumber || "—"}</dd>
-                   </div>
-                   <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
-                     <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">System Details</dt>
-                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                       <div>
-                         <span className="block text-xs text-gray-500">Operating System</span>
-                         <span className="block text-sm font-medium text-gray-900 mt-0.5">{asset.osInstalled || "—"}</span>
-                       </div>
-                       <div>
-                         <span className="block text-xs text-gray-500">Memory (RAM)</span>
-                         <span className="block text-sm font-medium text-gray-900 mt-0.5">{asset.ram || "—"}</span>
-                       </div>
-                       <div>
-                         <span className="block text-xs text-gray-500">Storage</span>
-                         <span className="block text-sm font-medium text-gray-900 mt-0.5">{asset.storage || "—"}</span>
+                   {specRows.map((row) => (
+                     <div key={row.label}>
+                       <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">{row.label}</dt>
+                       <dd
+                         className={
+                           row.mono
+                             ? "mt-1 text-sm font-medium text-gray-900 font-mono text-xs"
+                             : "mt-1 text-sm font-medium text-gray-900"
+                         }
+                       >
+                         {row.value}
+                       </dd>
+                     </div>
+                   ))}
+                   {systemDetails.length > 0 && (
+                     <div className="sm:col-span-2 border-t border-gray-100 pt-4 mt-2">
+                       <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">System Details</dt>
+                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                         {systemDetails.map((row) => (
+                           <div key={row.label}>
+                             <span className="block text-xs text-gray-500">{row.label}</span>
+                             <span className="block text-sm font-medium text-gray-900 mt-0.5">{row.value}</span>
+                           </div>
+                         ))}
                        </div>
                      </div>
-                   </div>
+                   )}
                  </dl>
                </CardBody>
              </Card>
