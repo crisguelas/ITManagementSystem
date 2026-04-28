@@ -85,7 +85,7 @@ export default function LoginPage() {
     <div className="animate-fade-in-up">
       {/* Branding Header */}
       <div className="text-center mb-8">
-        <div className="mx-auto mb-4 flex h-24 w-[280px] max-w-full items-center justify-center overflow-hidden rounded-xl bg-white/40 p-2 shadow-lg">
+        <div className="mx-auto mb-4 flex h-24 w-[280px] max-w-full items-center justify-center overflow-hidden rounded-xl border border-primary-700/60 bg-primary-900 p-2 shadow-lg shadow-primary-900/30">
           {/* Wider branding container keeps the full horizontal logo text readable */}
           <Image
             src="/Inaya-logo.png"
