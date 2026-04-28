@@ -63,15 +63,16 @@ export default function LoginPage() {
       /* NextAuth credentials sign-in provider */
       const result = await signIn("credentials", {
         redirect: false,
+        callbackUrl: "/",
         email: data.email,
         password: data.password,
       });
 
-      if (result?.error) {
+      if (!result || result.error || !result.ok) {
         setError("Invalid email or password");
       } else {
         /* Successful login — redirect to dashboard */
-        router.push("/");
+        router.push(result.url ?? "/");
         router.refresh();
       }
     } catch {
