@@ -20,6 +20,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSpinner } from "@/components/ui/loading-state";
 
 import { assetSchema } from "@/lib/validations/asset.schema";
+import { CONDITION_LABELS } from "@/lib/constants";
 import type { z } from "zod";
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -87,6 +88,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       ram: "",
       storage: "",
       status: "AVAILABLE",
+      condition: "GOOD",
     },
   });
 
@@ -104,6 +106,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       ram: initialData.ram ?? "",
       storage: initialData.storage ?? "",
       status: initialData.status ?? "AVAILABLE",
+      condition: initialData.condition ?? "GOOD",
     });
   }, [initialData, reset]);
 
@@ -307,6 +310,14 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     { label: "Maintenance", value: "MAINTENANCE" },
   ];
 
+  const conditionOptions = [
+    { label: CONDITION_LABELS.NEW, value: "NEW" },
+    { label: CONDITION_LABELS.GOOD, value: "GOOD" },
+    { label: CONDITION_LABELS.FAIR, value: "FAIR" },
+    { label: CONDITION_LABELS.POOR, value: "POOR" },
+    { label: CONDITION_LABELS.DEFECTIVE, value: "DEFECTIVE" },
+  ];
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       {!isEditMode && (
@@ -365,7 +376,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       {/* Basic Setup */}
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">Classification</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Select
             label="Category"
             options={categoryOptions}
@@ -378,6 +389,13 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
             options={statusOptions}
             {...register("status")}
             error={errors.status?.message}
+            required
+          />
+          <Select
+            label="Condition"
+            options={conditionOptions}
+            {...register("condition")}
+            error={errors.condition?.message}
             required
           />
         </div>

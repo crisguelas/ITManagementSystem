@@ -102,6 +102,14 @@ export async function convertStockItemToAsset(
       if (existingPc) throw new Error(`PC Number "${input.pcNumber}" is already in use`);
     }
 
+    if (input.ipAddress) {
+      const existingIp = await tx.asset.findUnique({
+        where: { ipAddress: input.ipAddress },
+        select: { id: true },
+      });
+      if (existingIp) throw new Error(`IP Address "${input.ipAddress}" is already in use`);
+    }
+
     if (input.serialNumber) {
       const existingSn = await tx.asset.findUnique({
         where: { serialNumber: input.serialNumber },
@@ -124,10 +132,12 @@ export async function convertStockItemToAsset(
         pcNumber: input.pcNumber,
         serialNumber: input.serialNumber,
         macAddress: input.macAddress,
+        ipAddress: input.ipAddress,
         osInstalled: input.osInstalled,
         ram: input.ram,
         storage: input.storage,
         status: input.status,
+        condition: input.condition,
       },
       include: { stockCategory: true },
     });

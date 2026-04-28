@@ -5,7 +5,7 @@
  */
 
 import * as z from "zod";
-import { AssetStatus } from "@prisma/client";
+import { AssetStatus, Condition } from "@prisma/client";
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* ASSET SCHEMA                                                    */
@@ -49,6 +49,9 @@ export const assetSchema = z.object({
   
   /* Operational Status */
   status: z.nativeEnum(AssetStatus).default(AssetStatus.AVAILABLE),
+
+  /* Lifecycle tracking */
+  condition: z.nativeEnum(Condition).default(Condition.GOOD),
 });
 
 export type AssetFormValues = z.infer<typeof assetSchema>;

@@ -1,0 +1,73 @@
+%% db-workflows.mmd — Mermaid source for PNG workflow export
+%% Render command (example): npx -y @mermaid-js/mermaid-cli -i docs/db-workflows.mmd -o docs/db-workflows.png
+
+flowchart TD
+  Start([Start]) --> Auth{UserAuthenticated?}
+  Auth -->|No| SignIn[SignIn]
+  Auth -->|Yes| RoleCheck{IsAdminForMutation?}
+
+  %% Register Asset (direct)
+  RoleCheck -->|Yes| RegisterAsset[RegisterAssetFormSubmit]
+  RegisterAsset --> ValidateAsset[ValidateAssetSchema]
+  ValidateAsset -->|Invalid| Asset400[Return400ValidationError]
+  ValidateAsset -->|Valid| GenTag[GenerateAssetTagFromStockCategoryPrefix]
+  GenTag --> AssetCreate[CreateAssetRow]
+  AssetCreate --> AssetDone[Return201Asset]
+
+  %% Register Asset from Stock (conversion)
+  RoleCheck -->|Yes| ConvertFlow[ConvertStockToAssetSubmit]
+  ConvertFlow --> ValidateConvert[ValidateStockToAssetSchema]
+  ValidateConvert -->|Invalid| Convert400[Return400ValidationError]
+  ValidateConvert -->|Valid| TxBegin[BeginTransaction]
+  TxBegin --> LoadStock[LoadStockItem]
+  LoadStock --> QtyCheck{Quantity>=1?}
+  QtyCheck -->|No| ConvertFail[Abort:NotEnoughStock]
+  QtyCheck -->|Yes| EnsureCatalog[EnsureCatalogItem]
+  EnsureCatalog --> UniqueChecks[CheckUniquePcSerialIp]
+  UniqueChecks --> Tag2[GenerateAssetTag]
+  Tag2 --> CreateAsset2[CreateAssetRowWithCondition]
+  CreateAsset2 --> DecrementStock[UpdateStockItemQuantity-1]
+  DecrementStock --> CreateTxn[CreateStockTransactionTypeOUT]
+  CreateTxn --> TxCommit[CommitTransaction]
+  TxCommit --> ConvertDone[Return201Asset]
+
+  %% Stock transaction flow (IN/OUT/RETURN/ADJUSTMENT)
+  RoleCheck -->|Yes| StockTxnSubmit[StockTransactionSubmit]
+  StockTxnSubmit --> ValidateTxn[ValidateStockTransactionSchema]
+  ValidateTxn -->|Invalid| Txn400[Return400ValidationError]
+  ValidateTxn -->|Valid| TxnAtomic[BeginTransaction]
+  TxnAtomic --> LoadLine[LoadStockItem]
+  LoadLine --> ApplyQty[ApplyQuantityAdjustmentByType]
+  ApplyQty --> WriteTxn[CreateStockTransactionRow]
+  WriteTxn --> TxnCommit[CommitTransaction]
+  TxnCommit --> TxnDone[Return201Transaction]
+
+  %% Assign asset / return asset
+  RoleCheck -->|Yes| AssignSubmit[AssignAssetSubmit]
+  AssignSubmit --> ValidateAssign[ValidateAssignmentSchema]
+  ValidateAssign -->|Invalid| Assign400[Return400ValidationError]
+  ValidateAssign -->|Valid| CloseOpen[CloseAnyOpenAssignment]
+  CloseOpen --> CreateAssign[CreateAssetAssignmentRow]
+  CreateAssign --> SetDeployed[UpdateAssetStatusDEPLOYED]
+  SetDeployed --> AssignDone[Return200Assignment]
+
+  RoleCheck -->|Yes| ReturnSubmit[ReturnAssetSubmit]
+  ReturnSubmit --> LoadOpen[LoadOpenAssignmentForAsset]
+  LoadOpen --> SetReturnedAt[SetReturnedAtNow]
+  SetReturnedAt --> SetAvail[UpdateAssetStatusAVAILABLE]
+  SetAvail --> ReturnDone[Return200ReturnResult]
+
+  %% Non-admin read-only paths
+  RoleCheck -->|No| ReadPaths[ReadOnlyPagesAndAPIs]
+  ReadPaths --> Done([End])
+  AssetDone --> Done
+  ConvertDone --> Done
+  TxnDone --> Done
+  AssignDone --> Done
+  ReturnDone --> Done
+  ConvertFail --> Done
+  Asset400 --> Done
+  Convert400 --> Done
+  Txn400 --> Done
+  Assign400 --> Done
+

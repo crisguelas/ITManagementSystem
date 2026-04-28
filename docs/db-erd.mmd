@@ -1,0 +1,112 @@
+%% db-erd.mmd — Mermaid source for PNG ERD export
+%% Render command (example): npx -y @mermaid-js/mermaid-cli -i docs/db-erd.mmd -o docs/db-erd.png
+
+erDiagram
+  User {
+    string id PK
+    string email UK
+    string role
+    boolean isActive
+  }
+
+  Asset {
+    string id PK
+    string assetTag UK
+    string pcNumber UK "nullable"
+    string serialNumber UK "nullable"
+    string ipAddress UK "nullable"
+    string status
+    string condition
+    string stockCategoryId FK
+    string catalogItemId FK "nullable"
+  }
+
+  AssetAssignment {
+    string id PK
+    string assetId FK
+    string employeeId FK "nullable"
+    string roomId FK "nullable"
+    string assignedById FK
+    datetime assignedAt
+    datetime returnedAt "nullable"
+  }
+
+  Department {
+    string id PK
+    string name UK
+    string code UK
+  }
+
+  Employee {
+    string id PK
+    string employeeId UK
+    string email UK "nullable"
+    string departmentId FK
+    boolean isActive
+  }
+
+  Building {
+    string id PK
+    string code UK
+    string name UK
+  }
+
+  Room {
+    string id PK
+    string buildingId FK
+    string name
+    string roomNumber "nullable"
+    string type
+  }
+
+  StockCategory {
+    string id PK
+    string name UK
+    string prefix UK
+  }
+
+  StockItem {
+    string id PK
+    string sku UK
+    string categoryId FK
+    string catalogItemId FK "nullable"
+    string brand
+    string model
+    int quantity
+  }
+
+  StockTransaction {
+    string id PK
+    string stockItemId FK
+    string performedById FK
+    string approvedById FK "nullable"
+    string type
+    int quantity
+    datetime createdAt
+  }
+
+  CatalogItem {
+    string id PK
+    string brand
+    string model
+    string category
+  }
+
+  Department ||--o{ Employee : "departmentId"
+  Building ||--o{ Room : "buildingId"
+
+  StockCategory ||--o{ StockItem : "categoryId"
+  StockCategory ||--o{ Asset : "stockCategoryId"
+
+  CatalogItem ||--o{ Asset : "catalogItemId (optional)"
+  CatalogItem ||--o{ StockItem : "catalogItemId (optional)"
+
+  Asset ||--o{ AssetAssignment : "assetId"
+  Employee ||--o{ AssetAssignment : "employeeId (optional)"
+  Room ||--o{ AssetAssignment : "roomId (optional)"
+  User ||--o{ AssetAssignment : "assignedById"
+
+  StockItem ||--o{ StockTransaction : "stockItemId"
+  User ||--o{ StockTransaction : "performedById"
+  User ||--o{ StockTransaction : "approvedById (optional)"
+
