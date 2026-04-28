@@ -1,0 +1,14 @@
+{
+  "theme": "default",
+  "themeVariables": {
+    "fontFamily": "Arial, Helvetica, sans-serif",
+    "fontSize": "18px"
+  },
+  "erDiagram": {
+    "useMaxWidth": false
+  },
+  "flowchart": {
+    "useMaxWidth": false
+  }
+}
+
