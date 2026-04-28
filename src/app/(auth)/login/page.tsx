@@ -86,14 +86,14 @@ export default function LoginPage() {
     <div className="animate-fade-in-up">
       {/* Branding Header */}
       <div className="text-center mb-8">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl shadow-lg">
-          {/* Brand logo replaces the placeholder letter icon on the login header */}
+        <div className="mx-auto mb-4 flex h-24 w-[280px] max-w-full items-center justify-center overflow-hidden rounded-xl bg-white/40 p-2 shadow-lg">
+          {/* Wider branding container keeps the full horizontal logo text readable */}
           <Image
             src={brandLogoSrc}
             alt="Inaya Medical Colleges logo"
-            width={64}
-            height={64}
-            className="h-full w-full object-contain"
+            width={280}
+            height={96}
+            className="h-full w-full object-contain object-bottom"
             priority
             onError={() => {
               /* Fallback keeps login branding visible if the primary logo asset fails to decode */
