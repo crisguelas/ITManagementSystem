@@ -40,7 +40,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [brandLogoSrc, setBrandLogoSrc] = useState("/Inaya-logo.webp");
 
   /* Form setup with Zod validation */
   const {
@@ -89,16 +88,12 @@ export default function LoginPage() {
         <div className="mx-auto mb-4 flex h-24 w-[280px] max-w-full items-center justify-center overflow-hidden rounded-xl bg-white/40 p-2 shadow-lg">
           {/* Wider branding container keeps the full horizontal logo text readable */}
           <Image
-            src={brandLogoSrc}
+            src="/Inaya-logo.png"
             alt="Inaya Medical Colleges logo"
             width={280}
             height={96}
             className="h-full w-full object-contain object-bottom"
             priority
-            onError={() => {
-              /* Fallback keeps login branding visible if the primary logo asset fails to decode */
-              setBrandLogoSrc("/imc-shield-32x32.png");
-            }}
           />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
