@@ -12,9 +12,18 @@ import bcrypt from "bcryptjs";
 import { authConfig } from "./auth.config";
 import { prisma } from "@/lib/prisma";
 
+/* Enforces an absolute 12-hour session lifetime for authenticated users */
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  },
+  jwt: {
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  },
   providers: [
     Credentials({
       credentials: {

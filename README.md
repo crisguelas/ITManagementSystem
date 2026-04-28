@@ -45,7 +45,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### Security & access
 - **Roles** — Administrator and Member (extend as needed)
-- **Authentication** — NextAuth.js with hashed passwords
+- **Authentication** — NextAuth.js with hashed passwords and an absolute **12-hour** JWT session lifetime (users must sign in again after expiry)
 - **Settings (administrators only)** — Sidebar **Settings** is visible only to users with role `ADMIN`. Under **`/settings`** you can open **User accounts** (`/settings/users`) to add IT staff logins, set roles, and activate/deactivate users instead of deleting them so historical records remain intact. Deactivated accounts are blocked from sign-in until reactivated (the first admin still comes from `npm run db:seed`)
 - **Audit-oriented** fields on key actions
 

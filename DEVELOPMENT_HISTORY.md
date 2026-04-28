@@ -586,3 +586,18 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Authentication session hardening — April 28, 2026
+
+- Configured NextAuth JWT sessions to use an explicit **12-hour absolute expiration**.
+- Kept the existing JWT session strategy and route protection flow unchanged, so authenticated users continue to access protected routes normally until the token expires.
+- Updated `README.md` to document the enforced 12-hour sign-in window.
+
+### Authentication session hardening quality check — April 28, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [x] Smoke test scope — verified the JWT session strategy still protects authenticated pages/APIs through the existing middleware and `requireSession` / `requireAdmin` guards, and confirmed the new configuration enforces a 12-hour absolute session lifetime at the auth layer
