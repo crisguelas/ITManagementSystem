@@ -34,6 +34,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local-only folders — keep documentation assets and backups off GitHub
+docs/
+backups/
+
 # local backup artifacts — schema/data snapshots must remain local
 backups/db-data-backup-*.json
 backups/schema-prisma-backup-*.prisma
