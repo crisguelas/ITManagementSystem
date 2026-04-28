@@ -262,6 +262,10 @@ body {
 /* ═══════════════════════════════════════════════════════════════ */
 
 @media print {
+  @page {
+    margin: 12mm;
+  }
+
   /* Hide navigation and interactive elements when printing */
   .no-print {
     display: none !important;

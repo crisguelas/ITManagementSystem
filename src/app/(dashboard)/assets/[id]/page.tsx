@@ -195,8 +195,8 @@ export default function AssetDetailsPage() {
     <div className="animate-fade-in pb-12">
       
       {/* 🔴 PRINT VIEW — Only visible during window.print() 🔴 */}
-      <div className="hidden print:flex flex-col items-center justify-center p-8 absolute inset-0 bg-white">
-        <div className="border-4 border-black p-6 rounded-2xl flex flex-col items-center max-w-sm">
+      <div className="hidden print:flex fixed inset-0 flex-col items-center justify-start bg-white p-4 overflow-visible">
+        <div className="border-4 border-black p-6 rounded-2xl flex flex-col items-center max-w-sm mt-6">
           <QRCodeSVG value={qrUrl} size={180} level="H" />
           <h2 className="text-3xl font-bold mt-4 tracking-tight">{asset.assetTag}</h2>
           <p className="text-sm font-medium mt-1 uppercase tracking-widest text-center">
