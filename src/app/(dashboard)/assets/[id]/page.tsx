@@ -159,16 +159,16 @@ export default function AssetDetailsPage() {
   /* QR encodes plain ownership text so scanners show a message without opening a website */
   const qrUrl =
     asset.status === AssetStatus.DEPLOYED
-      ? `This IMC property is currently assigned to ${
+      ? `This Inaya property is currently assigned to ${
           activeAssignment?.employee
             ? `${activeAssignment.employee.firstName} ${activeAssignment.employee.lastName}`
-            : "an IMC staff member"
+            : "an Inaya staff member"
         }${
           activeAssignment?.room
             ? ` at ${activeAssignment.room.building?.code ?? "Building"} - ${activeAssignment.room.name}`
             : ""
         }. Please return this item to the IT Department if found.`
-      : "This asset is marked as IMC property and is currently available in inventory. Please return it to the IT Department if found.";
+      : "Inaya property. If found, please return it to the IT Department. Ask a security guard or any staff for assistance.";
 
   /* Builds a present-only details list so asset pages show only meaningful populated fields */
   const buildNonEmptySpecRows = () => {
@@ -203,8 +203,8 @@ export default function AssetDetailsPage() {
             {asset.name}
           </p>
           <div className="mt-4 pt-4 border-t-2 border-black w-full text-center">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">IT Department</p>
-            <p className="text-[10px] text-gray-400 mt-1">IT Property • Do Not Remove</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Inaya Medical Colleges</p>
+            <p className="text-[10px] text-gray-400 mt-1">Inaya Property • Do Not Remove</p>
           </div>
         </div>
       </div>

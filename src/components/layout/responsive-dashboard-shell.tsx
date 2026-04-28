@@ -35,23 +35,27 @@ export const ResponsiveDashboardShell = ({
   }, []);
 
   return (
-    <div className="relative flex min-h-screen bg-background">
-      <Sidebar
-        isAdmin={isAdmin}
-        isMobileOpen={isMobileSidebarOpen}
-        onMobileClose={handleMobileSidebarClose}
-      />
-
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Header
-          currentUserName={currentUserName}
-          currentUserRole={currentUserRole}
-          isMobileSidebarOpen={isMobileSidebarOpen}
-          onOpenMobileSidebar={handleMobileSidebarOpen}
+    <div className="relative flex min-h-screen bg-background print:block print:min-h-0 print:bg-white">
+      <div className="print:hidden">
+        <Sidebar
+          isAdmin={isAdmin}
+          isMobileOpen={isMobileSidebarOpen}
+          onMobileClose={handleMobileSidebarClose}
         />
+      </div>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background p-3 sm:p-4 md:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block print:min-w-0 print:overflow-visible">
+        <div className="print:hidden">
+          <Header
+            currentUserName={currentUserName}
+            currentUserRole={currentUserRole}
+            isMobileSidebarOpen={isMobileSidebarOpen}
+            onOpenMobileSidebar={handleMobileSidebarOpen}
+          />
+        </div>
+
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background p-3 sm:p-4 md:p-6 lg:p-8 print:overflow-visible print:bg-white print:p-0">
+          <div className="mx-auto max-w-7xl print:mx-0 print:max-w-none">{children}</div>
         </main>
       </div>
     </div>
