@@ -601,3 +601,22 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [x] Smoke test scope — verified the JWT session strategy still protects authenticated pages/APIs through the existing middleware and `requireSession` / `requireAdmin` guards, and confirmed the new configuration enforces a 12-hour absolute session lifetime at the auth layer
+
+---
+
+## Login cleanup + moderate hardening — April 29, 2026
+
+- Re-audited the repository auth paths and confirmed temporary debug workflow instrumentation is fully removed (no debug ingest endpoints/session traces remain in tracked source files).
+- Added lightweight credentials login abuse protection in `src/lib/auth-rate-limit.ts` and integrated it into `src/lib/auth.ts`:
+  - Per email + client IP failure tracking
+  - Temporary lockout after repeated failed attempts
+  - Short progressive backoff delay on failures
+- Kept login responses generic (`null` from credentials authorize on failure paths) to avoid user/account enumeration leakage.
+- Updated `README.md` authentication notes to include credentials sign-in throttling behavior.
+
+### Login cleanup/moderate hardening quality check — April 29, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for valid login, invalid credentials, and repeated-failure lockout/backoff behavior

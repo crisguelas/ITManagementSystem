@@ -10,6 +10,14 @@ import bcrypt from "bcryptjs";
 
 /* Local imports */
 import { authConfig } from "./auth.config";
+import {
+  applyLoginFailureBackoff,
+  clearLoginFailures,
+  createLoginAttemptKey,
+  getLoginRateLimitStatus,
+  getRequestIpAddress,
+  registerLoginFailure,
+} from "@/lib/auth-rate-limit";
 import { prisma } from "@/lib/prisma";
 
 /* Enforces an absolute 12-hour session lifetime for authenticated users */
@@ -30,20 +38,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         /* Validation check */
         if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        /* Build a per-email-and-IP key to throttle repeated credential failures */
+        const normalizedEmail = String(credentials.email).trim().toLowerCase();
+        const requestIp = getRequestIpAddress(request);
+        const attemptKey = createLoginAttemptKey(normalizedEmail, requestIp);
+
+        /* Block login checks while a temporary lockout is active for this key */
+        const rateLimitStatus = getLoginRateLimitStatus(attemptKey);
+        if (rateLimitStatus.isLocked) {
           return null;
         }
 
         try {
           /* Fetch user from the database */
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email as string },
+            where: { email: normalizedEmail },
           });
 
           /* Deny access if user not found or deactivated */
           if (!user || !user.isActive) {
+            registerLoginFailure(attemptKey);
+            await applyLoginFailureBackoff(attemptKey);
             return null;
           }
 
@@ -55,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           /* Return user object (omitting password implicitly handled by return type) to encode in JWT */
           if (passwordsMatch) {
+            clearLoginFailures(attemptKey);
             return {
               id: user.id,
               name: user.name,
@@ -62,7 +84,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               role: user.role,
             };
           }
+
+          /* Register failed password attempts to reduce brute-force effectiveness */
+          registerLoginFailure(attemptKey);
+          await applyLoginFailureBackoff(attemptKey);
         } catch (error) {
+          registerLoginFailure(attemptKey);
+          await applyLoginFailureBackoff(attemptKey);
           console.error("Authorization error:", error);
           return null;
         }
