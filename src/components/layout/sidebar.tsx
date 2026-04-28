@@ -6,6 +6,7 @@
 
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -114,18 +115,31 @@ export const Sidebar = ({
       <div className="flex items-center justify-between h-16 px-4 shrink-0 border-b border-primary-800">
         {!isDesktopCollapsed && (
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white shadow-sm">
-              I
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded shadow-sm">
+              {/* Compact shield mark keeps sidebar branding legible in tight spaces */}
+              <Image
+                src="/imc-shield-32x32.png"
+                alt="IT Department shield logo"
+                width={32}
+                height={32}
+                className="h-full w-full object-contain"
+              />
             </div>
             <div className="flex flex-col min-w-0">
                <span className="font-semibold text-sm truncate">{APP_NAME}</span>
-               <span className="text-[10px] text-primary-300 truncate">IT Department</span>
+               <span className="text-[10px] text-primary-300 truncate">Managed by the IT Department</span>
             </div>
           </div>
         )}
         {isDesktopCollapsed && (
-           <div className="w-8 h-8 rounded bg-primary-500 flex items-center justify-center shrink-0 font-bold text-white mx-auto shadow-sm">
-             I
+           <div className="mx-auto flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded shadow-sm">
+             <Image
+               src="/imc-shield-32x32.png"
+               alt="IT Department shield logo"
+               width={32}
+               height={32}
+               className="h-full w-full object-contain"
+             />
            </div>
         )}
         <button

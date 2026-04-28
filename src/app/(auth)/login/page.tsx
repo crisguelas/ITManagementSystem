@@ -7,6 +7,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -84,14 +85,22 @@ export default function LoginPage() {
     <div className="animate-fade-in-up">
       {/* Branding Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-lg mb-4">
-          <span className="text-3xl font-bold">I</span>
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl shadow-lg">
+          {/* Brand logo replaces the placeholder letter icon on the login header */}
+          <Image
+            src="/Inaya-logo.webp"
+            alt="Inaya Medical Colleges logo"
+            width={64}
+            height={64}
+            className="h-full w-full object-contain"
+            priority
+          />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           {APP_NAME}
         </h1>
         <p className="text-sm text-gray-500 mt-2">
-          IT Department
+          Managed by the IT Department
         </p>
       </div>
 
