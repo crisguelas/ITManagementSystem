@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Search, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type SearchResultType = "employee" | "asset";
 
@@ -30,7 +31,21 @@ interface SearchResponse {
 /**
  * GlobalSearch — Employee-first universal search with suggestion dropdown.
  */
-export const GlobalSearch = () => {
+interface GlobalSearchProps {
+  className?: string;
+  autoFocusInput?: boolean;
+  onEscapeKey?: () => void;
+}
+
+/**
+ * GlobalSearch — Employee-first universal search with suggestion dropdown.
+ * Supports optional autofocus and Escape callback for mobile header expansion.
+ */
+export const GlobalSearch = ({
+  className,
+  autoFocusInput = false,
+  onEscapeKey,
+}: GlobalSearchProps) => {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [query, setQuery] = useState("");
@@ -151,15 +166,17 @@ export const GlobalSearch = () => {
 
     if (event.key === "Escape") {
       setIsOpen(false);
+      onEscapeKey?.();
     }
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-2xl">
+    <div ref={containerRef} className={cn("relative w-full max-w-2xl", className)}>
       <div className="flex h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 shadow-sm transition-colors focus-within:border-primary-400">
         <Search className="h-4 w-4 text-primary-600" />
         <input
           type="text"
+          autoFocus={autoFocusInput}
           value={query}
           onChange={(event) => {
             const nextQuery = event.target.value;

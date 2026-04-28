@@ -19,6 +19,8 @@ import {
   AlertTriangle,
   PackagePlus,
   Menu,
+  Search,
+  X,
 } from "lucide-react";
 
 /* Local imports */
@@ -27,7 +29,7 @@ import {
   extractLowStockRowsFromItemsList,
   type LowStockNotificationRow,
 } from "@/lib/stock/low-stock-from-api";
-import { capitalize } from "@/lib/utils";
+import { capitalize, cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* COMPONENT                                                       */
@@ -86,6 +88,7 @@ export const Header = ({
   });
   const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -192,6 +195,13 @@ export const Header = ({
     });
   }, [fetchNotifications]);
 
+  useEffect(() => {
+    /* Close mobile search after route navigation to keep header state predictable */
+    queueMicrotask(() => {
+      setIsMobileSearchOpen(false);
+    });
+  }, [pathname]);
+
   /* Persists read notification ids whenever they change */
   useEffect(() => {
     window.localStorage.setItem(
@@ -286,9 +296,16 @@ export const Header = ({
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-lg font-semibold tracking-tight text-gray-800 sm:text-xl">
-          {getPageTitle()}
-        </h1>
+        {!isMobileSearchOpen && (
+          <h1 className="truncate text-lg font-semibold tracking-tight text-gray-800 sm:text-xl">
+            {getPageTitle()}
+          </h1>
+        )}
+        {isMobileSearchOpen && (
+          <div className="min-w-0 flex-1 lg:hidden">
+            <GlobalSearch autoFocusInput onEscapeKey={() => setIsMobileSearchOpen(false)} />
+          </div>
+        )}
         <div className="ml-1 hidden min-w-0 flex-1 lg:block">
           <GlobalSearch />
         </div>
@@ -296,12 +313,30 @@ export const Header = ({
 
       {/* Right side: Actions & Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
-        <div className="w-full max-w-sm lg:hidden">
-          <GlobalSearch />
-        </div>
+        {!isMobileSearchOpen && (
+          <button
+            type="button"
+            onClick={() => setIsMobileSearchOpen(true)}
+            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 lg:hidden"
+            aria-label="Open search"
+            aria-expanded={isMobileSearchOpen}
+          >
+            <Search className="h-5 w-5" />
+          </button>
+        )}
+        {isMobileSearchOpen && (
+          <button
+            type="button"
+            onClick={() => setIsMobileSearchOpen(false)}
+            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 lg:hidden"
+            aria-label="Close search"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
 
         {/* Notifications */}
-        <div ref={notificationRef} className="relative">
+        <div ref={notificationRef} className={cn("relative", isMobileSearchOpen ? "hidden lg:block" : "")}>
           <button
             type="button"
             onClick={() => {
@@ -473,10 +508,10 @@ export const Header = ({
         </div>
 
         {/* Divider */}
-        <div className="hidden h-6 w-px bg-gray-200 sm:block"></div>
+        <div className={cn("hidden h-6 w-px bg-gray-200 sm:block", isMobileSearchOpen ? "lg:block" : "")}></div>
 
         {/* User Profile Summary + dropdown menu for account actions */}
-        <div ref={menuRef} className="relative">
+        <div ref={menuRef} className={cn("relative", isMobileSearchOpen ? "hidden lg:block" : "")}>
           <button
             type="button"
             onClick={() => setIsMenuOpen((prev) => !prev)}

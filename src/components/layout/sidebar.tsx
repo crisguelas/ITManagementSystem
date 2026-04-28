@@ -71,6 +71,26 @@ export const Sidebar = ({
     onMobileClose?.();
   }, [onMobileClose, pathname]);
 
+  useEffect(() => {
+    /* Auto-hide the Settings dropdown after leaving settings routes */
+    if (pathname.startsWith("/settings")) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      setOpenDropdowns((previousState) => {
+        if (!previousState.Settings) {
+          return previousState;
+        }
+
+        return {
+          ...previousState,
+          Settings: false,
+        };
+      });
+    });
+  }, [pathname]);
+
   /* Toggle a specific dropdown menu open/closed */
   const toggleDropdown = (label: string) => {
     setOpenDropdowns((prev) => ({
@@ -164,7 +184,7 @@ export const Sidebar = ({
             const Icon = ICON_MAP[item.icon];
             const isActive = isItemActive(item);
             const hasChildren = "children" in item && item.children && item.children.length > 0;
-            const isDropdownOpen = openDropdowns[item.label] || isActive;
+            const isDropdownOpen = isActive || Boolean(openDropdowns[item.label]);
 
             return (
               <div key={item.label} className="flex flex-col">

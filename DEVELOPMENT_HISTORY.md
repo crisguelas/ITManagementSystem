@@ -620,3 +620,21 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for valid login, invalid credentials, and repeated-failure lockout/backoff behavior
+
+---
+
+## Sidebar settings dropdown + mobile header search UX fix — April 29, 2026
+
+- Updated `src/components/layout/sidebar.tsx` so the **Settings** submenu still opens on active `/settings*` routes, while manual dropdown state is auto-cleared when navigating away from Settings pages.
+- Updated the global header search UX for mobile in `src/components/layout/header.tsx` + `src/components/layout/global-search.tsx`:
+  - Mobile now shows a clickable search icon by default.
+  - Clicking search expands the input inline in the header.
+  - Added an explicit close button and Escape-key close support for the expanded mobile search state.
+  - Prevented header title/action overlap at mobile widths by conditionally hiding non-search actions while search is expanded.
+
+### Sidebar/search UX fix quality check — April 29, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for Settings submenu auto-hide on non-settings routes, mobile search icon expand/collapse behavior, and no title/search overlap on small screens
