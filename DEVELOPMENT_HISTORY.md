@@ -736,3 +736,32 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Organization terminology rollback (Department labels) — April 30, 2026
+
+- Rolled back Organization-facing terminology from **Unit** to **Department** in key employee/department screens while keeping inventory measurement `unit` unchanged.
+- Updated **Organization → Registered Employees**:
+  - Table header `Unit` → `Department`
+  - Search placeholder wording to use `department`
+  - Employee form label/placeholder `Unit`/`Select unit` → `Department`/`Select department`
+  - Empty-state helper copy to instruct adding a **department** first
+- Updated **Organization → Academic & Administrative**:
+  - Table header `Unit Name` → `Department Name`
+  - Action/button labels `Add Unit` → `Add Department`
+  - Modal titles/descriptions `Add/Edit Unit` → `Add/Edit Department`
+  - Department form field label `Unit Name` → `Department Name`
+  - Department form submit label `Add Unit` → `Add Department`
+- Updated employee profile page field label:
+  - `/organization/employees/[id]`: `Unit` → `Department`
+- Updated `README.md` feature wording to restore department terminology under Locations & People.
+- Investigation result for recent unit rename scope:
+  - Most recent naming commits (`39abbc7`, `a1be381`) changed UI/docs files only.
+  - No database model/field rename was introduced (Prisma remains `Department` / `departmentId`).
+
+### Organization terminology rollback quality check — April 30, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

@@ -140,7 +140,7 @@ export const EmployeeForm = ({
   if (departments.length === 0) {
     return (
       <p className="text-sm text-gray-600">
-        Add a unit first, then you can register employees under it.
+        Add a department first, then you can register employees under it.
       </p>
     );
   }
@@ -162,8 +162,8 @@ export const EmployeeForm = ({
           <Input label="Last name" {...register("lastName")} error={errors.lastName?.message} required />
         </div>
         <Select
-          label="Unit"
-          placeholder="Select unit"
+          label="Department"
+          placeholder="Select department"
           options={departmentOptions}
           {...register("departmentId")}
           error={errors.departmentId?.message}

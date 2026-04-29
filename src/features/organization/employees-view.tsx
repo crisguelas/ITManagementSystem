@@ -118,7 +118,7 @@ export const EmployeesView = () => {
                   type="text"
                   value={employeeSearchQuery}
                   onChange={(e) => setEmployeeSearchQuery(e.target.value)}
-                  placeholder="Search by employee ID, name, unit, or position..."
+                  placeholder="Search by employee ID, name, department, or position..."
                   className="block h-10 w-full rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm placeholder-gray-400 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
@@ -154,7 +154,7 @@ export const EmployeesView = () => {
                   <tr>
                     <th className="px-6 py-3 whitespace-nowrap">Employee ID</th>
                     <th className="px-6 py-3 whitespace-nowrap">Name</th>
-                    <th className="px-6 py-3 whitespace-nowrap">Unit</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Department</th>
                     <th className="px-6 py-3 whitespace-nowrap">Email</th>
                     <th className="px-6 py-3 whitespace-nowrap">Mobile / Ext</th>
                     <th className="px-6 py-3 whitespace-nowrap">Position</th>

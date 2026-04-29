@@ -97,7 +97,7 @@ export const DepartmentsView = () => {
                 onClick={() => setIsDepartmentModalOpen(true)}
                 disabled={isLoading}
               >
-                Add Unit
+                Add Department
               </Button>
             </div>
           </div>
@@ -109,14 +109,14 @@ export const DepartmentsView = () => {
             </div>
           ) : departments.length === 0 ? (
             <div className="p-8 text-center text-sm text-gray-500">
-              No units found.
+              No departments found.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-[760px] w-full text-left text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50/80 text-gray-600">
                   <tr>
-                    <th className="px-6 py-3 whitespace-nowrap">Unit Name</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Department Name</th>
                     <th className="px-6 py-3 whitespace-nowrap">Short Code</th>
                     <th className="px-6 py-3 whitespace-nowrap">Registered Employees</th>
                     <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
@@ -172,8 +172,8 @@ export const DepartmentsView = () => {
       <Modal
         isOpen={isDepartmentModalOpen}
         onClose={() => setIsDepartmentModalOpen(false)}
-        title="Add Unit"
-        description="Create an academic or administrative unit."
+        title="Add Department"
+        description="Create an academic or administrative department."
       >
         <DepartmentForm
           onSuccess={() => {
@@ -187,8 +187,8 @@ export const DepartmentsView = () => {
       <Modal
         isOpen={isEditDepartmentModalOpen}
         onClose={() => setIsEditDepartmentModalOpen(false)}
-        title="Edit Unit"
-        description="Update unit details."
+        title="Edit Department"
+        description="Update department details."
       >
         <DepartmentForm
           key={selectedDepartment?.id ?? "edit-department"}

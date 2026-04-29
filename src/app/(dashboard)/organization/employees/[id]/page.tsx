@@ -171,7 +171,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
             <p className="font-medium text-gray-900">{profile.employeeId}</p>
           </div>
           <div>
-            <p className="text-gray-500">Unit</p>
+            <p className="text-gray-500">Department</p>
             <p className="font-medium text-gray-900">{profile.departmentName}</p>
           </div>
           {profile.email && (
