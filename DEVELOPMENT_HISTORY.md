@@ -694,3 +694,21 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for mobile button width behavior and desktop alignment on Assets/Inventory pages
+
+---
+
+## Organization terminology alignment (Units) + employees email column — April 30, 2026
+
+- Updated organization tab and table terminology from department-centric labels to unit-centric labels:
+  - Organization tab: **Academic Departments** → **Academic & Administrative Units**
+  - Departments table header: **Department Name** → **Unit Name**
+  - Employees table header: **Department** → **Unit**
+- Added **Email** column to **Organization → Registered Employees** table.
+- Updated related Organization modal/button/empty-state labels to use **Unit** terminology consistently.
+- Updated `README.md` location/people feature wording to reflect unit naming and employee table email visibility.
+
+### Organization terminology/email quality check — April 30, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

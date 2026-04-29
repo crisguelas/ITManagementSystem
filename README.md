@@ -21,8 +21,8 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### Locations & people
 - **Buildings & rooms** — Campus or office structure; manage buildings in **Organization → Places** and manage room CRUD inside each building’s **View** page (room form posts to `/api/rooms`)
-- **Departments** — Organizational units managed from **Organization → Academic Departments** with standard department CRUD management
-- **Employees** — Names, titles, departments, contact info; add staff from **Organization → Registered Employees** (**Add Employee** opens a dialog; `POST /api/employees`). Employee forms support **Mobile (Optional)** and **Phone Ext. (Optional)**, and the employees table shows human-readable titles (`Mr.`, `Ms.`, `Dr.`, `Prof.`). Modals render in a **portal** above the dashboard UI.
+- **Units** — Academic and administrative organizational units managed from **Organization → Academic & Administrative Units** with standard unit CRUD management
+- **Employees** — Names, titles, unit assignment, and contact info; add staff from **Organization → Registered Employees** (**Add Employee** opens a dialog; `POST /api/employees`). Employee forms support **Mobile (Optional)** and **Phone Ext. (Optional)**, and the employees table shows human-readable titles (`Mr.`, `Ms.`, `Dr.`, `Prof.`) plus an email column. Modals render in a **portal** above the dashboard UI.
 
 ### Inventory
 - **Stock categories & items** — Quantities, low-stock thresholds

@@ -86,7 +86,7 @@ export const DepartmentsView = () => {
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Building2 className="h-5 w-5 text-gray-400" />
-              Academic Departments
+              Academic & Administrative Units
             </h2>
             <div className="w-full sm:w-auto">
               <Button
@@ -97,7 +97,7 @@ export const DepartmentsView = () => {
                 onClick={() => setIsDepartmentModalOpen(true)}
                 disabled={isLoading}
               >
-                Add Department
+                Add Unit
               </Button>
             </div>
           </div>
@@ -109,14 +109,14 @@ export const DepartmentsView = () => {
             </div>
           ) : departments.length === 0 ? (
             <div className="p-8 text-center text-sm text-gray-500">
-              No departments found.
+              No units found.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-[760px] w-full text-left text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50/80 text-gray-600">
                   <tr>
-                    <th className="px-6 py-3 whitespace-nowrap">Department Name</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Unit Name</th>
                     <th className="px-6 py-3 whitespace-nowrap">Short Code</th>
                     <th className="px-6 py-3 whitespace-nowrap">Registered Employees</th>
                     <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
@@ -172,8 +172,8 @@ export const DepartmentsView = () => {
       <Modal
         isOpen={isDepartmentModalOpen}
         onClose={() => setIsDepartmentModalOpen(false)}
-        title="Add Department"
-        description="Create an organization branch or academic college."
+        title="Add Unit"
+        description="Create an academic or administrative unit."
       >
         <DepartmentForm
           onSuccess={() => {
@@ -187,8 +187,8 @@ export const DepartmentsView = () => {
       <Modal
         isOpen={isEditDepartmentModalOpen}
         onClose={() => setIsEditDepartmentModalOpen(false)}
-        title="Edit Department"
-        description="Update department details."
+        title="Edit Unit"
+        description="Update unit details."
       >
         <DepartmentForm
           key={selectedDepartment?.id ?? "edit-department"}
