@@ -677,3 +677,20 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for settings submenu hide behavior and Add Employee one-line rendering at narrow desktop/tablet widths
+
+---
+
+## Assets/Inventory add-button responsive parity — April 29, 2026
+
+- Updated add-action button behavior to match Organization `Add Building` responsiveness (full-width on mobile, auto-width from `sm` and up):
+  - `src/features/assets/asset-table.tsx` (`Register Asset`)
+  - `src/features/stock/stock-items-tab.tsx` (`Add Item`)
+  - `src/features/stock/stock-categories-tab.tsx` (`Add Category`)
+- Updated Inventory tab card headers to use mobile-stacked layout with consistent spacing and alignment, then switch to horizontal alignment on larger screens.
+
+### Assets/Inventory button parity quality check — April 29, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for mobile button width behavior and desktop alignment on Assets/Inventory pages

@@ -102,7 +102,7 @@ export const AssetTable = () => {
   return (
     <div className="flex flex-col gap-4 animate-fade-in">
       {/* Table Toolbar Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-xl border border-gray-100 bg-white p-4 sm:flex-row sm:items-center">
         <div className="w-full sm:max-w-md relative">
            {/* Custom search input */}
            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -117,10 +117,11 @@ export const AssetTable = () => {
            />
         </div>
         
-        <div className="w-full sm:w-auto flex items-center gap-2">
+        <div className="w-full sm:w-auto">
           {/* Action button opens the asset registration modal */}
           <Button 
             variant="primary" 
+            className="w-full sm:w-auto"
             leftIcon={<Plus className="w-4 h-4" />}
             onClick={() => setIsModalOpen(true)}
           >

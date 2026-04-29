@@ -80,11 +80,13 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
   return (
     <div className="space-y-4 animate-fade-in">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
+        <CardHeader className="flex flex-col items-start justify-between gap-4 border-b border-gray-100 py-4 sm:flex-row sm:items-center">
           <h2 className="text-lg font-semibold text-gray-900">Inventory Items</h2>
-          <Button onClick={() => handleOpenForm()} variant="primary" className="flex items-center gap-2">
+          <div className="w-full sm:w-auto">
+            <Button onClick={() => handleOpenForm()} variant="primary" className="w-full sm:w-auto">
             <Package className="h-4 w-4" /> Add Item
-          </Button>
+            </Button>
+          </div>
         </CardHeader>
         <CardBody className="p-0">
           {!items.length ? (
