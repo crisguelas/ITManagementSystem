@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
+import { hasExceededAbsoluteSessionLifetime } from "@/lib/auth.config";
 
 export const requireSession = async () => {
   const session = await auth();
@@ -13,6 +14,15 @@ export const requireSession = async () => {
     return {
       session: null,
       response: NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+  if (
+    typeof session.loginIssuedAt === "number" &&
+    hasExceededAbsoluteSessionLifetime(session.loginIssuedAt)
+  ) {
+    return {
+      session: null,
+      response: NextResponse.json({ success: false, error: "Session expired. Please sign in again." }, { status: 401 }),
     };
   }
   return { session, response: null };

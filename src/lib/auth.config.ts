@@ -6,6 +6,14 @@
 
 import type { NextAuthConfig } from "next-auth";
 
+/* Shared absolute session lifetime policy: 12 hours from initial sign-in */
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
+const ABSOLUTE_SESSION_MAX_AGE_MS = SESSION_MAX_AGE_SECONDS * 1000;
+
+/* Returns true when a persisted login timestamp has exceeded the absolute lifetime */
+export const hasExceededAbsoluteSessionLifetime = (loginIssuedAt: number) =>
+  Date.now() - loginIssuedAt >= ABSOLUTE_SESSION_MAX_AGE_MS;
+
 export const authConfig = {
   /* Custom pages for NextAuth */
   pages: {
@@ -17,6 +25,10 @@ export const authConfig = {
     /* Authorized callback — runs in middleware to protect routes */
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
+      const loginIssuedAt =
+        auth && typeof auth === "object" && "loginIssuedAt" in auth && typeof auth.loginIssuedAt === "number"
+          ? auth.loginIssuedAt
+          : null;
       const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
       const isLoginRoute = nextUrl.pathname.startsWith('/login');
       const isPublicScanRoute = nextUrl.pathname.startsWith("/scan");
@@ -28,6 +40,9 @@ export const authConfig = {
 
       /* Restrict dashboard access */
       if (!isLoginRoute) {
+        if (isLoggedIn && loginIssuedAt !== null && hasExceededAbsoluteSessionLifetime(loginIssuedAt)) {
+          return false;
+        }
         if (isLoggedIn) return true;
         return false; /* Redirect unauthenticated users to login page */
       } else if (isLoggedIn) {
@@ -44,6 +59,11 @@ export const authConfig = {
         /* User object only available during sign-in */
         token.role = user.role;
         token.id = user.id;
+        /* Persist immutable login timestamp for absolute session cutoff checks */
+        token.loginIssuedAt = Date.now();
+      }
+      if (typeof token.loginIssuedAt !== "number") {
+        token.loginIssuedAt = typeof token.iat === "number" ? token.iat * 1000 : Date.now();
       }
       return token;
     },
@@ -53,6 +73,7 @@ export const authConfig = {
       if (token && session.user) {
         session.user.role = token.role as "ADMIN" | "MEMBER";
         session.user.id = token.id as string;
+        session.loginIssuedAt = typeof token.loginIssuedAt === "number" ? token.loginIssuedAt : Date.now();
       }
       return session;
     }

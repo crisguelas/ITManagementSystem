@@ -765,3 +765,21 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Authentication strict 12-hour forced re-login enforcement — April 30, 2026
+
+- Added explicit absolute session-cutoff enforcement so authenticated users are forced to re-login after 12 hours from initial sign-in, even with continued activity.
+- Persisted immutable `loginIssuedAt` in JWT/session callbacks for deterministic cutoff checks.
+- Enforced absolute lifetime in both:
+  - Edge route protection (`authorized` callback in auth config)
+  - API guards (`requireSession` in `src/lib/api-auth.ts`) to return `401 Session expired` when cutoff is exceeded.
+- Updated auth TypeScript declarations to include `loginIssuedAt` in Session/JWT typing.
+- Updated `README.md` authentication wording to reflect strict forced re-login behavior.
+
+### Authentication strict forced re-login quality check — April 30, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

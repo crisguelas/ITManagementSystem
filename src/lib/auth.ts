@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 
 /* Local imports */
 import { authConfig } from "./auth.config";
+import { SESSION_MAX_AGE_SECONDS } from "./auth.config";
 import {
   applyLoginFailureBackoff,
   clearLoginFailures,
@@ -19,9 +20,6 @@ import {
   registerLoginFailure,
 } from "@/lib/auth-rate-limit";
 import { prisma } from "@/lib/prisma";
-
-/* Enforces an absolute 12-hour session lifetime for authenticated users */
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
