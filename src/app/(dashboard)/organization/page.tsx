@@ -48,7 +48,7 @@ export default function OrganizationPage() {
           }`}
         >
           <GraduationCap className="h-4 w-4" />
-          Academic & Administrative Units
+          Academic & Administrative
         </button>
         <button
           type="button"

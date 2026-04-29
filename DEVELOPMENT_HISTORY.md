@@ -712,3 +712,27 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Organization terminology follow-up (Unit naming consistency) — April 30, 2026
+
+- Updated **Organization → Registered Employees** form terminology:
+  - Employee form label `Department` → `Unit`
+  - Employee form placeholder `Select department` → `Select unit`
+  - Empty-state helper text now instructs users to add a **unit** first.
+- Updated **Organization** unit tab naming:
+  - Tab title `Academic & Administrative Units` → `Academic & Administrative`
+  - In-tab card/table title `Academic & Administrative Units` → `Academic & Administrative`
+- Updated **Unit form** terminology:
+  - Field label `Department Name` → `Unit Name`
+  - Add action button `Add Department` → `Add Unit`
+- Updated employee profile page (`/organization/employees/[id]`) field label:
+  - `Department` → `Unit`
+- Updated `README.md` feature wording to match the final tab name.
+
+### Organization terminology follow-up quality check — April 30, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

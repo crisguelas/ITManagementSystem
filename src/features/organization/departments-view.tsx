@@ -86,7 +86,7 @@ export const DepartmentsView = () => {
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Building2 className="h-5 w-5 text-gray-400" />
-              Academic & Administrative Units
+              Academic & Administrative
             </h2>
             <div className="w-full sm:w-auto">
               <Button
