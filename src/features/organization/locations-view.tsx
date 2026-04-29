@@ -101,69 +101,82 @@ export const LocationsView = () => {
       
       {/* Buildings Section */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
-           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-             <Building className="w-5 h-5 text-gray-400" />
-             Registered Buildings
-           </h2>
-           <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setIsBuildingModalOpen(true)}>Add Building</Button>
+        <CardHeader className="border-b border-gray-100 py-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Building className="w-5 h-5 text-gray-400" />
+              Registered Buildings
+            </h2>
+            <div className="w-full sm:w-auto">
+              <Button
+                variant="primary"
+                className="w-full sm:w-auto"
+                leftIcon={<Plus className="w-4 h-4" />}
+                onClick={() => setIsBuildingModalOpen(true)}
+              >
+                Add Building
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardBody className="p-0">
           {buildings.length === 0 ? (
             <div className="p-8 text-center text-gray-500 text-sm">No buildings configured yet.</div>
           ) : (
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3">Building Name</th>
-                  <th className="px-6 py-3">Code</th>
-                  <th className="px-6 py-3">Total Rooms</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {buildings.map((bld) => (
-                  <tr key={bld.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">{bld.name}</td>
-                    <td className="px-6 py-4"><Badge variant="outline">{bld.code}</Badge></td>
-                    <td className="px-6 py-4 text-gray-500">{bld._count?.rooms || 0} Rooms</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link href={`/organization/buildings/${bld.id}`} className="inline-flex">
+            <div className="overflow-x-auto">
+              <table className="min-w-[820px] w-full text-sm text-left">
+                <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 whitespace-nowrap">Building Name</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Code</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Total Rooms</th>
+                    <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {buildings.map((bld) => (
+                    <tr key={bld.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{bld.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap"><Badge variant="outline">{bld.code}</Badge></td>
+                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{bld._count?.rooms || 0} Rooms</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                          <Link href={`/organization/buildings/${bld.id}`} className="inline-flex">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              leftIcon={<Eye className="w-4 h-4" />}
+                            >
+                              View
+                            </Button>
+                          </Link>
                           <Button
                             type="button"
                             size="sm"
                             variant="outline"
-                            leftIcon={<Eye className="w-4 h-4" />}
+                            leftIcon={<Pencil className="w-4 h-4" />}
+                            onClick={() => handleEditBuilding(bld)}
                           >
-                            View
+                            Edit
                           </Button>
-                        </Link>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          leftIcon={<Pencil className="w-4 h-4" />}
-                          onClick={() => handleEditBuilding(bld)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="danger"
-                          leftIcon={<Trash2 className="w-4 h-4" />}
-                          isLoading={deleteBuildingId === bld.id}
-                          onClick={() => void handleDeleteBuilding(bld)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="danger"
+                            leftIcon={<Trash2 className="w-4 h-4" />}
+                            isLoading={deleteBuildingId === bld.id}
+                            onClick={() => void handleDeleteBuilding(bld)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardBody>
       </Card>

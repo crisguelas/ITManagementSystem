@@ -638,3 +638,24 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for Settings submenu auto-hide on non-settings routes, mobile search icon expand/collapse behavior, and no title/search overlap on small screens
+
+---
+
+## Organization table mobile UX + toolbar unification — April 29, 2026
+
+- Updated `src/features/organization/employees-view.tsx` toolbar to a responsive Assets-like layout:
+  - Search field now uses full-width mobile behavior with `sm` constrained width.
+  - **Add Employee** button now remains visible and tappable on small screens.
+- Updated all Organization tab tables for mobile horizontal scrolling behavior consistent with Assets:
+  - `src/features/organization/employees-view.tsx`
+  - `src/features/organization/departments-view.tsx`
+  - `src/features/organization/locations-view.tsx`
+- Added `overflow-x-auto` table wrappers, table `min-w-*` constraints, and `whitespace-nowrap` on key columns/action cells to prevent clipping of right-side action buttons on narrow widths.
+- Standardized top toolbar/action spacing in Departments and Locations tabs to match Employees/Assets visual rhythm.
+
+### Organization table UX quality check — April 29, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for horizontal scroll visibility in all 3 Organization tabs and Add Employee action visibility on small-screen widths

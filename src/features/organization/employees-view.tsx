@@ -103,33 +103,37 @@ export const EmployeesView = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-gray-400" />
-            Registered Employees
-          </h2>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search className="h-4 w-4 text-gray-400" />
+        <CardHeader className="border-b border-gray-100 py-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <Users className="h-5 w-5 text-gray-400" />
+              Registered Employees
+            </h2>
+            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <div className="relative w-full sm:w-80">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={employeeSearchQuery}
+                  onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                  placeholder="Search by employee ID, name, department, or position..."
+                  className="block h-10 w-full rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm placeholder-gray-400 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
               </div>
-              <input
-                type="text"
-                value={employeeSearchQuery}
-                onChange={(e) => setEmployeeSearchQuery(e.target.value)}
-                placeholder="Search by employee ID, name, department, or position..."
-                className="block h-9 w-72 rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm placeholder-gray-400 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+              <div className="w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="w-full sm:w-auto"
+                  leftIcon={<Plus className="w-4 h-4" />}
+                  onClick={() => setIsEmployeeModalOpen(true)}
+                >
+                  Add Employee
+                </Button>
+              </div>
             </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="primary"
-              leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => setIsEmployeeModalOpen(true)}
-            >
-              Add Employee
-            </Button>
           </div>
         </CardHeader>
         <CardBody className="p-0">
@@ -144,61 +148,63 @@ export const EmployeesView = () => {
               No employees match the current search.
             </div>
           ) : (
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3">Employee ID</th>
-                  <th className="px-6 py-3">Name</th>
-                  <th className="px-6 py-3">Department</th>
-                  <th className="px-6 py-3">Mobile / Ext</th>
-                  <th className="px-6 py-3">Position</th>
-                  <th className="px-6 py-3">Active Assignments</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs text-gray-700">{emp.employeeId ?? "—"}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {TITLE_LABELS[emp.title] ?? emp.title} {emp.firstName} {emp.lastName}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{emp.department.name}</td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {emp.phone ? `${emp.phone}${emp.phoneExt ? ` / ${emp.phoneExt}` : ""}` : "—"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{emp.position || "—"}</td>
-                    <td className="px-6 py-4 text-gray-500">{emp._count?.assignments || 0}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          leftIcon={<Pencil className="w-4 h-4" />}
-                          onClick={() => {
-                            setSelectedEmployee(emp);
-                            setIsEditEmployeeModalOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="danger"
-                          leftIcon={<Trash2 className="w-4 h-4" />}
-                          isLoading={deleteEmployeeId === emp.id}
-                          onClick={() => void handleDeleteEmployee(emp)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="min-w-[980px] w-full text-left text-sm">
+                <thead className="bg-gray-50/80 text-gray-600 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 whitespace-nowrap">Employee ID</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Name</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Department</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Mobile / Ext</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Position</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Active Assignments</th>
+                    <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredEmployees.map((emp) => (
+                    <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 font-mono text-xs text-gray-700 whitespace-nowrap">{emp.employeeId ?? "—"}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        {TITLE_LABELS[emp.title] ?? emp.title} {emp.firstName} {emp.lastName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{emp.department.name}</td>
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                        {emp.phone ? `${emp.phone}${emp.phoneExt ? ` / ${emp.phoneExt}` : ""}` : "—"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{emp.position || "—"}</td>
+                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{emp._count?.assignments || 0}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            leftIcon={<Pencil className="w-4 h-4" />}
+                            onClick={() => {
+                              setSelectedEmployee(emp);
+                              setIsEditEmployeeModalOpen(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="danger"
+                            leftIcon={<Trash2 className="w-4 h-4" />}
+                            isLoading={deleteEmployeeId === emp.id}
+                            onClick={() => void handleDeleteEmployee(emp)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardBody>
       </Card>

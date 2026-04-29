@@ -82,24 +82,25 @@ export const DepartmentsView = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-gray-100">
-          <div className="flex items-center gap-4">
+        <CardHeader className="border-b border-gray-100 py-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Building2 className="h-5 w-5 text-gray-400" />
               Academic Departments
             </h2>
+            <div className="w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full sm:w-auto"
+                leftIcon={<Plus className="h-4 w-4" />}
+                onClick={() => setIsDepartmentModalOpen(true)}
+                disabled={isLoading}
+              >
+                Add Department
+              </Button>
+            </div>
           </div>
-
-          <Button
-            type="button"
-            size="sm"
-            variant="primary"
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => setIsDepartmentModalOpen(true)}
-            disabled={isLoading}
-          >
-            Add Department
-          </Button>
         </CardHeader>
         <CardBody className="p-0">
           {isLoading ? (
@@ -111,57 +112,59 @@ export const DepartmentsView = () => {
               No departments found.
             </div>
           ) : (
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50/80 text-gray-600">
-                <tr>
-                  <th className="px-6 py-3">Department Name</th>
-                  <th className="px-6 py-3">Short Code</th>
-                  <th className="px-6 py-3">Registered Employees</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {departments.map((department) => {
-                  return (
-                    <tr key={department.id} className="transition-colors hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{department.name}</td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                          {department.code}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 text-gray-500">{department._count?.employees ?? 0} Staff Members</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            leftIcon={<Pencil className="h-4 w-4" />}
-                            onClick={() => {
-                              setSelectedDepartment(department);
-                              setIsEditDepartmentModalOpen(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="danger"
-                            leftIcon={<Trash2 className="h-4 w-4" />}
-                            isLoading={deleteDepartmentId === department.id}
-                            onClick={() => void handleDeleteDepartment(department)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="min-w-[760px] w-full text-left text-sm">
+                <thead className="border-b border-gray-200 bg-gray-50/80 text-gray-600">
+                  <tr>
+                    <th className="px-6 py-3 whitespace-nowrap">Department Name</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Short Code</th>
+                    <th className="px-6 py-3 whitespace-nowrap">Registered Employees</th>
+                    <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {departments.map((department) => {
+                    return (
+                      <tr key={department.id} className="transition-colors hover:bg-gray-50">
+                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{department.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+                            {department.code}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{department._count?.employees ?? 0} Staff Members</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              leftIcon={<Pencil className="h-4 w-4" />}
+                              onClick={() => {
+                                setSelectedDepartment(department);
+                                setIsEditDepartmentModalOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="danger"
+                              leftIcon={<Trash2 className="h-4 w-4" />}
+                              isLoading={deleteDepartmentId === department.id}
+                              onClick={() => void handleDeleteDepartment(department)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardBody>
       </Card>
