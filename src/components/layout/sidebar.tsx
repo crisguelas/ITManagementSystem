@@ -184,7 +184,11 @@ export const Sidebar = ({
             const Icon = ICON_MAP[item.icon];
             const isActive = isItemActive(item);
             const hasChildren = "children" in item && item.children && item.children.length > 0;
-            const isDropdownOpen = isActive || Boolean(openDropdowns[item.label]);
+            const isSettingsDropdown = item.href === "/settings";
+            const isDropdownOpen =
+              isSettingsDropdown && pathname.startsWith("/settings")
+                ? true
+                : Boolean(openDropdowns[item.label]);
 
             return (
               <div key={item.label} className="flex flex-col">

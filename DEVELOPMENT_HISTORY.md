@@ -659,3 +659,21 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for horizontal scroll visibility in all 3 Organization tabs and Add Employee action visibility on small-screen widths
+
+---
+
+## Sidebar auto-hide + employee button stability follow-up — April 29, 2026
+
+- Updated `src/components/layout/sidebar.tsx` dropdown open logic to prevent **Settings → User Accounts** from staying visible after navigating to non-settings routes.
+- Kept route-aware behavior for settings pages while preserving parent/child active styling.
+- Updated `src/features/organization/employees-view.tsx` toolbar responsiveness to avoid Add Employee text wrapping/splitting:
+  - Delayed side-by-side search/button layout to larger widths (`lg`).
+  - Kept button one-line with `whitespace-nowrap` and stable width behavior.
+  - Kept button right-aligned on wider layouts and full-width fallback on narrower layouts.
+
+### Sidebar/button follow-up quality check — April 29, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for settings submenu hide behavior and Add Employee one-line rendering at narrow desktop/tablet widths

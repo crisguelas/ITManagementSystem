@@ -104,13 +104,13 @@ export const EmployeesView = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader className="border-b border-gray-100 py-4">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
               <Users className="h-5 w-5 text-gray-400" />
               Registered Employees
             </h2>
-            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
-              <div className="relative w-full sm:w-80">
+            <div className="flex w-full min-w-0 flex-col items-stretch gap-2 lg:w-auto lg:flex-row lg:items-center lg:justify-end">
+              <div className="relative w-full lg:w-80">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
@@ -122,11 +122,11 @@ export const EmployeesView = () => {
                   className="block h-10 w-full rounded-lg border border-gray-200 py-2 pl-10 pr-3 text-sm placeholder-gray-400 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
-              <div className="w-full sm:w-auto">
+              <div className="w-full lg:w-auto lg:shrink-0">
                 <Button
                   type="button"
                   variant="primary"
-                  className="w-full sm:w-auto"
+                  className="w-full whitespace-nowrap lg:w-auto"
                   leftIcon={<Plus className="w-4 h-4" />}
                   onClick={() => setIsEmployeeModalOpen(true)}
                 >
