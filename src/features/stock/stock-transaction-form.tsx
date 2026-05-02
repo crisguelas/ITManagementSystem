@@ -5,6 +5,7 @@
  */
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -26,6 +27,16 @@ interface StockTransactionFormProps {
   onCancel: () => void;
 }
 
+interface EmployeeRecipientOption {
+  id: string;
+  employeeId: string | null;
+  firstName: string;
+  lastName: string;
+  department: {
+    name: string;
+  };
+}
+
 /**
  * StockTransactionForm — Records IN, OUT, RETURN, or ADJUSTMENT transactions.
  * Shows recipient fields conditionally for OUT transactions.
@@ -39,6 +50,10 @@ export const StockTransactionForm = ({
   onCancel,
 }: StockTransactionFormProps) => {
   const { addToast } = useToast();
+  const [employees, setEmployees] = useState<EmployeeRecipientOption[]>([]);
+  const [isEmployeesLoading, setIsEmployeesLoading] = useState(true);
+  const [employeesError, setEmployeesError] = useState<string | null>(null);
+  const [selectedRecipientEmployeeId, setSelectedRecipientEmployeeId] = useState("");
 
   const {
     register,
@@ -63,6 +78,39 @@ export const StockTransactionForm = ({
   const txType = useWatch({ control, name: "type" });
   const isOut = txType === TransactionType.OUT;
   const isAdjustment = txType === TransactionType.ADJUSTMENT;
+  const selectedRecipientEmployee = useMemo(
+    () => employees.find((employee) => employee.id === selectedRecipientEmployeeId) ?? null,
+    [employees, selectedRecipientEmployeeId]
+  );
+  const recipientDepartmentName = selectedRecipientEmployee?.department.name ?? "";
+
+  /* Loads active registered employees for OUT transaction recipient selection */
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      setIsEmployeesLoading(true);
+      setEmployeesError(null);
+      try {
+        const response = await fetch("/api/employees");
+        const json = (await response.json()) as {
+          success: boolean;
+          data?: EmployeeRecipientOption[];
+          error?: string;
+        };
+        if (!response.ok || !json.success || !Array.isArray(json.data)) {
+          throw new Error(json.error ?? "Failed to load registered employees");
+        }
+        setEmployees(json.data);
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : "Failed to load registered employees";
+        setEmployeesError(message);
+      } finally {
+        setIsEmployeesLoading(false);
+      }
+    };
+
+    void fetchEmployees();
+  }, []);
 
   const transactionOptions = [
     { label: "Dispatch (OUT)", value: TransactionType.OUT },
@@ -73,11 +121,38 @@ export const StockTransactionForm = ({
 
   /* Submits the transaction to the API and triggers quantity update atomically */
   const onSubmit = async (data: z.input<typeof stockTransactionSchema>) => {
+    if (isOut) {
+      if (!selectedRecipientEmployee) {
+        addToast({
+          title: "Recipient required",
+          message: "Please select a registered employee as the recipient.",
+          variant: "error",
+        });
+        return;
+      }
+      if (!recipientDepartmentName) {
+        addToast({
+          title: "Recipient department missing",
+          message: "The selected employee does not have a department.",
+          variant: "error",
+        });
+        return;
+      }
+    }
+
     try {
+      const payload: z.input<typeof stockTransactionSchema> = {
+        ...data,
+        recipientName: isOut
+          ? `${selectedRecipientEmployee?.firstName ?? ""} ${selectedRecipientEmployee?.lastName ?? ""}`.trim()
+          : data.recipientName,
+        recipientDepartment: isOut ? recipientDepartmentName : data.recipientDepartment,
+      };
+
       const res = await fetch("/api/stock-transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       const json = (await res.json()) as { success: boolean; error?: string };
@@ -87,11 +162,12 @@ export const StockTransactionForm = ({
 
       addToast({
         title: "Transaction Recorded",
-        message: `Successfully processed ${data.quantity} ${unit} for ${itemName}.`,
+        message: `Successfully processed ${payload.quantity} ${unit} for ${itemName}.`,
         variant: "success",
       });
 
       reset();
+      setSelectedRecipientEmployeeId("");
       onSuccess();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An unexpected error occurred";
@@ -132,18 +208,31 @@ export const StockTransactionForm = ({
 
         {isOut && (
           <>
-            <Input
+            <Select
               label="Recipient Name"
-              placeholder="e.g. Dr. John Doe"
-              {...register("recipientName")}
+              value={selectedRecipientEmployeeId}
+              onChange={(event) => setSelectedRecipientEmployeeId(event.target.value)}
+              options={employees.map((employee) => {
+                const fullName = `${employee.firstName} ${employee.lastName}`.trim();
+                const employeeIdLabel = employee.employeeId ? ` (${employee.employeeId})` : "";
+                return {
+                  label: `${fullName}${employeeIdLabel} - ${employee.department.name}`,
+                  value: employee.id,
+                };
+              })}
+              placeholder={
+                isEmployeesLoading ? "Loading registered employees..." : "Select a registered employee"
+              }
               error={errors.recipientName?.message}
+              disabled={isEmployeesLoading || employees.length === 0}
               required
             />
             <Input
               label="Recipient Department"
-              placeholder="e.g. IT Department"
-              {...register("recipientDepartment")}
-              error={errors.recipientDepartment?.message}
+              value={recipientDepartmentName}
+              placeholder="Auto-filled from selected employee"
+              readOnly
+              error={errors.recipientDepartment?.message ?? employeesError ?? undefined}
               required
             />
           </>
@@ -169,7 +258,12 @@ export const StockTransactionForm = ({
         >
           Cancel
         </Button>
-        <Button type="submit" variant="primary" isLoading={isSubmitting}>
+        <Button
+          type="submit"
+          variant="primary"
+          isLoading={isSubmitting}
+          disabled={isOut && (isEmployeesLoading || employees.length === 0 || !selectedRecipientEmployeeId)}
+        >
           Record Transaction
         </Button>
       </div>
