@@ -241,7 +241,7 @@ export const StockTransactionForm = ({
         <div className="md:col-span-2">
           <Textarea
             label="Notes (Optional)"
-            placeholder="Reason for transaction, PO number, etc."
+            placeholder="Reason for transaction"
             {...register("notes")}
             error={errors.notes?.message}
             rows={2}
