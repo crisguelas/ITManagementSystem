@@ -29,8 +29,10 @@ export const authConfig = {
         auth && typeof auth === "object" && "loginIssuedAt" in auth && typeof auth.loginIssuedAt === "number"
           ? auth.loginIssuedAt
           : null;
-      const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
-      const isLoginRoute = nextUrl.pathname.startsWith('/login');
+      const hasExpiredAbsoluteSession =
+        loginIssuedAt !== null && hasExceededAbsoluteSessionLifetime(loginIssuedAt);
+      const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
+      const isLoginRoute = nextUrl.pathname.startsWith("/login");
       const isPublicScanRoute = nextUrl.pathname.startsWith("/scan");
       
       /* Always allow API auth routes */
@@ -40,12 +42,16 @@ export const authConfig = {
 
       /* Restrict dashboard access */
       if (!isLoginRoute) {
-        if (isLoggedIn && loginIssuedAt !== null && hasExceededAbsoluteSessionLifetime(loginIssuedAt)) {
+        if (isLoggedIn && hasExpiredAbsoluteSession) {
           return false;
         }
         if (isLoggedIn) return true;
         return false; /* Redirect unauthenticated users to login page */
       } else if (isLoggedIn) {
+        /* Keep expired sessions on /login so users can re-authenticate without redirect loops */
+        if (hasExpiredAbsoluteSession) {
+          return true;
+        }
         /* Redirect authenticated users attempting to access login back to dashboard */
         return Response.redirect(new URL('/', nextUrl));
       }
