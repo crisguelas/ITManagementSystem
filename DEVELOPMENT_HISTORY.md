@@ -830,3 +830,19 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for duplicate-assignment warning and new identifier fields
+
+---
+
+## Register asset identifiers layout + org employee view + building placeholders + assignment duplicate refinement — May 03, 2026
+
+- **Register Asset** — **Identifiers (Optional)** uses a responsive grid with up to **three fields per row** (`md:grid-cols-3`) so six fields wrap to **two rows** on typical desktop widths (narrower breakpoints stack fewer columns).
+- **Organization → Registered Employees** — Added row **View** action linking to `/organization/employees/[id]` (employee profile), consistent with Places **View** pattern.
+- **Add Building** form placeholders updated: name `e.g. Building 01`, short code `B01`, description `Admin Building`.
+- **Assign asset** — Same-category duplicate warning on submit (confirm to continue) unchanged in UX; **duplicate detection** now ignores the **current asset** so assigning the same unit again does not falsely warn against itself.
+
+### Register/org/assignment polish quality check — May 03, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual verification (identifiers two-row layout, employee View navigation, building placeholders, assign duplicate warning for a second same-category asset)

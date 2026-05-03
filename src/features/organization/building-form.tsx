@@ -72,9 +72,9 @@ export const BuildingForm = ({ onSuccess, onCancel, buildingId, initialData }: B
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       <div className="space-y-4">
-        <Input label="Building Name" placeholder="e.g. Science Block" {...register("name")} error={errors.name?.message} required />
-        <Input label="Short Code" placeholder="e.g. SB" {...register("code")} error={errors.code?.message} required />
-        <Input label="Description (Optional)" placeholder="Main hub for science equipment" {...register("description")} error={errors.description?.message} />
+        <Input label="Building Name" placeholder="e.g. Building 01" {...register("name")} error={errors.name?.message} required />
+        <Input label="Short Code" placeholder="B01" {...register("code")} error={errors.code?.message} required />
+        <Input label="Description (Optional)" placeholder="Admin Building" {...register("description")} error={errors.description?.message} />
       </div>
       <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>Cancel</Button>

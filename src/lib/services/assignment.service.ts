@@ -32,7 +32,8 @@ export async function findActiveSameTypeEmployeeAssignment(assetId: string, empl
     where: {
       employeeId,
       returnedAt: null,
-      asset: { stockCategoryId: asset.stockCategoryId },
+      /* Exclude the asset being assigned so reopening the same unit does not false-trigger a duplicate warning */
+      asset: { stockCategoryId: asset.stockCategoryId, id: { not: assetId } },
     },
     include: {
       asset: {

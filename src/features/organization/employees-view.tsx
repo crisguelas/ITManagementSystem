@@ -6,7 +6,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, Search, Trash2, Users } from "lucide-react";
+import Link from "next/link";
+import { Eye, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
 import { Title, type Department, type Employee } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { SkeletonTable } from "@/components/ui/loading-state";
@@ -178,6 +179,16 @@ export const EmployeesView = () => {
                       <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{emp._count?.assignments || 0}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                          <Link href={`/organization/employees/${emp.id}`} className="inline-flex">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              leftIcon={<Eye className="w-4 h-4" />}
+                            >
+                              View
+                            </Button>
+                          </Link>
                           <Button
                             type="button"
                             size="sm"
