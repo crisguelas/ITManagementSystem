@@ -13,7 +13,6 @@ export interface ReportAssetRow {
   name: string;
   category: string;
   status: string;
-  condition: string;
   serialNumber: string;
   pcNumber: string;
   assignedTo: string;
@@ -236,7 +235,6 @@ export async function getReportsData(options: GetReportsDataOptions = {}): Promi
       name: asset.name,
       category: asset.stockCategory.name,
       status: asset.status,
-      condition: asset.condition,
       serialNumber: asset.serialNumber ?? "-",
       pcNumber: asset.pcNumber ?? "-",
       assignedTo,

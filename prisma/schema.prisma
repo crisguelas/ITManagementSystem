@@ -33,15 +33,6 @@ enum AssetStatus {
   DISPOSED
 }
 
-// Physical condition of an asset 
-enum Condition {
-  NEW
-  GOOD
-  FAIR
-  POOR
-  DEFECTIVE
-}
-
 // Type classification for rooms within buildings 
 enum RoomType {
   OFFICE
@@ -121,9 +112,6 @@ model Asset {
   osInstalled  String?    // Operating system: "Windows 11 Pro"
   ram          String?    // RAM: "16GB DDR4"
   storage      String?    // Storage: "512GB SSD"
-
-  // Lifecycle tracking 
-  condition      Condition  @default(GOOD)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

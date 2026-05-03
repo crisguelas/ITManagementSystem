@@ -7,7 +7,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { StockCategory, StockItem } from "@prisma/client";
 
@@ -20,7 +20,12 @@ import { ErrorState } from "@/components/ui/error-state";
 import { LoadingSpinner } from "@/components/ui/loading-state";
 
 import { assetSchema } from "@/lib/validations/asset.schema";
-import { CONDITION_LABELS } from "@/lib/constants";
+import {
+  CUSTOM_SPEC_OPTION_VALUE,
+  OPERATING_SYSTEM_OPTIONS,
+  RAM_OPTIONS,
+  STORAGE_OPTIONS,
+} from "@/lib/constants";
 import type { z } from "zod";
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -74,6 +79,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     formState: { errors, isSubmitting },
     reset,
     setValue,
+    control,
   } = useForm<z.input<typeof assetSchema>>({
     resolver: zodResolver(assetSchema),
     defaultValues: {
@@ -88,12 +94,23 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       ram: "",
       storage: "",
       status: "AVAILABLE",
-      condition: "GOOD",
     },
   });
 
+  const selectedOs = useWatch({ control, name: "osInstalled" }) ?? "";
+  const selectedRam = useWatch({ control, name: "ram" }) ?? "";
+  const selectedStorage = useWatch({ control, name: "storage" }) ?? "";
+
+  const [isCustomOs, setIsCustomOs] = useState(false);
+  const [isCustomRam, setIsCustomRam] = useState(false);
+  const [isCustomStorage, setIsCustomStorage] = useState(false);
+
   useEffect(() => {
     if (!initialData) return;
+    const nextOs = initialData.osInstalled ?? "";
+    const nextRam = initialData.ram ?? "";
+    const nextStorage = initialData.storage ?? "";
+
     reset({
       stockCategoryId: initialData.stockCategoryId ?? "",
       brand: initialData.brand ?? "",
@@ -102,12 +119,19 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       macAddress: initialData.macAddress ?? "",
       serialNumber: initialData.serialNumber ?? "",
       ipAddress: initialData.ipAddress ?? "",
-      osInstalled: initialData.osInstalled ?? "",
-      ram: initialData.ram ?? "",
-      storage: initialData.storage ?? "",
+      osInstalled: nextOs,
+      ram: nextRam,
+      storage: nextStorage,
       status: initialData.status ?? "AVAILABLE",
-      condition: initialData.condition ?? "GOOD",
     });
+
+    const timerId = window.setTimeout(() => {
+      setIsCustomOs(Boolean(nextOs) && !(OPERATING_SYSTEM_OPTIONS as readonly string[]).includes(nextOs));
+      setIsCustomRam(Boolean(nextRam) && !(RAM_OPTIONS as readonly string[]).includes(nextRam));
+      setIsCustomStorage(Boolean(nextStorage) && !(STORAGE_OPTIONS as readonly string[]).includes(nextStorage));
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
   }, [initialData, reset]);
 
   /* Fetch categories on mount */
@@ -238,6 +262,9 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
 
         setSourceStockItemId("");
         reset();
+        setIsCustomOs(false);
+        setIsCustomRam(false);
+        setIsCustomStorage(false);
         onSuccess();
         return;
       }
@@ -281,6 +308,9 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       });
 
       reset();
+      setIsCustomOs(false);
+      setIsCustomRam(false);
+      setIsCustomStorage(false);
       onSuccess();
     } catch (err: unknown) {
       addToast({
@@ -310,12 +340,17 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     { label: "Maintenance", value: "MAINTENANCE" },
   ];
 
-  const conditionOptions = [
-    { label: CONDITION_LABELS.NEW, value: "NEW" },
-    { label: CONDITION_LABELS.GOOD, value: "GOOD" },
-    { label: CONDITION_LABELS.FAIR, value: "FAIR" },
-    { label: CONDITION_LABELS.POOR, value: "POOR" },
-    { label: CONDITION_LABELS.DEFECTIVE, value: "DEFECTIVE" },
+  const operatingSystemSelectOptions = [
+    ...OPERATING_SYSTEM_OPTIONS.map((value) => ({ label: value, value })),
+    { label: "Other", value: CUSTOM_SPEC_OPTION_VALUE },
+  ];
+  const ramSelectOptions = [
+    ...RAM_OPTIONS.map((value) => ({ label: value, value })),
+    { label: "Other", value: CUSTOM_SPEC_OPTION_VALUE },
+  ];
+  const storageSelectOptions = [
+    ...STORAGE_OPTIONS.map((value) => ({ label: value, value })),
+    { label: "Other", value: CUSTOM_SPEC_OPTION_VALUE },
   ];
 
   return (
@@ -376,7 +411,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       {/* Basic Setup */}
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">Classification</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="Category"
             options={categoryOptions}
@@ -389,13 +424,6 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
             options={statusOptions}
             {...register("status")}
             error={errors.status?.message}
-            required
-          />
-          <Select
-            label="Condition"
-            options={conditionOptions}
-            {...register("condition")}
-            error={errors.condition?.message}
             required
           />
         </div>
@@ -457,24 +485,112 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">System Specs (Optional)</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input 
-            label="Operating System" 
-            placeholder="e.g. Windows 11 Pro" 
-            {...register("osInstalled")} 
-            error={errors.osInstalled?.message} 
-          />
-          <Input 
-            label="RAM" 
-            placeholder="e.g. 16GB DDR4" 
-            {...register("ram")} 
-            error={errors.ram?.message} 
-          />
-          <Input 
-            label="Storage" 
-            placeholder="e.g. 512GB NVMe" 
-            {...register("storage")} 
-            error={errors.storage?.message} 
-          />
+          <div className="space-y-2">
+            <Select
+              label="Operating System"
+              options={operatingSystemSelectOptions}
+              value={
+                isCustomOs
+                  ? CUSTOM_SPEC_OPTION_VALUE
+                  : selectedOs
+              }
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                if (nextValue === CUSTOM_SPEC_OPTION_VALUE) {
+                  setIsCustomOs(true);
+                  setValue("osInstalled", "", { shouldValidate: true, shouldDirty: true });
+                  return;
+                }
+                setIsCustomOs(false);
+                setValue("osInstalled", nextValue, { shouldValidate: true, shouldDirty: true });
+              }}
+              placeholder="Select an operating system"
+              error={errors.osInstalled?.message}
+              required={false}
+            />
+            {isCustomOs && (
+              <Input
+                label="Custom Operating System"
+                placeholder="Enter operating system"
+                value={selectedOs}
+                onChange={(event) =>
+                  setValue("osInstalled", event.target.value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                error={errors.osInstalled?.message}
+              />
+            )}
+          </div>
+          <div className="space-y-2">
+            <Select
+              label="RAM"
+              options={ramSelectOptions}
+              value={isCustomRam ? CUSTOM_SPEC_OPTION_VALUE : selectedRam}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                if (nextValue === CUSTOM_SPEC_OPTION_VALUE) {
+                  setIsCustomRam(true);
+                  setValue("ram", "", { shouldValidate: true, shouldDirty: true });
+                  return;
+                }
+                setIsCustomRam(false);
+                setValue("ram", nextValue, { shouldValidate: true, shouldDirty: true });
+              }}
+              placeholder="Select RAM"
+              error={errors.ram?.message}
+              required={false}
+            />
+            {isCustomRam && (
+              <Input
+                label="Custom RAM"
+                placeholder="Enter RAM specification"
+                value={selectedRam}
+                onChange={(event) =>
+                  setValue("ram", event.target.value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                error={errors.ram?.message}
+              />
+            )}
+          </div>
+          <div className="space-y-2">
+            <Select
+              label="Storage"
+              options={storageSelectOptions}
+              value={isCustomStorage ? CUSTOM_SPEC_OPTION_VALUE : selectedStorage}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                if (nextValue === CUSTOM_SPEC_OPTION_VALUE) {
+                  setIsCustomStorage(true);
+                  setValue("storage", "", { shouldValidate: true, shouldDirty: true });
+                  return;
+                }
+                setIsCustomStorage(false);
+                setValue("storage", nextValue, { shouldValidate: true, shouldDirty: true });
+              }}
+              placeholder="Select storage"
+              error={errors.storage?.message}
+              required={false}
+            />
+            {isCustomStorage && (
+              <Input
+                label="Custom Storage"
+                placeholder="Enter storage specification"
+                value={selectedStorage}
+                onChange={(event) =>
+                  setValue("storage", event.target.value, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
+                error={errors.storage?.message}
+              />
+            )}
+          </div>
         </div>
       </div>
 

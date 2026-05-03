@@ -84,7 +84,6 @@ export function ReportsView({ data }: ReportsViewProps) {
       Name: asset.name,
       Category: asset.category,
       Status: asset.status,
-      Condition: asset.condition,
       "Serial Number": asset.serialNumber,
       "PC Number": asset.pcNumber,
       "Assigned To": asset.assignedTo,

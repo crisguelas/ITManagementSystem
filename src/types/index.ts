@@ -171,8 +171,7 @@ export type ReportType =
   | "stock_inventory"
   | "stock_transactions"
   | "low_stock"
-  | "assets_by_status"
-  | "assets_by_condition";
+  | "assets_by_status";
 
 /* Report configuration for the report generator */
 export interface ReportConfig {

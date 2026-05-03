@@ -81,23 +81,33 @@ export const ASSET_STATUS_COLORS: Record<string, string> = {
   DISPOSED: "bg-red-100 text-red-700 border-red-200",
 };
 
-/* Asset condition display labels */
-export const CONDITION_LABELS: Record<string, string> = {
-  NEW: "New",
-  GOOD: "Good",
-  FAIR: "Fair",
-  POOR: "Poor",
-  DEFECTIVE: "Defective",
-};
+/* Register-asset custom option key used to show free-text inputs */
+export const CUSTOM_SPEC_OPTION_VALUE = "__OTHER__";
 
-/* Asset condition badge colors (Tailwind classes) */
-export const CONDITION_COLORS: Record<string, string> = {
-  NEW: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  GOOD: "bg-blue-100 text-blue-700 border-blue-200",
-  FAIR: "bg-amber-100 text-amber-700 border-amber-200",
-  POOR: "bg-orange-100 text-orange-700 border-orange-200",
-  DEFECTIVE: "bg-red-100 text-red-700 border-red-200",
-};
+/* Operating system presets for Register Asset forms */
+export const OPERATING_SYSTEM_OPTIONS = [
+  "Windows 10 Pro",
+  "Windows 11 Pro",
+  "Windows 7 Pro",
+  "Windows XP",
+] as const;
+
+/* RAM presets for Register Asset forms */
+export const RAM_OPTIONS = [
+  "4GB DDR3",
+  "8GB DDR3",
+  "8GB DDR4",
+  "16GB DDR3",
+  "16GB DDR4",
+] as const;
+
+/* Storage presets for Register Asset forms */
+export const STORAGE_OPTIONS = [
+  "512GB HDD",
+  "512GB SSD",
+  "1TB HDD",
+  "1TB SSD",
+] as const;
 
 /* Room type display labels */
 export const ROOM_TYPE_LABELS: Record<string, string> = {

@@ -137,7 +137,6 @@ export async function convertStockItemToAsset(
         ram: input.ram,
         storage: input.storage,
         status: input.status,
-        condition: input.condition,
       },
       include: { stockCategory: true },
     });

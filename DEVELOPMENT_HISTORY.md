@@ -783,3 +783,24 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Assets register form spec presets + condition removal — May 03, 2026
+
+- Removed asset `condition` from the Prisma `Asset` model and removed all related condition handling in form validation, conversion logic, and reporting exports.
+- Updated **Assets → Register Asset** system spec inputs to dropdown presets with an `Other` path that reveals editable custom fields:
+  - Operating system: `Windows 10 Pro`, `Windows 11 Pro`, `Windows 7 Pro`, `Windows XP`, `Other`
+  - RAM: `4GB DDR3`, `8GB DDR3`, `8GB DDR4`, `16GB DDR3`, `16GB DDR4`, `Other`
+  - Storage: `512GB HDD`, `512GB SSD`, `1TB HDD`, `1TB SSD`, `Other`
+- Preserved edit-mode compatibility: existing custom values that are not in presets automatically load as custom (`Other`) entries.
+- Updated shared constants and reporting payloads so exports and downstream code no longer expect `condition`.
+
+### Assets spec presets/condition removal quality check — May 03, 2026
+
+- [x] `npx prisma generate` — pass
+- [x] `npx prisma db push --accept-data-loss` — pass (`assets.condition` dropped)
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for register/edit asset flows (preset selection, custom `Other` entry, reports export)
