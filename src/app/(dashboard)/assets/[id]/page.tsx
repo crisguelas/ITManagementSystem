@@ -133,6 +133,8 @@ export default function AssetDetailsPage() {
     pcNumber: asset.pcNumber ?? "",
     macAddress: asset.macAddress ?? "",
     serialNumber: asset.serialNumber ?? "",
+    remoteAddress: asset.remoteAddress ?? "",
+    dataPort: asset.dataPort ?? "",
     ipAddress: asset.ipAddress ?? "",
     osInstalled: asset.osInstalled ?? "",
     ram: asset.ram ?? "",
@@ -176,6 +178,8 @@ export default function AssetDetailsPage() {
       { label: "PC Number", value: asset.pcNumber ?? "", mono: false },
       { label: "Serial Number", value: asset.serialNumber ?? "", mono: true },
       { label: "MAC Address", value: asset.macAddress ?? "", mono: true },
+      { label: "Remote Address", value: asset.remoteAddress ?? "", mono: false },
+      { label: "Data Port", value: asset.dataPort ?? "", mono: false },
       { label: "IP Address", value: asset.ipAddress ?? "", mono: true },
     ];
 

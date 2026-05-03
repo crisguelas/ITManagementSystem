@@ -33,6 +33,8 @@ export const assetSchema = z.object({
   pcNumber: z.string().optional(),
   macAddress: z.string().optional(),
   serialNumber: z.string().optional(),
+  remoteAddress: z.string().optional(),
+  dataPort: z.string().optional(),
   ipAddress: z
     .string()
     .refine((value) => isValidIpAddress(value), { message: "Please enter a valid IP address" })

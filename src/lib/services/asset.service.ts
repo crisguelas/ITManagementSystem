@@ -146,12 +146,30 @@ export async function createAsset(data: z.infer<typeof assetSchema>) {
     if (existingIp) throw new Error(`IP Address "${data.ipAddress}" is already in use`);
   }
 
+  /* Check unique constraint: macAddress (if provided) */
+  if (data.macAddress) {
+    const existingMac = await prisma.asset.findUnique({
+      where: { macAddress: data.macAddress },
+    });
+    if (existingMac) throw new Error(`MAC Address "${data.macAddress}" is already in use`);
+  }
+
   /* Check unique constraint: serialNumber (if provided) */
   if (data.serialNumber) {
     const existingSn = await prisma.asset.findUnique({
       where: { serialNumber: data.serialNumber },
     });
     if (existingSn) throw new Error(`Serial Number "${data.serialNumber}" is already in use`);
+  }
+
+  /* Check unique constraint: remoteAddress (if provided) */
+  if (data.remoteAddress) {
+    const existingRemoteAddress = await prisma.asset.findUnique({
+      where: { remoteAddress: data.remoteAddress },
+    });
+    if (existingRemoteAddress) {
+      throw new Error(`Remote Address "${data.remoteAddress}" is already in use`);
+    }
   }
 
   /* Generate auto-tag */
@@ -220,6 +238,18 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
     if (existingIp) throw new Error(`IP Address "${data.ipAddress}" is already in use`);
   }
 
+  /* Check unique constraint: macAddress (if provided), excluding current asset */
+  if (data.macAddress) {
+    const existingMac = await prisma.asset.findFirst({
+      where: {
+        macAddress: data.macAddress,
+        id: { not: id },
+      },
+      select: { id: true },
+    });
+    if (existingMac) throw new Error(`MAC Address "${data.macAddress}" is already in use`);
+  }
+
   /* Check unique constraint: serialNumber (if provided), excluding current asset */
   if (data.serialNumber) {
     const existingSn = await prisma.asset.findFirst({
@@ -230,6 +260,20 @@ export async function updateAsset(id: string, data: z.infer<typeof assetSchema>)
       select: { id: true },
     });
     if (existingSn) throw new Error(`Serial Number "${data.serialNumber}" is already in use`);
+  }
+
+  /* Check unique constraint: remoteAddress (if provided), excluding current asset */
+  if (data.remoteAddress) {
+    const existingRemoteAddress = await prisma.asset.findFirst({
+      where: {
+        remoteAddress: data.remoteAddress,
+        id: { not: id },
+      },
+      select: { id: true },
+    });
+    if (existingRemoteAddress) {
+      throw new Error(`Remote Address "${data.remoteAddress}" is already in use`);
+    }
   }
 
   /* Keep display name aligned with brand/model edits */

@@ -804,3 +804,29 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual browser verification for register/edit asset flows (preset selection, custom `Other` entry, reports export)
+
+---
+
+## Assets identifiers expansion + assignment duplicate-type warning — May 03, 2026
+
+- Added new asset identifier fields in **Register Asset**:
+  - `Remote Address` (for current AnyDesk/future remote tool address usage)
+  - `Data Port` (for switch/data port tracking)
+- Propagated the new fields through API normalization, validation, service-layer persistence, asset details view, employee profile asset details, and assets table identifier rendering.
+- Enforced uniqueness safeguards for optional identifiers:
+  - `MAC Address` now treated as unique (service checks + Prisma unique key)
+  - `Serial Number` remains unique
+  - `Remote Address` added as unique
+  - (`PC Number` and `IP Address` uniqueness kept as-is)
+- Added assignment safety warning flow on asset detail page:
+  - When assigning to an employee who already has an active asset in the same category/type, the API returns a confirmation warning.
+  - UI now prompts the user to continue or cancel instead of hard-blocking.
+
+### Assets identifiers/assignment warning quality check — May 03, 2026
+
+- [x] `npx prisma generate` — pass
+- [x] `npx prisma db push --accept-data-loss` — pass
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test scope — pending manual browser verification for duplicate-assignment warning and new identifier fields

@@ -90,6 +90,8 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       macAddress: "",
       serialNumber: "",
       ipAddress: "",
+      dataPort: "",
+      remoteAddress: "",
       osInstalled: "",
       ram: "",
       storage: "",
@@ -119,6 +121,8 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       macAddress: initialData.macAddress ?? "",
       serialNumber: initialData.serialNumber ?? "",
       ipAddress: initialData.ipAddress ?? "",
+      dataPort: initialData.dataPort ?? "",
+      remoteAddress: initialData.remoteAddress ?? "",
       osInstalled: nextOs,
       ram: nextRam,
       storage: nextStorage,
@@ -229,6 +233,8 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           pcNumber: normalizeOptionalText(data.pcNumber),
           serialNumber: normalizeOptionalText(data.serialNumber),
           macAddress: normalizeOptionalText(data.macAddress),
+          remoteAddress: normalizeOptionalText(data.remoteAddress),
+          dataPort: normalizeOptionalText(data.dataPort),
           ipAddress: normalizeOptionalText(data.ipAddress),
           brand: typeof data.brand === "string" ? data.brand.trim() : data.brand,
           model: typeof data.model === "string" ? data.model.trim() : data.model,
@@ -279,6 +285,8 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
             pcNumber: normalizeOptionalText(data.pcNumber),
             serialNumber: normalizeOptionalText(data.serialNumber),
             macAddress: normalizeOptionalText(data.macAddress),
+            remoteAddress: normalizeOptionalText(data.remoteAddress),
+            dataPort: normalizeOptionalText(data.dataPort),
             ipAddress: normalizeOptionalText(data.ipAddress),
             brand: typeof data.brand === "string" ? data.brand.trim() : data.brand,
             model: typeof data.model === "string" ? data.model.trim() : data.model,
@@ -453,7 +461,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
       {/* Tracking Identifiers */}
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-primary-600 border-b border-primary-100 pb-2">Identifiers (Optional)</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
           <Input 
             label="PC Number" 
             placeholder="e.g. C000001" 
@@ -471,6 +479,18 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
             placeholder="00:1B:44:11:3A:B7" 
             {...register("macAddress")} 
             error={errors.macAddress?.message} 
+          />
+          <Input
+            label="Remote Address"
+            placeholder="e.g. AnyDesk address"
+            {...register("remoteAddress")}
+            error={errors.remoteAddress?.message}
+          />
+          <Input
+            label="Data Port"
+            placeholder="e.g. SW1-24"
+            {...register("dataPort")}
+            error={errors.dataPort?.message}
           />
           <Input
             label="IP Address"

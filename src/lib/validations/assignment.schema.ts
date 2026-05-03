@@ -20,6 +20,7 @@ export const createAssignmentSchema = z
     employeeId: optionalCuid,
     roomId: optionalCuid,
     notes: z.string().max(500).optional().nullable(),
+    allowDuplicateTypeAssignment: z.boolean().optional(),
   })
   .refine((data) => Boolean(data.employeeId || data.roomId), {
     message: "Select an employee, a room, or both.",

@@ -17,6 +17,52 @@ const assignmentInclude = {
 } as const;
 
 /**
+ * Checks whether an employee already has an active assignment for the same asset category.
+ * Used to show a user confirmation warning before creating another same-type assignment.
+ */
+export async function findActiveSameTypeEmployeeAssignment(assetId: string, employeeId: string) {
+  const asset = await prisma.asset.findUnique({
+    where: { id: assetId },
+    select: { stockCategoryId: true, stockCategory: { select: { name: true } } },
+  });
+
+  if (!asset) return null;
+
+  const existing = await prisma.assetAssignment.findFirst({
+    where: {
+      employeeId,
+      returnedAt: null,
+      asset: { stockCategoryId: asset.stockCategoryId },
+    },
+    include: {
+      asset: {
+        select: {
+          id: true,
+          assetTag: true,
+          brand: true,
+          model: true,
+          stockCategory: { select: { name: true } },
+        },
+      },
+      employee: { select: { firstName: true, lastName: true } },
+    },
+    orderBy: { assignedAt: "desc" },
+  });
+
+  if (!existing) return null;
+
+  return {
+    employeeName: existing.employee
+      ? `${existing.employee.firstName} ${existing.employee.lastName}`.trim()
+      : "Selected employee",
+    existingAssetId: existing.asset.id,
+    existingAssetTag: existing.asset.assetTag,
+    existingAssetLabel: `${existing.asset.brand} ${existing.asset.model}`.trim(),
+    categoryName: asset.stockCategory.name,
+  };
+}
+
+/**
  * Assigns an asset to an employee and/or room: closes any open assignment, creates a new row, sets asset to DEPLOYED.
  */
 export async function assignAsset(

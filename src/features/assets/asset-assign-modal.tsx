@@ -118,16 +118,43 @@ export function AssetAssignModal({
   const onSubmit = async (values: CreateAssignmentFormValues) => {
     setSubmitError(null);
     try {
-      const res = await fetch(`/api/assets/${assetId}/assignments`, {
+      const requestBody = {
+        employeeId: values.employeeId,
+        roomId: values.roomId,
+        notes: values.notes || null,
+        allowDuplicateTypeAssignment: false,
+      };
+
+      let res = await fetch(`/api/assets/${assetId}/assignments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          employeeId: values.employeeId,
-          roomId: values.roomId,
-          notes: values.notes || null,
-        }),
+        body: JSON.stringify(requestBody),
       });
-      const json = await res.json();
+      let json = await res.json();
+
+      if (!res.ok && json?.requiresConfirmation === true) {
+        const shouldContinue = window.confirm(
+          typeof json.error === "string"
+            ? `${json.error}\n\nClick OK to continue, or Cancel to review existing records first.`
+            : "This employee already has the same type of asset assigned. Continue anyway?"
+        );
+
+        if (!shouldContinue) {
+          setSubmitError("Assignment cancelled. Review existing records before continuing.");
+          return;
+        }
+
+        res = await fetch(`/api/assets/${assetId}/assignments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...requestBody,
+            allowDuplicateTypeAssignment: true,
+          }),
+        });
+        json = await res.json();
+      }
+
       if (!res.ok || !json.success) {
         throw new Error(typeof json.error === "string" ? json.error : "Assignment failed");
       }

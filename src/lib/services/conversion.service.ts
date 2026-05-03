@@ -110,12 +110,30 @@ export async function convertStockItemToAsset(
       if (existingIp) throw new Error(`IP Address "${input.ipAddress}" is already in use`);
     }
 
+    if (input.macAddress) {
+      const existingMac = await tx.asset.findUnique({
+        where: { macAddress: input.macAddress },
+        select: { id: true },
+      });
+      if (existingMac) throw new Error(`MAC Address "${input.macAddress}" is already in use`);
+    }
+
     if (input.serialNumber) {
       const existingSn = await tx.asset.findUnique({
         where: { serialNumber: input.serialNumber },
         select: { id: true },
       });
       if (existingSn) throw new Error(`Serial Number "${input.serialNumber}" is already in use`);
+    }
+
+    if (input.remoteAddress) {
+      const existingRemoteAddress = await tx.asset.findUnique({
+        where: { remoteAddress: input.remoteAddress },
+        select: { id: true },
+      });
+      if (existingRemoteAddress) {
+        throw new Error(`Remote Address "${input.remoteAddress}" is already in use`);
+      }
     }
 
     const assetTag = await generateNextAssetTag(tx, input.stockCategoryId);
@@ -133,6 +151,8 @@ export async function convertStockItemToAsset(
         serialNumber: input.serialNumber,
         macAddress: input.macAddress,
         ipAddress: input.ipAddress,
+        dataPort: input.dataPort,
+        remoteAddress: input.remoteAddress,
         osInstalled: input.osInstalled,
         ram: input.ram,
         storage: input.storage,

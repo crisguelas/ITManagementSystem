@@ -104,8 +104,10 @@ model Asset {
   brand           String                // Manufacturer: "Dell", "HP", "Lenovo"
   model           String                // Model number: "Latitude 5530"
   serialNumber    String?       @unique  // Equipment serial number
-  macAddress      String?              // Network MAC address for PCs/laptops/routers
+  macAddress      String?       @unique  // Network MAC address for PCs/laptops/routers
   ipAddress       String?       @unique  // Optional per-asset IP address identifier
+  dataPort        String?              // Optional switch data port identifier
+  remoteAddress   String?       @unique  // Optional remote-support address (e.g., AnyDesk)
   status          AssetStatus   @default(AVAILABLE)
 
   // Hardware specifications (applicable to PCs/laptops) 

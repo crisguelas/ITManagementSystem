@@ -344,6 +344,8 @@ export interface EmployeeProfileAssetSummary {
   pcNumber: string | null;
   ipAddress: string | null;
   macAddress: string | null;
+  remoteAddress: string | null;
+  dataPort: string | null;
   osInstalled: string | null;
   ram: string | null;
   storage: string | null;
@@ -594,6 +596,8 @@ export async function getEmployeeProfileById(id: string): Promise<EmployeeProfil
         pcNumber: assignment.asset.pcNumber,
         ipAddress: assignment.asset.ipAddress,
         macAddress: assignment.asset.macAddress,
+        remoteAddress: assignment.asset.remoteAddress,
+        dataPort: assignment.asset.dataPort,
         osInstalled: assignment.asset.osInstalled,
         ram: assignment.asset.ram,
         storage: assignment.asset.storage,

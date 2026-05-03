@@ -24,6 +24,8 @@ interface EmployeeProfileAssetSummary {
   pcNumber: string | null;
   ipAddress: string | null;
   macAddress: string | null;
+  remoteAddress: string | null;
+  dataPort: string | null;
   osInstalled: string | null;
   ram: string | null;
   storage: string | null;
@@ -96,6 +98,8 @@ const buildNonEmptyFieldRows = (asset: EmployeeProfileAssetSummary) => {
     { label: "PC number", value: asset.pcNumber ?? "" },
     { label: "IP address", value: asset.ipAddress ?? "" },
     { label: "MAC address", value: asset.macAddress ?? "" },
+    { label: "Remote address", value: asset.remoteAddress ?? "" },
+    { label: "Data port", value: asset.dataPort ?? "" },
     { label: "Operating system", value: asset.osInstalled ?? "" },
     { label: "RAM", value: asset.ram ?? "" },
     { label: "Storage", value: asset.storage ?? "" },
@@ -269,6 +273,8 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
                           { label: "Brand and model", value: `${assignment.asset.brand} ${assignment.asset.model}`.trim() },
                           { label: "IP address", value: assignment.asset.ipAddress },
                           { label: "MAC address", value: assignment.asset.macAddress },
+                          { label: "Remote address", value: assignment.asset.remoteAddress },
+                          { label: "Data port", value: assignment.asset.dataPort },
                           { label: "Operating system", value: assignment.asset.osInstalled },
                           { label: "RAM", value: assignment.asset.ram },
                           { label: "Storage", value: assignment.asset.storage },

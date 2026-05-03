@@ -174,7 +174,9 @@ export const AssetTable = () => {
                         {asset.pcNumber && <span className="flex gap-1"><b>PC:</b> {asset.pcNumber}</span>}
                         {asset.serialNumber && <span className="flex gap-1"><b>S/N:</b> {asset.serialNumber}</span>}
                         {asset.macAddress && <span className="flex gap-1"><b>MAC:</b> {asset.macAddress}</span>}
-                        {!asset.pcNumber && !asset.serialNumber && !asset.macAddress && <span className="text-gray-400">—</span>}
+                        {asset.remoteAddress && <span className="flex gap-1"><b>Remote:</b> {asset.remoteAddress}</span>}
+                        {asset.dataPort && <span className="flex gap-1"><b>Port:</b> {asset.dataPort}</span>}
+                        {!asset.pcNumber && !asset.serialNumber && !asset.macAddress && !asset.remoteAddress && !asset.dataPort && <span className="text-gray-400">—</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4">

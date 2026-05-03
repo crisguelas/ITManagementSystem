@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/api-auth";
-import { assignAsset } from "@/lib/services/assignment.service";
+import { assignAsset, findActiveSameTypeEmployeeAssignment } from "@/lib/services/assignment.service";
 import { createAssignmentSchema } from "@/lib/validations/assignment.schema";
 
 export async function POST(
@@ -31,6 +31,21 @@ export async function POST(
         Object.values(parsed.error.flatten().fieldErrors).flat()[0] ??
         "Invalid request";
       return NextResponse.json({ success: false, error: first }, { status: 400 });
+    }
+
+    if (parsed.data.employeeId && !parsed.data.allowDuplicateTypeAssignment) {
+      const duplicateType = await findActiveSameTypeEmployeeAssignment(assetId, parsed.data.employeeId);
+      if (duplicateType) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `${duplicateType.employeeName} already has an active ${duplicateType.categoryName} asset (${duplicateType.existingAssetTag} - ${duplicateType.existingAssetLabel}). Continue anyway?`,
+            requiresConfirmation: true,
+            duplicateTypeAssignment: duplicateType,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     const assignment = await assignAsset(assetId, parsed.data, session.user.id);

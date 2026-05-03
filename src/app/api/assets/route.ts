@@ -44,6 +44,8 @@ export async function POST(request: Request) {
       pcNumber: normalizeOptionalText(body.pcNumber),
       serialNumber: normalizeOptionalText(body.serialNumber),
       macAddress: normalizeOptionalText(body.macAddress),
+      remoteAddress: normalizeOptionalText(body.remoteAddress),
+      dataPort: normalizeOptionalText(body.dataPort),
       ipAddress: normalizeOptionalText(body.ipAddress),
       brand: typeof body.brand === "string" ? body.brand.trim() : body.brand,
       model: typeof body.model === "string" ? body.model.trim() : body.model,
