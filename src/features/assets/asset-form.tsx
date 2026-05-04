@@ -450,7 +450,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           />
           <Input 
             label="Model" 
-            placeholder="e.g. Latitude 5530" 
+            placeholder="e.g. Optiflex 7020" 
             {...register("model")} 
             error={errors.model?.message}
             required 
@@ -488,13 +488,13 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
           />
           <Input
             label="Data Port"
-            placeholder="e.g. SW1-24"
+            placeholder="e.g. Data 24"
             {...register("dataPort")}
             error={errors.dataPort?.message}
           />
           <Input
             label="IP Address"
-            placeholder="e.g. 192.168.1.10"
+            placeholder="e.g. 10.1.7.155"
             {...register("ipAddress")}
             error={errors.ipAddress?.message}
           />

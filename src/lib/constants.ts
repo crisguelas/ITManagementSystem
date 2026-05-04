@@ -99,6 +99,8 @@ export const RAM_OPTIONS = [
   "8GB DDR4",
   "16GB DDR3",
   "16GB DDR4",
+  "16GB DDR5",
+  "32GB DDR5",
 ] as const;
 
 /* Storage presets for Register Asset forms */

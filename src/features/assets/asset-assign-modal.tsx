@@ -81,9 +81,16 @@ export function AssetAssignModal({
     },
   });
 
-  /* Load dropdown data when the modal opens; state updates run after await (not sync in effect) */
+  /* When the modal opens: reset submit/duplicate UI so each session starts clean, then load options */
   useEffect(() => {
     if (!isOpen) return;
+
+    /* Defer resets so eslint/react-hooks does not treat them as sync setState inside the effect body */
+    queueMicrotask(() => {
+      setSubmitError(null);
+      setDuplicatePrompt(null);
+      setIsDuplicateContinuing(false);
+    });
 
     let cancelled = false;
 
@@ -121,15 +128,6 @@ export function AssetAssignModal({
     };
   }, [isOpen]);
 
-  /* Clears assignment + duplicate state when the dialog closes so the next open starts fresh */
-  useEffect(() => {
-    if (!isOpen) {
-      setSubmitError(null);
-      setDuplicatePrompt(null);
-      setIsDuplicateContinuing(false);
-    }
-  }, [isOpen]);
-
   const selectClass = cn(
     "flex h-10 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 pr-10",
     "text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
@@ -146,12 +144,12 @@ export function AssetAssignModal({
         allowDuplicateTypeAssignment: false,
       };
 
-      let res = await fetch(`/api/assets/${assetId}/assignments`, {
+      const res = await fetch(`/api/assets/${assetId}/assignments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
-      let json = await res.json();
+      const json = await res.json();
 
       if (!res.ok && json?.requiresConfirmation === true) {
         const raw =

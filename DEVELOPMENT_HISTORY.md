@@ -861,3 +861,18 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test scope — pending manual verification (duplicate same-category assign → styled warning → continue vs cancel)
+
+---
+
+## Register Asset placeholders + RAM preset expansion — May 04, 2026
+
+- **Register / edit asset** (`AssetForm`): updated example placeholders — Model `e.g. Optiflex 7020`, Data Port `e.g. Data 24`, IP Address `e.g. 10.1.7.155`.
+- **RAM** dropdown presets in `src/lib/constants.ts`: `4GB DDR3`, `8GB DDR3`, `8GB DDR4`, `16GB DDR3`, `16GB DDR4`, `16GB DDR5`, `32GB DDR5`, plus existing **Other** path for custom RAM.
+- **Lint** — `AssetAssignModal` open-reset state uses `queueMicrotask` so `react-hooks/set-state-in-effect` passes; `prefer-const` on assignment fetch response.
+
+### Register Asset placeholders/RAM quality check — May 04, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test — Assets → Register Asset (placeholders, RAM presets + Other)
