@@ -36,8 +36,8 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 
 ### Dashboard
 - **Summary metrics**, **charts** (category, status, location), **recent activity**, **quick links**
-- **Scalable category & location charts** — **Assets by category** uses horizontal bars with a **top 10 + Other** rollup (search to find any category); **Deployed by location** uses the same horizontal layout with capped bar thickness, truncated Y labels (full text on hover), and scroll when there are many rows. Grids use light strokes only (no heavy chart frame)
-- **Responsive dashboard shell** — Mobile uses a hamburger-triggered top-sheet sidebar with backdrop/close controls; desktop collapses to an icon-only rail (hides labels) and keeps the sidebar pinned to viewport height while content scrolls
+- **Scalable category & location charts** — **Assets by category** uses horizontal bars with a **top 10 + Other** rollup and **wrapped full category names** on the axis (no in-card search); **Deployed by location** uses the same horizontal layout with capped bar thickness, truncated Y labels (full text on hover), and scroll when there are many rows. Chart areas use a light inset ring and soft grid lines only
+- **Responsive dashboard shell** — Shell uses **viewport height** with scroll confined to the **main** content column so the **top header stays fixed** while you scroll. Mobile uses a hamburger-triggered top-sheet sidebar with backdrop/close controls; desktop collapses to an icon-only rail (hides labels) and keeps the sidebar pinned to viewport height while content scrolls
 - **Header notifications** — Low-stock and recent assignment alerts are surfaced from the bell panel with direct links
 - **Global search** — Header search provides employee-first suggestions across employee/profile assignment identifiers and can fall back to unassigned asset matches
 

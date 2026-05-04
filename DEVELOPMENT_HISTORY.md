@@ -933,7 +933,7 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 
 ## Dashboard category & location chart UX — May 04, 2026
 
-- **Assets by category** — Replaced crowded vertical bars with **horizontal** Recharts bars, **top 10 by count** plus an **Other categories** bucket for the long tail, optional **search** to filter by name, scrollable chart body with dynamic chart height, soft horizontal grid lines, and tooltips with full labels.
+- **Assets by category** — Replaced crowded vertical bars with **horizontal** Recharts bars, **top 10 by count** plus an **Other categories** bucket for the long tail, scrollable chart body with dynamic chart height, soft horizontal grid lines, and tooltips with full labels. *(In-card category search was added then removed in favor of wrapped labels; see **Sticky app header + category chart labels** below.)*
 - **Deployed by location** — Same horizontal pattern with **`maxBarSize`**, custom Y-axis ticks (truncate + SVG `<title>` for full text), improved empty copy, and scroll for many buildings/locations.
 - **Docs** — `README.md` Dashboard section updated to describe the scalable chart behavior. No API or route changes.
 
@@ -943,3 +943,18 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx eslint src/features/dashboard/dashboard-view.tsx` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test — load `/` signed in; verify category search, top-N + Other, location chart with one vs many rows; narrow viewport
+
+---
+
+## Sticky app header + category chart labels — May 04, 2026
+
+- **Layout shell** — [`responsive-dashboard-shell.tsx`](src/components/layout/responsive-dashboard-shell.tsx) uses **`h-dvh`**, **`overflow-hidden`** on the outer flex, and **`min-h-0`** on the main column + **`main`** so vertical scroll stays inside the content area and the **Header** no longer scrolls away with long pages.
+- **Assets by category** — Removed the in-card **category search** field; category names render in full via **`foreignObject`** ticks with wrapping; wider Y-axis band and taller row spacing; softer chart chrome (inset ring). **Deployed by location** chart wrapper aligned to the same light ring style.
+- **Docs** — `README.md` dashboard bullets updated (fixed header + category chart behavior). No route or API changes.
+
+### Sticky header + category chart quality check — May 04, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test — long `/assets` scroll (header fixed); `/` category labels readable + top 10 + Other; mobile sidebar + search; print preview if applicable

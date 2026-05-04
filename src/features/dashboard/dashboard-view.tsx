@@ -6,7 +6,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { createElement, useMemo, type ComponentPropsWithoutRef } from "react";
 
 import {
   ResponsiveContainer,
@@ -29,11 +29,9 @@ import {
   Wrench,
   Activity,
   ArrowRight,
-  Search,
 } from "lucide-react";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import type { DashboardStats } from "@/lib/services/dashboard.service";
 
 /* Distinct series colors for charts (aligned with primary / semantic palette) */
@@ -57,8 +55,15 @@ const BAR_FILL = "#0284c7";
 /** Default cap for category chart rows before rolling the tail into "Other categories" */
 const CATEGORY_CHART_TOP_N = 10;
 
-/** Row height budget (px) for horizontal bar lists so labels stay readable without squashing */
+/** Row height budget (px) for location chart horizontal bars */
 const BAR_ROW_STEP_PX = 34;
+
+/** Taller rows on the category chart so wrapped labels (foreignObject) do not collide with bars */
+const CATEGORY_BAR_ROW_STEP_PX = 62;
+
+/** Pixel width reserved for category names inside the Y-axis band (pairs with `YAxis.width`) */
+const CATEGORY_Y_AXIS_LABEL_WIDTH = 168;
+const CATEGORY_Y_AXIS_WIDTH = CATEGORY_Y_AXIS_LABEL_WIDTH + 16;
 
 /** Min / max pixel height passed to Recharts for scrollable horizontal bar areas */
 const H_BAR_MIN_PX = 200;
@@ -89,21 +94,10 @@ const rollupTopNWithOther = (sorted: NamedCountRow[], topN: number): NamedCountR
 };
 
 /**
- * Case-insensitive substring filter for the category search field.
- */
-const filterRowsByQuery = (rows: NamedCountRow[], query: string): NamedCountRow[] => {
-  const q = query.trim().toLowerCase();
-  if (!q) {
-    return rows;
-  }
-  return rows.filter((row) => row.name.toLowerCase().includes(q));
-};
-
-/**
  * Derives a Recharts-friendly height from row count (avoids razor-thin bars when many rows exist).
  */
-const horizontalBarChartHeightPx = (rowCount: number): number => {
-  const padded = rowCount * BAR_ROW_STEP_PX + 72;
+const horizontalBarChartHeightPx = (rowCount: number, rowStepPx: number = BAR_ROW_STEP_PX): number => {
+  const padded = rowCount * rowStepPx + 72;
   return Math.min(H_BAR_MAX_PX, Math.max(H_BAR_MIN_PX, padded));
 };
 
@@ -137,6 +131,37 @@ const HorizontalBarYAxisTick = (props: {
   );
 };
 
+const CATEGORY_TICK_FOREIGN_HEIGHT = 64;
+
+/**
+ * Category chart Y-axis tick: full stock category names via HTML inside SVG foreignObject so text can wrap.
+ */
+const CategoryBarYAxisTick = (props: {
+  x?: string | number;
+  y?: string | number;
+  payload?: { value?: string | number };
+}) => {
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const text = String(props.payload?.value ?? "");
+  const w = CATEGORY_Y_AXIS_LABEL_WIDTH;
+  const h = CATEGORY_TICK_FOREIGN_HEIGHT;
+  const labelProps = {
+    xmlns: "http://www.w3.org/1999/xhtml",
+    className:
+      "flex h-full max-h-full items-center justify-end text-right text-[11px] leading-snug text-gray-700 break-words hyphens-auto",
+    children: text,
+  } as ComponentPropsWithoutRef<"div"> & { xmlns: string };
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <foreignObject x={-w - 10} y={-h / 2} width={w} height={h}>
+        {createElement("div", labelProps)}
+      </foreignObject>
+    </g>
+  );
+};
+
 /**
  * Normalizes Recharts tooltip values (number, string, or tuple) into a numeric asset count for display.
  */
@@ -157,27 +182,24 @@ const formatTooltipAssetCount = (
 export function DashboardView({ data }: DashboardViewProps) {
   const { summary, byCategory, byStatus, byBuilding, recentActivity } = data;
 
-  const [categorySearch, setCategorySearch] = useState("");
-
   const statusChartData = byStatus.filter((s) => s.count > 0);
   const totalStatusCount = statusChartData.reduce((sum, item) => sum + item.count, 0);
 
-  /* Full category rows sorted once so search, top-N, and Other rollup share consistent ordering */
+  /* Full category rows sorted once for top-N + Other rollup */
   const sortedCategoryRows = useMemo(
     () => sortByCountDesc(byCategory.map((c) => ({ name: c.name, count: c.count }))),
     [byCategory]
   );
 
-  /* Search narrows the list; when empty we show top N + Other so the card stays scannable at scale */
-  const categoryChartRows = useMemo(() => {
-    const filtered = filterRowsByQuery(sortedCategoryRows, categorySearch);
-    if (categorySearch.trim()) {
-      return sortByCountDesc(filtered);
-    }
-    return rollupTopNWithOther(sortedCategoryRows, CATEGORY_CHART_TOP_N);
-  }, [sortedCategoryRows, categorySearch]);
+  const categoryChartRows = useMemo(
+    () => rollupTopNWithOther(sortedCategoryRows, CATEGORY_CHART_TOP_N),
+    [sortedCategoryRows]
+  );
 
-  const categoryChartHeightPx = horizontalBarChartHeightPx(categoryChartRows.length);
+  const categoryChartHeightPx = horizontalBarChartHeightPx(
+    categoryChartRows.length,
+    CATEGORY_BAR_ROW_STEP_PX
+  );
 
   const buildingChartData = byBuilding.map((b) => ({ name: b.label, count: b.count }));
   const buildingChartHeightPx = horizontalBarChartHeightPx(buildingChartData.length);
@@ -383,34 +405,16 @@ export function DashboardView({ data }: DashboardViewProps) {
         </Card>
 
         <Card className="xl:col-span-1">
-          <CardHeader className="space-y-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-base font-semibold text-gray-900">Assets by category</h2>
-                <p className="text-xs text-gray-500">Counts per stock category (horizontal bars scale with data)</p>
-              </div>
-              <div className="w-full shrink-0 sm:w-52">
-                <Input
-                  type="search"
-                  value={categorySearch}
-                  onChange={(e) => setCategorySearch(e.target.value)}
-                  placeholder="Search categories…"
-                  aria-label="Filter categories on the chart"
-                  leftIcon={<Search className="h-4 w-4" />}
-                  className="h-9"
-                  containerClassName="gap-1"
-                />
-              </div>
+          <CardHeader className="space-y-2">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Assets by category</h2>
+              <p className="text-xs text-gray-500">Counts per stock category (horizontal bars; labels wrap)</p>
             </div>
-            {!categorySearch.trim() && sortedCategoryRows.length > CATEGORY_CHART_TOP_N ? (
+            {sortedCategoryRows.length > CATEGORY_CHART_TOP_N ? (
               <p className="text-xs text-gray-500">
                 Showing top {CATEGORY_CHART_TOP_N} by count; remaining categories are grouped into{" "}
-                <span className="font-medium text-gray-700">Other categories</span>. Use search to find a
-                specific name.
+                <span className="font-medium text-gray-700">Other categories</span>.
               </p>
-            ) : null}
-            {categorySearch.trim() && categoryChartRows.length === 0 ? (
-              <p className="text-xs text-amber-700">No categories match that filter.</p>
             ) : null}
           </CardHeader>
           <CardBody className="pt-0">
@@ -418,28 +422,24 @@ export function DashboardView({ data }: DashboardViewProps) {
               <p className="flex min-h-[12rem] items-center justify-center text-sm text-gray-500">
                 No categorized assets yet.
               </p>
-            ) : categoryChartRows.length === 0 ? (
-              <p className="flex min-h-[12rem] items-center justify-center text-sm text-gray-500">
-                Adjust your search to see matching categories.
-              </p>
             ) : (
-              <div className="max-h-[min(28rem,70vh)] w-full overflow-x-hidden overflow-y-auto rounded-lg border border-gray-100 bg-white">
+              <div className="max-h-[min(28rem,70vh)] w-full overflow-x-hidden overflow-y-auto rounded-lg bg-gray-50/50 ring-1 ring-inset ring-gray-100">
                 <div className="min-w-0 w-full">
                   <ResponsiveContainer width="100%" height={categoryChartHeightPx}>
                     <BarChart
                       layout="vertical"
                       data={categoryChartRows}
-                      margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-                      barCategoryGap={10}
+                      margin={{ top: 8, right: 16, left: 4, bottom: 8 }}
+                      barCategoryGap={14}
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} stroke="#e5e7eb" />
                       <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "#4b5563" }} />
                       <YAxis
                         type="category"
                         dataKey="name"
-                        width={118}
+                        width={CATEGORY_Y_AXIS_WIDTH}
                         interval={0}
-                        tick={HorizontalBarYAxisTick}
+                        tick={CategoryBarYAxisTick}
                         axisLine={false}
                         tickLine={false}
                       />
@@ -481,7 +481,7 @@ export function DashboardView({ data }: DashboardViewProps) {
                 No active deployments yet. Assign assets to employees or rooms to populate this chart.
               </p>
             ) : (
-              <div className="max-h-[min(28rem,70vh)] w-full overflow-x-hidden overflow-y-auto rounded-lg border border-gray-100 bg-white">
+              <div className="max-h-[min(28rem,70vh)] w-full overflow-x-hidden overflow-y-auto rounded-lg bg-gray-50/50 ring-1 ring-inset ring-gray-100">
                 <div className="min-w-0 w-full">
                   <ResponsiveContainer width="100%" height={buildingChartHeightPx}>
                     <BarChart

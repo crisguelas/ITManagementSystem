@@ -34,8 +34,9 @@ export const ResponsiveDashboardShell = ({
     setIsMobileSidebarOpen(true);
   }, []);
 
+  /* Viewport-height shell + min-h-0 chain keeps scroll inside `main` so the header stays visible while content scrolls */
   return (
-    <div className="relative flex min-h-screen bg-background print:block print:min-h-0 print:bg-white">
+    <div className="relative flex h-dvh min-h-0 overflow-hidden bg-background print:block print:h-auto print:min-h-0 print:overflow-visible print:bg-white">
       <div className="print:hidden">
         <Sidebar
           isAdmin={isAdmin}
@@ -44,7 +45,7 @@ export const ResponsiveDashboardShell = ({
         />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden print:block print:min-w-0 print:overflow-visible">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden print:block print:min-w-0 print:overflow-visible">
         <div className="print:hidden">
           <Header
             currentUserName={currentUserName}
@@ -54,7 +55,7 @@ export const ResponsiveDashboardShell = ({
           />
         </div>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background p-3 sm:p-4 md:p-6 lg:p-8 print:overflow-visible print:bg-white print:p-0">
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-background p-3 sm:p-4 md:p-6 lg:p-8 print:overflow-visible print:bg-white print:p-0">
           <div className="mx-auto max-w-7xl print:mx-0 print:max-w-none">{children}</div>
         </main>
       </div>
