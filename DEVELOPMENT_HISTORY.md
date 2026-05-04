@@ -928,3 +928,18 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Dashboard category & location chart UX — May 04, 2026
+
+- **Assets by category** — Replaced crowded vertical bars with **horizontal** Recharts bars, **top 10 by count** plus an **Other categories** bucket for the long tail, optional **search** to filter by name, scrollable chart body with dynamic chart height, soft horizontal grid lines, and tooltips with full labels.
+- **Deployed by location** — Same horizontal pattern with **`maxBarSize`**, custom Y-axis ticks (truncate + SVG `<title>` for full text), improved empty copy, and scroll for many buildings/locations.
+- **Docs** — `README.md` Dashboard section updated to describe the scalable chart behavior. No API or route changes.
+
+### Dashboard chart UX quality check — May 04, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npx eslint src/features/dashboard/dashboard-view.tsx` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test — load `/` signed in; verify category search, top-N + Other, location chart with one vs many rows; narrow viewport

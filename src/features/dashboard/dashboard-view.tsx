@@ -6,6 +6,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 
 import {
   ResponsiveContainer,
@@ -28,9 +29,11 @@ import {
   Wrench,
   Activity,
   ArrowRight,
+  Search,
 } from "lucide-react";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import type { DashboardStats } from "@/lib/services/dashboard.service";
 
 /* Distinct series colors for charts (aligned with primary / semantic palette) */
@@ -51,9 +54,102 @@ const STATUS_DOT_CLASSES = [
 
 const BAR_FILL = "#0284c7";
 
+/** Default cap for category chart rows before rolling the tail into "Other categories" */
+const CATEGORY_CHART_TOP_N = 10;
+
+/** Row height budget (px) for horizontal bar lists so labels stay readable without squashing */
+const BAR_ROW_STEP_PX = 34;
+
+/** Min / max pixel height passed to Recharts for scrollable horizontal bar areas */
+const H_BAR_MIN_PX = 200;
+const H_BAR_MAX_PX = 720;
+
 interface DashboardViewProps {
   data: DashboardStats;
 }
+
+type NamedCountRow = { name: string; count: number };
+
+/**
+ * Sorts category slices by descending count so dominant categories surface first.
+ */
+const sortByCountDesc = (rows: NamedCountRow[]): NamedCountRow[] =>
+  [...rows].sort((a, b) => b.count - a.count);
+
+/**
+ * Keeps the top N slices and merges the remainder into a single "Other" bucket for dense DBs.
+ */
+const rollupTopNWithOther = (sorted: NamedCountRow[], topN: number): NamedCountRow[] => {
+  if (sorted.length <= topN) {
+    return sorted;
+  }
+  const top = sorted.slice(0, topN);
+  const restCount = sorted.slice(topN).reduce((sum, row) => sum + row.count, 0);
+  return [...top, { name: "Other categories", count: restCount }];
+};
+
+/**
+ * Case-insensitive substring filter for the category search field.
+ */
+const filterRowsByQuery = (rows: NamedCountRow[], query: string): NamedCountRow[] => {
+  const q = query.trim().toLowerCase();
+  if (!q) {
+    return rows;
+  }
+  return rows.filter((row) => row.name.toLowerCase().includes(q));
+};
+
+/**
+ * Derives a Recharts-friendly height from row count (avoids razor-thin bars when many rows exist).
+ */
+const horizontalBarChartHeightPx = (rowCount: number): number => {
+  const padded = rowCount * BAR_ROW_STEP_PX + 72;
+  return Math.min(H_BAR_MAX_PX, Math.max(H_BAR_MIN_PX, padded));
+};
+
+/**
+ * Y-axis tick for horizontal bar charts: truncates long labels and exposes the full string via SVG title.
+ * Props are injected by Recharts; optional fields keep typings compatible with the axis tick renderer.
+ */
+const HorizontalBarYAxisTick = (props: {
+  x?: string | number;
+  y?: string | number;
+  payload?: { value?: string | number };
+}) => {
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const full = String(props.payload?.value ?? "");
+  const maxChars = 26;
+  const short = full.length > maxChars ? `${full.slice(0, maxChars - 1)}…` : full;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{full}</title>
+      <text
+        textAnchor="end"
+        x={-8}
+        y={0}
+        dy={4}
+        className="fill-gray-700 text-[11px] leading-snug"
+      >
+        {short}
+      </text>
+    </g>
+  );
+};
+
+/**
+ * Normalizes Recharts tooltip values (number, string, or tuple) into a numeric asset count for display.
+ */
+const formatTooltipAssetCount = (
+  value: string | number | ReadonlyArray<string | number> | undefined
+): number => {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (typeof raw === "number") {
+    return raw;
+  }
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+};
 
 /**
  * DashboardView — renders Phase 7 analytics from server-loaded `DashboardStats`.
@@ -61,10 +157,30 @@ interface DashboardViewProps {
 export function DashboardView({ data }: DashboardViewProps) {
   const { summary, byCategory, byStatus, byBuilding, recentActivity } = data;
 
+  const [categorySearch, setCategorySearch] = useState("");
+
   const statusChartData = byStatus.filter((s) => s.count > 0);
   const totalStatusCount = statusChartData.reduce((sum, item) => sum + item.count, 0);
-  const categoryChartData = byCategory.map((c) => ({ name: c.name, count: c.count }));
+
+  /* Full category rows sorted once so search, top-N, and Other rollup share consistent ordering */
+  const sortedCategoryRows = useMemo(
+    () => sortByCountDesc(byCategory.map((c) => ({ name: c.name, count: c.count }))),
+    [byCategory]
+  );
+
+  /* Search narrows the list; when empty we show top N + Other so the card stays scannable at scale */
+  const categoryChartRows = useMemo(() => {
+    const filtered = filterRowsByQuery(sortedCategoryRows, categorySearch);
+    if (categorySearch.trim()) {
+      return sortByCountDesc(filtered);
+    }
+    return rollupTopNWithOther(sortedCategoryRows, CATEGORY_CHART_TOP_N);
+  }, [sortedCategoryRows, categorySearch]);
+
+  const categoryChartHeightPx = horizontalBarChartHeightPx(categoryChartRows.length);
+
   const buildingChartData = byBuilding.map((b) => ({ name: b.label, count: b.count }));
+  const buildingChartHeightPx = horizontalBarChartHeightPx(buildingChartData.length);
 
   return (
     <div className="animate-fade-in">
@@ -267,25 +383,87 @@ export function DashboardView({ data }: DashboardViewProps) {
         </Card>
 
         <Card className="xl:col-span-1">
-          <CardHeader>
-            <h2 className="text-base font-semibold text-gray-900">Assets by category</h2>
-            <p className="text-xs text-gray-500">Counts per asset category</p>
+          <CardHeader className="space-y-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-semibold text-gray-900">Assets by category</h2>
+                <p className="text-xs text-gray-500">Counts per stock category (horizontal bars scale with data)</p>
+              </div>
+              <div className="w-full shrink-0 sm:w-52">
+                <Input
+                  type="search"
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                  placeholder="Search categories…"
+                  aria-label="Filter categories on the chart"
+                  leftIcon={<Search className="h-4 w-4" />}
+                  className="h-9"
+                  containerClassName="gap-1"
+                />
+              </div>
+            </div>
+            {!categorySearch.trim() && sortedCategoryRows.length > CATEGORY_CHART_TOP_N ? (
+              <p className="text-xs text-gray-500">
+                Showing top {CATEGORY_CHART_TOP_N} by count; remaining categories are grouped into{" "}
+                <span className="font-medium text-gray-700">Other categories</span>. Use search to find a
+                specific name.
+              </p>
+            ) : null}
+            {categorySearch.trim() && categoryChartRows.length === 0 ? (
+              <p className="text-xs text-amber-700">No categories match that filter.</p>
+            ) : null}
           </CardHeader>
-          <CardBody className="h-72 min-h-[18rem]">
-            {categoryChartData.length === 0 ? (
-              <p className="flex h-full items-center justify-center text-sm text-gray-500">
+          <CardBody className="pt-0">
+            {sortedCategoryRows.length === 0 ? (
+              <p className="flex min-h-[12rem] items-center justify-center text-sm text-gray-500">
                 No categorized assets yet.
               </p>
+            ) : categoryChartRows.length === 0 ? (
+              <p className="flex min-h-[12rem] items-center justify-center text-sm text-gray-500">
+                Adjust your search to see matching categories.
+              </p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={56} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(value) => [value ?? 0, "Assets"]} />
-                  <Bar dataKey="count" fill={BAR_FILL} radius={[4, 4, 0, 0]} name="Assets" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="max-h-[min(28rem,70vh)] w-full overflow-x-hidden overflow-y-auto rounded-lg border border-gray-100 bg-white">
+                <div className="min-w-0 w-full">
+                  <ResponsiveContainer width="100%" height={categoryChartHeightPx}>
+                    <BarChart
+                      layout="vertical"
+                      data={categoryChartRows}
+                      margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+                      barCategoryGap={10}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} stroke="#e5e7eb" />
+                      <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "#4b5563" }} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={118}
+                        interval={0}
+                        tick={HorizontalBarYAxisTick}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "rgba(2, 132, 199, 0.06)" }}
+                        formatter={(value) => [formatTooltipAssetCount(value), "Assets"]}
+                        labelFormatter={(label) => label}
+                        contentStyle={{
+                          borderRadius: "0.5rem",
+                          border: "1px solid #e5e7eb",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="count"
+                        fill={BAR_FILL}
+                        maxBarSize={28}
+                        radius={[0, 6, 6, 0]}
+                        name="Assets"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             )}
           </CardBody>
         </Card>
@@ -293,32 +471,57 @@ export function DashboardView({ data }: DashboardViewProps) {
         <Card className="xl:col-span-1">
           <CardHeader>
             <h2 className="text-base font-semibold text-gray-900">Deployed by location</h2>
-            <p className="text-xs text-gray-500">Open assignments with a room, plus user-only</p>
+            <p className="text-xs text-gray-500">
+              Open assignments with a room (by building), plus user-only deployments
+            </p>
           </CardHeader>
-          <CardBody className="h-72 min-h-[18rem]">
+          <CardBody className="pt-0">
             {buildingChartData.length === 0 ? (
-              <p className="flex h-full items-center justify-center text-sm text-gray-500">
-                No room-based deployments yet.
+              <p className="flex min-h-[12rem] items-center justify-center text-center text-sm text-gray-500">
+                No active deployments yet. Assign assets to employees or rooms to populate this chart.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={buildingChartData}
-                  margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={120}
-                    tick={{ fontSize: 10 }}
-                  />
-                  <Tooltip formatter={(value) => [value ?? 0, "Assets"]} />
-                  <Bar dataKey="count" fill={BAR_FILL} radius={[0, 4, 4, 0]} name="Assets" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="max-h-[min(28rem,70vh)] w-full overflow-x-hidden overflow-y-auto rounded-lg border border-gray-100 bg-white">
+                <div className="min-w-0 w-full">
+                  <ResponsiveContainer width="100%" height={buildingChartHeightPx}>
+                    <BarChart
+                      layout="vertical"
+                      data={buildingChartData}
+                      margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+                      barCategoryGap={12}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} stroke="#e5e7eb" />
+                      <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: "#4b5563" }} />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        width={132}
+                        interval={0}
+                        tick={HorizontalBarYAxisTick}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "rgba(2, 132, 199, 0.06)" }}
+                        formatter={(value) => [formatTooltipAssetCount(value), "Assets"]}
+                        labelFormatter={(label) => label}
+                        contentStyle={{
+                          borderRadius: "0.5rem",
+                          border: "1px solid #e5e7eb",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="count"
+                        fill={BAR_FILL}
+                        maxBarSize={32}
+                        radius={[0, 6, 6, 0]}
+                        name="Assets"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             )}
           </CardBody>
         </Card>
