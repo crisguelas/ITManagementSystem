@@ -3,6 +3,8 @@
  * @description Centralized service logic for retrieving and creating Organization data.
  */
 
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { 
@@ -24,6 +26,36 @@ export async function getBuildings() {
     },
     orderBy: { name: "asc" }
   });
+}
+
+/* Optional text search for buildings list */
+const buildBuildingsWhere = (q?: string): Prisma.BuildingWhereInput => {
+  if (!q || q.trim() === "") return {};
+  const term = q.trim();
+  return {
+    OR: [
+      { name: { contains: term, mode: "insensitive" } },
+      { code: { contains: term, mode: "insensitive" } },
+      { description: { contains: term, mode: "insensitive" } },
+    ],
+  };
+};
+
+/** Paginated buildings for Places & locations tables */
+export async function getBuildingsPaged(params: { page: number; pageSize: number; q?: string }) {
+  const where = buildBuildingsWhere(params.q);
+  const skip = (params.page - 1) * params.pageSize;
+  const [items, total] = await prisma.$transaction([
+    prisma.building.findMany({
+      where,
+      include: { _count: { select: { rooms: true } } },
+      orderBy: { name: "asc" },
+      skip,
+      take: params.pageSize,
+    }),
+    prisma.building.count({ where }),
+  ]);
+  return { items, total, page: params.page, pageSize: params.pageSize };
 }
 
 /* Loads one building and its rooms so building detail pages can manage room records */
@@ -184,6 +216,34 @@ export async function getDepartments() {
   });
 }
 
+const buildDepartmentsWhere = (q?: string): Prisma.DepartmentWhereInput => {
+  if (!q || q.trim() === "") return {};
+  const term = q.trim();
+  return {
+    OR: [
+      { name: { contains: term, mode: "insensitive" } },
+      { code: { contains: term, mode: "insensitive" } },
+    ],
+  };
+};
+
+/** Paginated departments for Academic & administrative tables */
+export async function getDepartmentsPaged(params: { page: number; pageSize: number; q?: string }) {
+  const where = buildDepartmentsWhere(params.q);
+  const skip = (params.page - 1) * params.pageSize;
+  const [items, total] = await prisma.$transaction([
+    prisma.department.findMany({
+      where,
+      include: { _count: { select: { employees: true } } },
+      orderBy: { name: "asc" },
+      skip,
+      take: params.pageSize,
+    }),
+    prisma.department.count({ where }),
+  ]);
+  return { items, total, page: params.page, pageSize: params.pageSize };
+}
+
 /* Creates a department after validating unique display name and department code */
 export async function createDepartment(data: z.infer<typeof departmentSchema>) {
   const existingName = await prisma.department.findUnique({ where: { name: data.name } });
@@ -249,6 +309,48 @@ export async function getEmployees() {
     },
     orderBy: [ { departmentId: "asc" }, { lastName: "asc" } ]
   });
+}
+
+/* Server-side search for employee roster (replaces client-only filtering for paginated views) */
+const buildEmployeesWhere = (q?: string): Prisma.EmployeeWhereInput => {
+  const base: Prisma.EmployeeWhereInput = { isActive: true };
+  if (!q || q.trim() === "") return base;
+  const term = q.trim();
+  return {
+    AND: [
+      base,
+      {
+        OR: [
+          { employeeId: { contains: term, mode: "insensitive" } },
+          { firstName: { contains: term, mode: "insensitive" } },
+          { lastName: { contains: term, mode: "insensitive" } },
+          { position: { contains: term, mode: "insensitive" } },
+          { email: { contains: term, mode: "insensitive" } },
+          { department: { name: { contains: term, mode: "insensitive" } } },
+        ],
+      },
+    ],
+  };
+};
+
+/** Paginated active employees for Registered employees tables */
+export async function getEmployeesPaged(params: { page: number; pageSize: number; q?: string }) {
+  const where = buildEmployeesWhere(params.q);
+  const skip = (params.page - 1) * params.pageSize;
+  const [items, total] = await prisma.$transaction([
+    prisma.employee.findMany({
+      where,
+      include: {
+        department: true,
+        _count: { select: { assignments: { where: { returnedAt: null } } } },
+      },
+      orderBy: [{ departmentId: "asc" }, { lastName: "asc" }],
+      skip,
+      take: params.pageSize,
+    }),
+    prisma.employee.count({ where }),
+  ]);
+  return { items, total, page: params.page, pageSize: params.pageSize };
 }
 
 /* Creates an employee after checking unique organization identifiers and optional email */

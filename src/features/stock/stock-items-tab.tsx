@@ -16,6 +16,8 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
+import { TablePagination } from "@/components/ui/table-pagination";
+
 import { StockItemForm } from "./stock-item-form";
 import { StockTransactionForm } from "./stock-transaction-form";
 
@@ -27,6 +29,11 @@ interface StockItemWithRelations extends StockItem {
 
 interface StockItemsTabProps {
   items: StockItemWithRelations[];
+  itemsTotal: number;
+  itemsPage: number;
+  itemsPageSize: number;
+  onItemsPageChange: (page: number) => void;
+  onItemsPageSizeChange: (pageSize: number) => void;
   onRefresh: () => void;
 }
 
@@ -34,7 +41,15 @@ interface StockItemsTabProps {
  * StockItemsTab — Renders the inventory item data table with actions.
  * Supports Add, Edit, Transact, View detail, and Delete operations.
  */
-export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
+export const StockItemsTab = ({
+  items,
+  itemsTotal,
+  itemsPage,
+  itemsPageSize,
+  onItemsPageChange,
+  onItemsPageSizeChange,
+  onRefresh,
+}: StockItemsTabProps) => {
   const { addToast } = useToast();
 
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -89,7 +104,7 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
           </div>
         </CardHeader>
         <CardBody className="p-0">
-          {!items.length ? (
+          {itemsTotal === 0 ? (
             <div className="border border-dashed border-gray-300 p-12 text-center">
               <Package className="mx-auto mb-3 h-10 w-10 text-gray-400" />
               <h3 className="font-medium text-gray-900">No stock items found</h3>
@@ -185,6 +200,15 @@ export const StockItemsTab = ({ items, onRefresh }: StockItemsTabProps) => {
             </table>
           </div>
           )}
+          {itemsTotal > 0 ? (
+            <TablePagination
+              total={itemsTotal}
+              page={itemsPage}
+              pageSize={itemsPageSize}
+              onPageChange={onItemsPageChange}
+              onPageSizeChange={onItemsPageSizeChange}
+            />
+          ) : null}
         </CardBody>
       </Card>
 

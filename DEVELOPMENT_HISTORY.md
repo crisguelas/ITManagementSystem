@@ -876,3 +876,20 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test — Assets → Register Asset (placeholders, RAM presets + Other)
+
+---
+
+## Server-side pagination for primary tables — May 04, 2026
+
+- **List APIs** — `GET` on `/api/assets`, `/api/buildings`, `/api/departments`, `/api/employees`, `/api/stock-categories`, `/api/stock-items`, and `GET /api/assets/categories` now accept `page` / `pageSize` (defaults 1 / 20; allowed sizes 10–100) and return `data: { items, total, page, pageSize }`. Optional `q` supports server-side text search on assets, employees, stock lines/categories, buildings, and departments.
+- **`GET /api/stock-items`** — optional `availableForAsset=true` filters to `quantity > 0` for register-from-stock pickers.
+- **Notifications** — `GET /api/stock-items/low-stock` (DB-side `quantity <= minQuantity`, capped) and `GET /api/assets/recent-assignments` (latest open assignments) power the inventory low-stock banner and header bell without loading full inventories.
+- **UI** — Shared `TablePagination` footer on Assets, Inventory (items + categories), Places & locations, Academic & administrative, and Registered employees; stock page uses dedicated low-stock fetch for the banner.
+- **Validation** — Shared Zod list query parsing in `src/lib/validations/list-query.schema.ts`.
+
+### Server-side pagination quality check — May 04, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass
+- [ ] Smoke test — paginate/search each table; register asset stock source; header notifications; assign / stock transact employee dropdowns

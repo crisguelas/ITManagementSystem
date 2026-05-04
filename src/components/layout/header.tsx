@@ -25,10 +25,7 @@ import {
 
 /* Local imports */
 import { GlobalSearch } from "@/components/layout/global-search";
-import {
-  extractLowStockRowsFromItemsList,
-  type LowStockNotificationRow,
-} from "@/lib/stock/low-stock-from-api";
+import type { LowStockNotificationRow } from "@/lib/stock/low-stock-from-api";
 import { capitalize, cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -49,17 +46,6 @@ interface AssetAssignmentNotification {
   assigneeName: string | null;
   roomLabel: string | null;
   assignedAt: string;
-}
-
-interface AssetNotificationPayload {
-  id: string;
-  assetTag: string;
-  assignments: Array<{
-    id: string;
-    assignedAt: string;
-    employee: { firstName: string; lastName: string } | null;
-    room: { name: string; building: { code: string } } | null;
-  }>;
 }
 
 export const Header = ({
@@ -101,80 +87,46 @@ export const Header = ({
     setNotificationsError(null);
 
     try {
-      const [stockResponse, assetsResponse] = await Promise.all([
-        fetch("/api/stock-items", { credentials: "same-origin" }),
-        fetch("/api/assets", { credentials: "same-origin" }),
+      const [lowStockResponse, assignmentsResponse] = await Promise.all([
+        fetch("/api/stock-items/low-stock?limit=50", { credentials: "same-origin" }),
+        fetch("/api/assets/recent-assignments?limit=12", { credentials: "same-origin" }),
       ]);
-      const stockPayload: unknown = await stockResponse.json();
-      const assetsPayload: unknown = await assetsResponse.json();
+      const lowStockPayload: unknown = await lowStockResponse.json();
+      const assignmentsPayload: unknown = await assignmentsResponse.json();
 
-      if (!stockResponse.ok || !assetsResponse.ok) {
+      if (!lowStockResponse.ok || !assignmentsResponse.ok) {
         throw new Error("Failed to load notifications");
       }
 
       if (
-        !stockPayload ||
-        typeof stockPayload !== "object" ||
-        !("data" in stockPayload) ||
-        !Array.isArray(stockPayload.data)
+        !lowStockPayload ||
+        typeof lowStockPayload !== "object" ||
+        !("data" in lowStockPayload) ||
+        !Array.isArray((lowStockPayload as { data: unknown }).data)
       ) {
-        throw new Error("Invalid stock notification response");
+        throw new Error("Invalid low-stock notification response");
       }
 
       if (
-        !assetsPayload ||
-        typeof assetsPayload !== "object" ||
-        !("data" in assetsPayload) ||
-        !Array.isArray(assetsPayload.data)
+        !assignmentsPayload ||
+        typeof assignmentsPayload !== "object" ||
+        !("data" in assignmentsPayload) ||
+        !Array.isArray((assignmentsPayload as { data: unknown }).data)
       ) {
-        throw new Error("Invalid asset notification response");
+        throw new Error("Invalid assignment notification response");
       }
 
-      /* Same low-stock rule as `LowStockAlertBanner`, with tolerant numeric parsing for JSON payloads */
-      const lowStockItems = extractLowStockRowsFromItemsList(stockPayload.data).slice(0, 12);
+      const lowStockItems = (lowStockPayload as { data: LowStockNotificationRow[] }).data.slice(0, 12);
 
-      const assignmentItems = assetsPayload.data
-        .filter((item): item is AssetNotificationPayload => {
-          if (!item || typeof item !== "object") return false;
-          if (!("id" in item) || !("assetTag" in item) || !("assignments" in item)) {
-            return false;
-          }
-
-          return (
-            typeof item.id === "string" &&
-            typeof item.assetTag === "string" &&
-            Array.isArray(item.assignments)
-          );
-        })
-        .flatMap((asset) =>
-          asset.assignments
-            .filter((assignment) => {
-              if (!assignment || typeof assignment !== "object") return false;
-              if (!("id" in assignment) || !("assignedAt" in assignment)) return false;
-              return typeof assignment.id === "string" && typeof assignment.assignedAt === "string";
-            })
-            .map((assignment) => {
-              const assigneeName = assignment.employee
-                ? `${assignment.employee.firstName} ${assignment.employee.lastName}`
-                : null;
-              const roomLabel = assignment.room
-                ? `${assignment.room.building.code} — ${assignment.room.name}`
-                : null;
-
-              return {
-                id: assignment.id,
-                assetId: asset.id,
-                assetTag: asset.assetTag,
-                assigneeName,
-                roomLabel,
-                assignedAt: assignment.assignedAt,
-              } as AssetAssignmentNotification;
-            })
-        )
-        .sort(
-          (a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime(),
-        )
-        .slice(0, 6);
+      const assignmentItems = (assignmentsPayload as { data: AssetAssignmentNotification[] }).data.filter(
+        (row): row is AssetAssignmentNotification =>
+          Boolean(row) &&
+          typeof row === "object" &&
+          typeof row.id === "string" &&
+          typeof row.assetId === "string" &&
+          typeof row.assetTag === "string" &&
+          typeof row.assignedAt === "string",
+      );
 
       setLowStockNotifications(lowStockItems);
       setAssignmentNotifications(assignmentItems);

@@ -27,7 +27,7 @@ const toInt = (value: unknown): number | null => {
 };
 
 /**
- * Maps raw `/api/stock-items` list entries into low-stock notification rows (inventory page uses the same threshold logic).
+ * Maps raw stock item list entries into low-stock notification rows (inventory page and `/api/stock-items/low-stock` use the same threshold logic).
  */
 export const extractLowStockRowsFromItemsList = (
   items: unknown[],

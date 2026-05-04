@@ -114,14 +114,19 @@ function AssetAssignModalContent({ assetId, onClose, onSuccess }: AssetAssignMod
 
     const load = async () => {
       try {
+        const empQs = new URLSearchParams({ page: "1", pageSize: "100" });
         const [empRes, roomRes] = await Promise.all([
-          fetch("/api/employees"),
+          fetch(`/api/employees?${empQs.toString()}`),
           fetch("/api/rooms"),
         ]);
-        const empJson = await empRes.json();
+        const empJson = (await empRes.json()) as {
+          success: boolean;
+          error?: string;
+          data?: { items: EmployeeOption[]; total: number; page: number; pageSize: number };
+        };
         const roomJson = await roomRes.json();
 
-        if (!empRes.ok || !empJson.success) {
+        if (!empRes.ok || !empJson.success || !empJson.data) {
           throw new Error(empJson.error || "Failed to load employees");
         }
         if (!roomRes.ok || !roomJson.success) {
@@ -129,7 +134,7 @@ function AssetAssignModalContent({ assetId, onClose, onSuccess }: AssetAssignMod
         }
 
         if (!cancelled) {
-          setEmployees(empJson.data as EmployeeOption[]);
+          setEmployees(empJson.data.items);
           setRooms(roomJson.data as RoomOption[]);
           setLoadError(null);
         }

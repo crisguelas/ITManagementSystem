@@ -7,17 +7,31 @@
 import { NextResponse } from "next/server";
 
 import { requireSession } from "@/lib/api-auth";
+import { getStockItemsPaged, createStockItem } from "@/lib/services/stock.service";
 import { stockItemSchema } from "@/lib/validations/stock.schema";
-import { getStockItems, createStockItem } from "@/lib/services/stock.service";
+import { parseListPaginationFromUrl } from "@/lib/validations/list-query.schema";
 
-/** GET /api/stock-items — returns all stock items with category and transaction count */
-export async function GET() {
+/** GET /api/stock-items — paginated stock items with category and transaction count */
+export async function GET(request: Request) {
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
 
-    const items = await getStockItems();
-    return NextResponse.json({ success: true, data: items });
+    const parsed = parseListPaginationFromUrl(request.url);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { page, pageSize, q } = parsed.data;
+    const { searchParams } = new URL(request.url);
+    const availableForAsset =
+      searchParams.get("availableForAsset") === "true" || searchParams.get("availableForAsset") === "1";
+
+    const result = await getStockItemsPaged({ page, pageSize, q, availableForAsset });
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error("[StockItemsAPI] GET error:", error);
     return NextResponse.json(

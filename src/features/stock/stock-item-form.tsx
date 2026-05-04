@@ -65,10 +65,14 @@ export const StockItemForm = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("/api/stock-categories");
-        const json = (await res.json()) as { success: boolean; data: StockCategory[] };
-        if (json.success) {
-          setCategories(json.data);
+        const qs = new URLSearchParams({ page: "1", pageSize: "100" });
+        const res = await fetch(`/api/stock-categories?${qs.toString()}`);
+        const json = (await res.json()) as {
+          success: boolean;
+          data?: { items: StockCategory[]; total: number; page: number; pageSize: number };
+        };
+        if (json.success && json.data) {
+          setCategories(json.data.items);
         }
       } catch (err: unknown) {
         console.error("Failed to load categories:", err);

@@ -50,6 +50,14 @@ export interface PaginatedResponse<T> {
   };
 }
 
+/* Payload shape returned by list GET routes after server-side pagination (`data` field) */
+export interface PaginatedListPayload<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 /* ═══════════════════════════════════════════════════════════════ */
 /* ASSET TYPES — Extended with relations                           */
 /* ═══════════════════════════════════════════════════════════════ */

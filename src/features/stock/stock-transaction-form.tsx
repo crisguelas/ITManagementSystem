@@ -90,16 +90,17 @@ export const StockTransactionForm = ({
       setIsEmployeesLoading(true);
       setEmployeesError(null);
       try {
-        const response = await fetch("/api/employees");
+        const qs = new URLSearchParams({ page: "1", pageSize: "100" });
+        const response = await fetch(`/api/employees?${qs.toString()}`);
         const json = (await response.json()) as {
           success: boolean;
-          data?: EmployeeRecipientOption[];
+          data?: { items: EmployeeRecipientOption[]; total: number; page: number; pageSize: number };
           error?: string;
         };
-        if (!response.ok || !json.success || !Array.isArray(json.data)) {
+        if (!response.ok || !json.success || !json.data || !Array.isArray(json.data.items)) {
           throw new Error(json.error ?? "Failed to load registered employees");
         }
-        setEmployees(json.data);
+        setEmployees(json.data.items);
       } catch (error: unknown) {
         const message =
           error instanceof Error ? error.message : "Failed to load registered employees";

@@ -4,17 +4,27 @@
  */
 
 import { NextResponse } from "next/server";
-import { getBuildings, createBuilding } from "@/lib/services/organization.service";
+import { getBuildingsPaged, createBuilding } from "@/lib/services/organization.service";
 import { buildingSchema } from "@/lib/validations/organization.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
+import { parseListPaginationFromUrl } from "@/lib/validations/list-query.schema";
 
-export async function GET() {
-  /* Returns all buildings for authenticated organization/location management pages */
+export async function GET(request: Request) {
+  /* Returns paginated buildings for authenticated organization/location management pages */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
 
-    const data = await getBuildings();
+    const parsed = parseListPaginationFromUrl(request.url);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { page, pageSize, q } = parsed.data;
+    const data = await getBuildingsPaged({ page, pageSize, q });
     return NextResponse.json({ success: true, data });
   } catch {
     return NextResponse.json({ success: false, error: "Failed to fetch buildings" }, { status: 500 });

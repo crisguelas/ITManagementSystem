@@ -32,7 +32,7 @@ import type { z } from "zod";
 /* TYPE DEFINITIONS                                                */
 /* ═══════════════════════════════════════════════════════════════ */
 
-/* Stock list payload as returned by GET /api/stock-items (includes relations + count) */
+/* Stock list row as returned inside GET /api/stock-items paginated `items` (includes relations + count) */
 type StockListItem = StockItem & {
   category: StockCategory;
   _count: { transactions: number };
@@ -143,10 +143,15 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     setIsLoadingCategories(true);
     setCategoryError(null);
     try {
-      const res = await fetch("/api/stock-categories");
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Failed to load categories");
-      setCategories(json.data);
+      const qs = new URLSearchParams({ page: "1", pageSize: "100" });
+      const res = await fetch(`/api/stock-categories?${qs.toString()}`);
+      const json = (await res.json()) as {
+        success: boolean;
+        error?: string;
+        data?: { items: StockCategory[]; total: number; page: number; pageSize: number };
+      };
+      if (!res.ok || !json.success || !json.data) throw new Error(json.error || "Failed to load categories");
+      setCategories(json.data.items);
     } catch (err: unknown) {
       setCategoryError(err instanceof Error ? err.message : "Failed to load categories");
     } finally {
@@ -167,10 +172,19 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
     setIsLoadingStock(true);
     setStockError(null);
     try {
-      const res = await fetch("/api/stock-items");
-      const json = (await res.json()) as { success: boolean; data?: StockListItem[]; error?: string };
-      if (!res.ok || !json.success) throw new Error(json.error || "Failed to load stock items");
-      setStockItems(json.data ?? []);
+      const qs = new URLSearchParams({
+        page: "1",
+        pageSize: "50",
+        availableForAsset: "true",
+      });
+      const res = await fetch(`/api/stock-items?${qs.toString()}`);
+      const json = (await res.json()) as {
+        success: boolean;
+        data?: { items: StockListItem[]; total: number; page: number; pageSize: number };
+        error?: string;
+      };
+      if (!res.ok || !json.success || !json.data) throw new Error(json.error || "Failed to load stock items");
+      setStockItems(json.data.items);
     } catch (err: unknown) {
       setStockError(err instanceof Error ? err.message : "Failed to load stock items");
     } finally {
@@ -201,10 +215,7 @@ export const AssetForm = ({ onSuccess, onCancel, assetId, initialData }: AssetFo
   };
 
   const availableStockOptions = useMemo(() => {
-    return stockItems
-      .filter((row) => row.quantity > 0)
-      .slice()
-      .sort((a, b) => `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`));
+    return stockItems.slice().sort((a, b) => `${a.brand} ${a.model}`.localeCompare(`${b.brand} ${b.model}`));
   }, [stockItems]);
 
   const selectedSourceStock = useMemo(() => {

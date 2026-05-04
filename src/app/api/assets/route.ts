@@ -5,8 +5,9 @@
 
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
-import { getAssets, createAsset } from "@/lib/services/asset.service";
+import { getAssetsPaged, createAsset } from "@/lib/services/asset.service";
 import { assetSchema } from "@/lib/validations/asset.schema";
+import { parseListPaginationFromUrl } from "@/lib/validations/list-query.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
 
 const normalizeOptionalText = (value: unknown) => {
@@ -15,14 +16,23 @@ const normalizeOptionalText = (value: unknown) => {
   return trimmed === "" ? undefined : trimmed;
 };
 
-export async function GET() {
-  /* Returns the asset list for authenticated users to power inventory-style asset views */
+export async function GET(request: Request) {
+  /* Returns a paginated asset list for authenticated users (server-side search supported) */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
 
-    const assets = await getAssets();
-    return NextResponse.json({ success: true, data: assets });
+    const parsed = parseListPaginationFromUrl(request.url);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { page, pageSize, q } = parsed.data;
+    const result = await getAssetsPaged({ page, pageSize, q });
+    return NextResponse.json({ success: true, data: result });
   } catch (error: unknown) {
     console.error("[API_ASSETS_GET]", error);
     return NextResponse.json(

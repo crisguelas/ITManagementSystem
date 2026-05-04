@@ -4,6 +4,8 @@
  * Centralizes Prisma database queries keeping API routes clean.
  */
 
+import { Prisma } from "@prisma/client";
+
 import { getAssetTagPrefix } from "@/lib/asset-tag-config";
 import { ASSET_TAG_DIGITS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
@@ -85,6 +87,69 @@ export async function getAssets() {
     },
     orderBy: { createdAt: "desc" },
   });
+}
+
+/* Optional text filter for asset inventory tables (matches prior client-side search fields) */
+const buildAssetsWhere = (q?: string): Prisma.AssetWhereInput => {
+  if (!q || q.trim() === "") return {};
+  const term = q.trim();
+  return {
+    OR: [
+      { assetTag: { contains: term, mode: "insensitive" } },
+      { name: { contains: term, mode: "insensitive" } },
+      { pcNumber: { contains: term, mode: "insensitive" } },
+      { serialNumber: { contains: term, mode: "insensitive" } },
+    ],
+  };
+};
+
+/** Paginated assets for list APIs (server-side search + skip/take) */
+export async function getAssetsPaged(params: { page: number; pageSize: number; q?: string }) {
+  const where = buildAssetsWhere(params.q);
+  const skip = (params.page - 1) * params.pageSize;
+  const [items, total] = await prisma.$transaction([
+    prisma.asset.findMany({
+      where,
+      include: {
+        stockCategory: true,
+        assignments: {
+          where: { returnedAt: null },
+          include: { employee: true, room: { include: { building: true } } },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: params.pageSize,
+    }),
+    prisma.asset.count({ where }),
+  ]);
+  return { items, total, page: params.page, pageSize: params.pageSize };
+}
+
+/** Bell / header payload: latest open assignments across the fleet (capped) */
+export async function getRecentActiveAssignmentNotifications(limit: number) {
+  const cap = Math.min(Math.max(1, limit), 24);
+  const rows = await prisma.assetAssignment.findMany({
+    where: { returnedAt: null },
+    orderBy: { assignedAt: "desc" },
+    take: cap,
+    include: {
+      asset: { select: { id: true, assetTag: true } },
+      employee: { select: { firstName: true, lastName: true } },
+      room: { include: { building: { select: { code: true } } } },
+    },
+  });
+  return rows.map((row) => ({
+    id: row.id,
+    assetId: row.asset.id,
+    assetTag: row.asset.assetTag,
+    assigneeName:
+      row.employee != null ? `${row.employee.firstName} ${row.employee.lastName}`.trim() : null,
+    roomLabel:
+      row.room != null ? `${row.room.building.code} — ${row.room.name}`.trim() : null,
+    assignedAt: row.assignedAt.toISOString(),
+  }));
 }
 
 /**

@@ -15,6 +15,8 @@ import { Modal } from "@/components/ui/modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 
+import { TablePagination } from "@/components/ui/table-pagination";
+
 import { StockCategoryForm } from "./stock-category-form";
 
 /* Represents a stock category as returned by the API with an item count */
@@ -24,6 +26,11 @@ interface StockCategoryWithCount extends StockCategory {
 
 interface StockCategoriesTabProps {
   categories: StockCategoryWithCount[];
+  categoriesTotal: number;
+  categoriesPage: number;
+  categoriesPageSize: number;
+  onCategoriesPageChange: (page: number) => void;
+  onCategoriesPageSizeChange: (pageSize: number) => void;
   onRefresh: () => void;
 }
 
@@ -31,7 +38,15 @@ interface StockCategoriesTabProps {
  * StockCategoriesTab — Renders stock category management in a table layout.
  * Supports add, edit, and guarded delete actions for stock categories.
  */
-export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTabProps) => {
+export const StockCategoriesTab = ({
+  categories,
+  categoriesTotal,
+  categoriesPage,
+  categoriesPageSize,
+  onCategoriesPageChange,
+  onCategoriesPageSizeChange,
+  onRefresh,
+}: StockCategoriesTabProps) => {
   const { addToast } = useToast();
 
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -79,7 +94,7 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
           </div>
         </CardHeader>
         <CardBody className="p-0">
-          {!categories.length ? (
+          {categoriesTotal === 0 ? (
             <div className="border border-dashed border-gray-300 p-12 text-center">
               <Tags className="mx-auto mb-3 h-10 w-10 text-gray-400" />
               <h3 className="font-medium text-gray-900">No categories configured</h3>
@@ -145,6 +160,15 @@ export const StockCategoriesTab = ({ categories, onRefresh }: StockCategoriesTab
             </table>
           </div>
           )}
+          {categoriesTotal > 0 ? (
+            <TablePagination
+              total={categoriesTotal}
+              page={categoriesPage}
+              pageSize={categoriesPageSize}
+              onPageChange={onCategoriesPageChange}
+              onPageSizeChange={onCategoriesPageSizeChange}
+            />
+          ) : null}
         </CardBody>
       </Card>
 

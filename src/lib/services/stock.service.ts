@@ -6,7 +6,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { TransactionType } from "@prisma/client";
+import { Prisma, TransactionType } from "@prisma/client";
 import type { z } from "zod";
 import { STOCK_SKU_DIGITS, STOCK_SKU_PREFIX } from "@/lib/constants";
 import type {
@@ -14,6 +14,7 @@ import type {
   stockItemSchema,
   stockTransactionSchema,
 } from "@/lib/validations/stock.schema";
+import type { LowStockNotificationRow } from "@/lib/stock/low-stock-from-api";
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* STOCK CATEGORY SERVICES                                         */
@@ -27,6 +28,37 @@ export async function getStockCategories() {
       _count: { select: { stockItems: true } },
     },
   });
+}
+
+/* Builds optional text search for category list APIs */
+const buildStockCategoryWhere = (q?: string): Prisma.StockCategoryWhereInput => {
+  if (!q || q.trim() === "") return {};
+  const term = q.trim();
+  return {
+    OR: [
+      { name: { contains: term, mode: "insensitive" } },
+      { prefix: { contains: term, mode: "insensitive" } },
+      { description: { contains: term, mode: "insensitive" } },
+    ],
+  };
+};
+
+/** Paginated stock categories for tables and APIs */
+export async function getStockCategoriesPaged(params: { page: number; pageSize: number; q?: string }) {
+  const { page, pageSize, q } = params;
+  const where = buildStockCategoryWhere(q);
+  const skip = (page - 1) * pageSize;
+  const [items, total] = await prisma.$transaction([
+    prisma.stockCategory.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip,
+      take: pageSize,
+      include: { _count: { select: { stockItems: true } } },
+    }),
+    prisma.stockCategory.count({ where }),
+  ]);
+  return { items, total, page, pageSize };
 }
 
 /** Creates a new stock category with duplicate name check */
@@ -96,6 +128,80 @@ export async function getStockItems() {
       _count: { select: { transactions: true } },
     },
   });
+}
+
+/* Optional filters for paged stock item lists (table vs register-asset stock picker) */
+const buildStockItemsWhere = (
+  q?: string,
+  availableForAsset?: boolean
+): Prisma.StockItemWhereInput => {
+  const clauses: Prisma.StockItemWhereInput[] = [];
+  if (q && q.trim() !== "") {
+    const term = q.trim();
+    clauses.push({
+      OR: [
+        { brand: { contains: term, mode: "insensitive" } },
+        { model: { contains: term, mode: "insensitive" } },
+        { sku: { contains: term, mode: "insensitive" } },
+        { location: { contains: term, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (availableForAsset) {
+    clauses.push({ quantity: { gt: 0 } });
+  }
+  if (clauses.length === 0) return {};
+  return { AND: clauses };
+};
+
+/** Paginated stock items for inventory tables and APIs */
+export async function getStockItemsPaged(params: {
+  page: number;
+  pageSize: number;
+  q?: string;
+  availableForAsset?: boolean;
+}) {
+  const { page, pageSize, q, availableForAsset } = params;
+  const where = buildStockItemsWhere(q, availableForAsset);
+  const skip = (page - 1) * pageSize;
+  const [items, total] = await prisma.$transaction([
+    prisma.stockItem.findMany({
+      where,
+      orderBy: [{ brand: "asc" }, { model: "asc" }],
+      skip,
+      take: pageSize,
+      include: {
+        category: true,
+        catalogItem: true,
+        _count: { select: { transactions: true } },
+      },
+    }),
+    prisma.stockItem.count({ where }),
+  ]);
+  return { items, total, page, pageSize };
+}
+
+/**
+ * Loads low-stock lines for banners and notifications (quantity at or below minQuantity).
+ * Uses a DB-side comparison so we never scan the full inventory in application memory.
+ */
+export async function getLowStockStockItemBannerRows(limit: number): Promise<LowStockNotificationRow[]> {
+  const cap = Math.min(Math.max(1, limit), 50);
+  const rows = await prisma.$queryRaw<
+    Array<{ id: string; brand: string; model: string; quantity: number; minQuantity: number }>
+  >(Prisma.sql`
+    SELECT id, brand, model, quantity, "minQuantity"
+    FROM stock_items
+    WHERE quantity <= "minQuantity"
+    ORDER BY quantity ASC
+    LIMIT ${cap}
+  `);
+  return rows.map((row) => ({
+    id: row.id,
+    itemLabel: `${row.brand} ${row.model}`.trim() || "Stock item",
+    quantity: row.quantity,
+    minQuantity: row.minQuantity,
+  }));
 }
 
 /** Fetches a single stock item by ID with full transaction history */

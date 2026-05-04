@@ -13,7 +13,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 ## Features
 
 ### Core
-- **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), structured hardware fields (OS/RAM/storage), and extended identifiers (`MAC`, `serial`, `IP`, `remote address`, `data port`). **Register Asset** can optionally **pull 1 unit** from a stock line that still has available quantity, creating the asset and recording a stock **OUT** transaction
+- **Asset management** — CRUD for PCs, laptops, monitors, printers, peripherals; auto-generated asset tags (`{GLOBAL_PREFIX}-{CATEGORY_PREFIX}-{NUMBER}`), QR labels currently encode an IMC ownership text notice (temporary pre-deployment mode), structured hardware fields (OS/RAM/storage), and extended identifiers (`MAC`, `serial`, `IP`, `remote address`, `data port`). **IT Assets** and other primary tables use **server-side pagination** (10/20/50/100 rows per page) with optional search where applicable. **Register Asset** can optionally **pull 1 unit** from a stock line that still has available quantity, creating the asset and recording a stock **OUT** transaction
 - **PC numbering** — Optional separate PC numbers (e.g. `C000001`)
 - **MAC & serial** — Track network devices and equipment identifiers
 - **Unified categories** — Asset classification now uses **Stock categories** as the single source of truth
@@ -165,27 +165,32 @@ docs/
 
 Handlers live under `src/app/api/`. Most responses use **`{ success: true, data }`** or **`{ success: false, error }`**.
 
+**List GET pagination:** `GET /api/assets`, `/api/buildings`, `/api/departments`, `/api/employees`, `/api/stock-categories`, `/api/stock-items`, and compatibility `GET /api/assets/categories` accept **`page`**, **`pageSize`** (allowed: 10, 20, 50, 100; default page 1 and page size 20) and return  
+`data: { items, total, page, pageSize }`. Optional **`q`** filters text on list rows (assets, employees, stock items/categories, buildings, departments as implemented). **`GET /api/stock-items`** also supports **`availableForAsset=true`** to restrict to lines with `quantity > 0` for register-from-stock pickers.
+
 | Methods | Path | Purpose |
 |---------|------|---------|
 | *(NextAuth)* | `/api/auth/[...nextauth]` | Sign-in, session, callbacks |
-| `GET`, `POST` | `/api/assets` | List / create IT assets |
+| `GET`, `POST` | `/api/assets` | Paginated list / create IT assets |
 | `GET`, `PATCH`, `DELETE` | `/api/assets/[id]` | Single asset (detail), update, delete |
-| `GET`, `POST` | `/api/assets/categories` | Compatibility alias for unified stock categories |
+| `GET` | `/api/assets/recent-assignments` | Latest open assignments for header notifications (optional `limit`) |
+| `GET`, `POST` | `/api/assets/categories` | Paginated compatibility alias for unified stock categories |
 | `PATCH`, `DELETE` | `/api/assets/categories/[id]` | Compatibility alias for unified stock categories |
 | `POST` | `/api/assets/[id]/assignments` | Assign asset to employee and/or room |
 | `POST` | `/api/assets/[id]/assignments/return` | Return asset from assignment |
-| `GET`, `POST` | `/api/buildings` | List / create buildings |
+| `GET`, `POST` | `/api/buildings` | Paginated list / create buildings |
 | `GET`, `PATCH`, `DELETE` | `/api/buildings/[id]` | Get / update / delete a building (includes rooms on GET) |
 | `GET`, `POST` | `/api/rooms` | List / create rooms |
 | `PATCH`, `DELETE` | `/api/rooms/[id]` | Update / delete a room |
-| `GET`, `POST` | `/api/departments` | List / create departments |
+| `GET`, `POST` | `/api/departments` | Paginated list / create departments |
 | `PATCH`, `DELETE` | `/api/departments/[id]` | Update / delete a department |
-| `GET`, `POST` | `/api/employees` | List / create organization employees |
+| `GET`, `POST` | `/api/employees` | Paginated list / create organization employees |
 | `PATCH`, `DELETE` | `/api/employees/[id]` | Update / deactivate an employee |
 | `GET` | `/api/employees/[id]/profile` | Get employee profile with active assignments, asset details, and location details |
-| `GET`, `POST` | `/api/stock-categories` | List / create stock categories |
+| `GET`, `POST` | `/api/stock-categories` | Paginated list / create stock categories |
 | `PATCH`, `DELETE` | `/api/stock-categories/[id]` | Update / delete stock category |
-| `GET`, `POST` | `/api/stock-items` | List / create stock items |
+| `GET`, `POST` | `/api/stock-items` | Paginated list / create stock items |
+| `GET` | `/api/stock-items/low-stock` | Low-stock lines for banner/header (optional `limit`, default 50) |
 | `GET`, `PATCH`, `DELETE` | `/api/stock-items/[id]` | Get / update / delete stock item |
 | `POST` | `/api/stock-items/[id]/convert-to-asset` | Convert 1 stock unit into a tracked asset (strict, atomic) |
 | `GET`, `POST` | `/api/stock-transactions` | List / create stock transactions |

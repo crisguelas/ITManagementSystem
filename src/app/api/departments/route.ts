@@ -4,17 +4,27 @@
  */
 
 import { NextResponse } from "next/server";
-import { getDepartments, createDepartment } from "@/lib/services/organization.service";
+import { getDepartmentsPaged, createDepartment } from "@/lib/services/organization.service";
 import { departmentSchema } from "@/lib/validations/organization.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
+import { parseListPaginationFromUrl } from "@/lib/validations/list-query.schema";
 
-export async function GET() {
-  /* Returns department data for authenticated organization and employee workflows */
+export async function GET(request: Request) {
+  /* Returns paginated department data for authenticated organization and employee workflows */
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
 
-    const data = await getDepartments();
+    const parsed = parseListPaginationFromUrl(request.url);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { page, pageSize, q } = parsed.data;
+    const data = await getDepartmentsPaged({ page, pageSize, q });
     return NextResponse.json({ success: true, data });
   } catch {
     return NextResponse.json({ success: false, error: "Failed to fetch departments" }, { status: 500 });

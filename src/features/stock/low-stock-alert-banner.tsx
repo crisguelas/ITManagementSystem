@@ -8,19 +8,13 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
-import { isAtOrBelowMinimumStock } from "@/lib/stock/low-stock-from-api";
-
-/* Minimal stock item shape needed by this banner */
-interface LowStockItem {
-  id: string;
-  brand: string;
-  model: string;
-  quantity: number;
-  minQuantity: number;
-}
+import {
+  isAtOrBelowMinimumStock,
+  type LowStockNotificationRow,
+} from "@/lib/stock/low-stock-from-api";
 
 interface LowStockAlertBannerProps {
-  items: LowStockItem[];
+  items: LowStockNotificationRow[];
 }
 
 /**
@@ -28,6 +22,7 @@ interface LowStockAlertBannerProps {
  * Keeps urgent stock shortages visible without leaving the current view.
  */
 export const LowStockAlertBanner = ({ items }: LowStockAlertBannerProps) => {
+  /* Rows are usually pre-filtered by `/api/stock-items/low-stock`; keep the guard for manual callers */
   const lowStockItems = useMemo(() => {
     return items.filter((item) => isAtOrBelowMinimumStock(item.quantity, item.minQuantity));
   }, [items]);
@@ -51,10 +46,10 @@ export const LowStockAlertBanner = ({ items }: LowStockAlertBannerProps) => {
       </div>
       
       <div className="mt-3 sm:mt-0 flex flex-nowrap items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-md pb-1 hide-scrollbar">
-        {lowStockItems.slice(0, 3).map(item => (
+        {lowStockItems.slice(0, 3).map((item) => (
           <Link key={item.id} href={`/stock/${item.id}`}>
             <span className="text-xs bg-white text-amber-800 border border-amber-200 px-2 py-1 rounded-md whitespace-nowrap hover:bg-amber-100 flex items-center gap-1 transition-colors">
-              {item.brand} {item.model}
+              {item.itemLabel}
               <span className="font-bold text-amber-600">({item.quantity})</span>
             </span>
           </Link>

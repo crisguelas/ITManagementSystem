@@ -5,16 +5,26 @@
  */
 
 import { NextResponse } from "next/server";
-import { getStockCategories, createStockCategory } from "@/lib/services/stock.service";
+import { getStockCategoriesPaged, createStockCategory } from "@/lib/services/stock.service";
 import { stockCategorySchema } from "@/lib/validations/stock.schema";
 import { requireAdmin, requireSession } from "@/lib/api-auth";
+import { parseListPaginationFromUrl } from "@/lib/validations/list-query.schema";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const authResult = await requireSession();
     if (authResult.response) return authResult.response;
 
-    const categories = await getStockCategories();
+    const parsed = parseListPaginationFromUrl(request.url);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { page, pageSize, q } = parsed.data;
+    const categories = await getStockCategoriesPaged({ page, pageSize, q });
     return NextResponse.json({ success: true, data: categories });
   } catch (error: unknown) {
     console.error("[API_CATEGORIES_GET]", error);
