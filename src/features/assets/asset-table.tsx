@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Asset, StockCategory } from "@prisma/client";
 
-import { Plus, Search } from "lucide-react";
+import { Eye, Plus, Search } from "lucide-react";
 import Link from "next/link";
 
 import { SkeletonTable } from "@/components/ui/loading-state";
@@ -228,11 +228,10 @@ export const AssetTable = () => {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/assets/${asset.id}`}
-                        className="inline-flex items-center justify-center rounded-md bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700 transition-colors hover:bg-primary-100"
-                      >
-                        View Details
+                      <Link href={`/assets/${asset.id}`} className="inline-flex">
+                        <Button type="button" size="sm" variant="outline" leftIcon={<Eye className="h-4 w-4" />}>
+                          View
+                        </Button>
                       </Link>
                     </td>
                   </tr>

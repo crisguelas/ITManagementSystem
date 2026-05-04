@@ -893,3 +893,17 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
 - [ ] Smoke test — paginate/search each table; register asset stock source; header notifications; assign / stock transact employee dropdowns
+
+---
+
+## Assets/Inventory View button UI parity — May 04, 2026
+
+- Updated **Assets → IT Assets** table row action from a custom `View Details` link chip to the shared **outline `Button` + `Eye` icon** pattern used in Organization tables.
+- Updated **Inventory → Inventory Items** table **View** action to include the same `Eye` icon and outline button treatment for cross-module consistency.
+- Kept routing behavior unchanged (`/assets/[id]`, `/stock/[id]`) while harmonizing action-cell visual hierarchy.
+
+### View button UI parity quality check — May 04, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

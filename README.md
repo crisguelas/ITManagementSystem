@@ -29,6 +29,7 @@ The IT Management System (ITMS) helps IT teams manage the full lifecycle of equi
 - **Auto-generated SKU** — New stock items receive system-generated SKU values (`STK-000001`, `STK-000002`, ...)
 - **Transactions** — IN, OUT, RETURN, ADJUSTMENT with audit fields
 - **Audit lock on edits/deletes** — Stock items with transaction history cannot be edited or deleted
+- **Consistent table actions** — View actions in Assets and Inventory tables use the shared outline button style with an eye icon for visual parity with Organization tables
 
 ### Assignment & tracking
 - **Assignments** — Assign assets to employees and/or rooms; return workflow and history

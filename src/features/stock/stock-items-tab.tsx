@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Edit2, Trash2, Package, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Edit2, Eye, Package, Trash2 } from "lucide-react";
 import type { StockItem, StockCategory } from "@prisma/client";
 
 import { useToast } from "@/components/ui/toast";
@@ -162,7 +162,13 @@ export const StockItemsTab = ({
                             Transact
                           </Button>
                           <Link href={`/stock/${item.id}`} passHref>
-                            <Button variant="outline" size="sm" className="h-8 px-3 text-xs text-primary-700">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-3 text-xs"
+                              leftIcon={<Eye className="h-4 w-4" />}
+                            >
                               View
                             </Button>
                           </Link>
