@@ -907,3 +907,24 @@ Unify inventory items and assets under a shared **Catalog** concept so that asse
 - [x] `npx tsc --noEmit` — pass
 - [x] `npm run lint` — pass
 - [x] `npm run build` — pass
+
+---
+
+## Inventory route rename (`/stock` → `/inventory`) — May 04, 2026
+
+- Renamed the dashboard inventory module route from `/stock` to `/inventory` (list and detail pages now resolve at `/inventory` and `/inventory/[id]`).
+- Updated internal UI navigation/links to the new route:
+  - Sidebar inventory nav item (`NAV_ITEMS`)
+  - Dashboard quick action link
+  - Header notification links and inventory shortcut
+  - Inventory table and low-stock banner detail links
+- Added backward-compatible redirects:
+  - `/stock` now redirects to `/inventory`
+  - `/stock/[id]` now redirects to `/inventory/[id]`
+- Updated documentation references in `README.md` and `MANUAL_QA_CHECKLIST.md` to the renamed route paths.
+
+### Inventory route rename quality check — May 04, 2026
+
+- [x] `npx tsc --noEmit` — pass
+- [x] `npm run lint` — pass
+- [x] `npm run build` — pass

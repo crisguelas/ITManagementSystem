@@ -161,7 +161,7 @@ export const StockItemsTab = ({
                           <Button variant="outline" size="sm" onClick={() => handleOpenTx(item)} className="h-8 px-3 text-xs">
                             Transact
                           </Button>
-                          <Link href={`/stock/${item.id}`} passHref>
+                          <Link href={`/inventory/${item.id}`} passHref>
                             <Button
                               type="button"
                               variant="outline"

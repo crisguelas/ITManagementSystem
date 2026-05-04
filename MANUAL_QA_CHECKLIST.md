@@ -44,7 +44,7 @@ Use this checklist for release validation, UAT, and post-merge smoke testing.
 - [ ] `Assets` opens `/assets`.
 - [ ] `Assets` opens `/assets` and shows tabs for `All Assets` and `Categories`.
 - [ ] `Organization` opens `/organization`.
-- [ ] `Stock Room` opens `/stock`.
+- [ ] `Inventory` opens `/inventory`.
 - [ ] `Reports` opens `/reports`.
 - [ ] `Settings` (admin only) opens `/settings`.
 
@@ -109,13 +109,13 @@ Use this checklist for release validation, UAT, and post-merge smoke testing.
 
 ---
 
-## 7) Stock module (`/stock`, `/stock/[id]`)
+## 7) Inventory module (`/inventory`, `/inventory/[id]`)
 
 ### Inventory items tab
 - [ ] Add stock item works with valid category and quantity.
 - [ ] Edit stock item updates values correctly.
 - [ ] Delete item respects transaction safeguards.
-- [ ] Details link opens `/stock/[id]`.
+- [ ] Details link opens `/inventory/[id]`.
 
 ### Stock categories tab
 - [ ] Add category works.

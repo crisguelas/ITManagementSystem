@@ -175,7 +175,7 @@ export const NAV_ITEMS = [
   },
   {
     label: "Inventory",
-    href: "/stock",
+    href: "/inventory",
     icon: "Warehouse",
   },
   {

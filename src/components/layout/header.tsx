@@ -379,7 +379,7 @@ export const Header = ({
                         {lowStockNotificationEntries.map((item) => (
                           <li key={item.id}>
                             <Link
-                              href={`/stock/${item.id}`}
+                              href={`/inventory/${item.id}`}
                               onClick={() => {
                                 markNotificationsAsRead([item.notificationId]);
                                 setIsNotificationsOpen(false);
@@ -448,7 +448,7 @@ export const Header = ({
 
               <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
                 <Link
-                  href="/stock"
+                  href="/inventory"
                   onClick={() => setIsNotificationsOpen(false)}
                   className="text-xs font-medium text-primary-600 hover:text-primary-700"
                 >

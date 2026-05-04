@@ -228,7 +228,7 @@ This run focused on verifying that system navigation, interactive controls (butt
 
 - Sidebar navigation (`Dashboard`, `Assets`, `Organization`, `Inventory`, `Reports`, `Settings`) maps to existing pages.
 - Dashboard quick-action links route to `assets`, `organization`, and `stock`.
-- Detail-page links (`/assets/[id]`, `/stock/[id]`) and back links are present and correctly targeted.
+- Detail-page links (`/assets/[id]`, `/inventory/[id]`) and back links are present and correctly targeted.
 - Settings links route to `/settings/users` and remain role-gated by admin checks.
 
 ### Button and action wiring checks

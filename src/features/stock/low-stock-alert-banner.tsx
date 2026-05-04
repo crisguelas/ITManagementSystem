@@ -47,7 +47,7 @@ export const LowStockAlertBanner = ({ items }: LowStockAlertBannerProps) => {
       
       <div className="mt-3 sm:mt-0 flex flex-nowrap items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-md pb-1 hide-scrollbar">
         {lowStockItems.slice(0, 3).map((item) => (
-          <Link key={item.id} href={`/stock/${item.id}`}>
+          <Link key={item.id} href={`/inventory/${item.id}`}>
             <span className="text-xs bg-white text-amber-800 border border-amber-200 px-2 py-1 rounded-md whitespace-nowrap hover:bg-amber-100 flex items-center gap-1 transition-colors">
               {item.itemLabel}
               <span className="font-bold text-amber-600">({item.quantity})</span>
